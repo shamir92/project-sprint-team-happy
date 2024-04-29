@@ -1,2 +1,94 @@
-database.env 
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+# Executable files and binaries
+*.exe
+*.out
+*.bin
+*.test
+
+# Log and data files generated during runtime
+*.log
+*.dat
+
+# Directory for output binaries and package archives
+/bin/
+/pkg/
+
+# Dependency directories
+/vendor/
+
+# Ignore Go modules directory
+/vendor/
+*.mod
+*.sum
+
+# Editor and IDE directories and files
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# Operating System Files
+# macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.DocumentRevisions-V100
+.TemporaryItems
+.Trashes
+.fseventsd
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux files
+*~
+
+# Thumbnail cache files
+._*
+.Thumbs.db
+ehthumbs.db
+.DB_Store
+
+# Windows files
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+System Volume Information/
+
+# Windows-specific files (executable binaries)
+*.exe
+*.dll
+*.bat
+
+# Package Files
+*.deb
+*.rpm
+
+# Virtual Machine and Backup Files
+*.vmdk
+*.vmx
+*.vmxf
+*.vmsd
+*.vbox
+*.vbox-prev
+*.ova
+*.ovf
+*.img
+*.qcow
+*.qcow2
+*.vdi
+.ntfs
+
+# Swap files
+.swap
+
+# Environment variables file
 .env
+database.env 
