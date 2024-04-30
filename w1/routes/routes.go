@@ -11,7 +11,6 @@ func RegisterRoutes(r *gin.Engine) {
 	v1 := r.Group("/v1")
 	{
 		v1.POST("/login", controllers.Login)
-
+		v1.POST("/user/register", controllers.Register)
 	}
-
 }
