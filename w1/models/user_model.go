@@ -2,6 +2,7 @@ package models
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"gin-mvc/internal"
 	"os"
@@ -38,8 +39,13 @@ func CreateUser(newUser RegisterUser) (User, error) {
 
 	// check email already registered or not
 	var scannedEmail string
-	row := db.QueryRow(`SELECT email FROM users WHERE email = $1`, strings.ToLower(newUser.Email))
-	if err := row.Scan(&scannedEmail); err != nil && scannedEmail != "" {
+	err := db.QueryRow(`SELECT email FROM users WHERE email = $1`, strings.ToLower(newUser.Email)).Scan(&scannedEmail)
+
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return User{}, err
+	}
+
+	if len(scannedEmail) > 0 {
 		return User{}, ErrUserEmailAlreadyRegistered
 	}
 
@@ -51,7 +57,7 @@ func CreateUser(newUser RegisterUser) (User, error) {
 
 	// Bcrypt Salt
 	var salt int
-	salt, err := strconv.Atoi(os.Getenv("BCRYPT_SALT"))
+	salt, err = strconv.Atoi(os.Getenv("BCRYPT_SALT"))
 	if err != nil {
 		return User{}, err
 	}
