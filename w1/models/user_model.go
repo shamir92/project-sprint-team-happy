@@ -1,9 +1,21 @@
 package models
 
 import (
+	"bytes"
+	"errors"
+	"gin-mvc/internal"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	ErrUserNotFound               = errors.New("user not found")
+	ErrUserEmailAlreadyRegistered = errors.New("email already registered")
 )
 
 type User struct {
@@ -13,4 +25,54 @@ type User struct {
 	Password  string     `db:"password" json:"-"`            // varchar(72), not returned in JSON
 	CreatedAt time.Time  `db:"created_at" json:"created_at"` // timestamp with time zone
 	UpdatedAt *time.Time `db:"updated_at" json:"updated_at"` // timestamp with time zone, nullable
+}
+
+type RegisterUser struct {
+	FullName string `json:"fullname"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func CreateUser(newUser RegisterUser) (User, error) {
+	db := internal.GetDB()
+
+	// check email already registered or not
+	var scannedEmail string
+	row := db.QueryRow(`SELECT email FROM users WHERE email = $1`, strings.ToLower(newUser.Email))
+	if err := row.Scan(&scannedEmail); err != nil && scannedEmail != "" {
+		return User{}, ErrUserEmailAlreadyRegistered
+	}
+
+	createdUser := User{
+		FullName: newUser.FullName,
+		Password: newUser.Password,
+		Email:    strings.ToLower(newUser.Email),
+	}
+
+	// Bcrypt Salt
+	var salt int
+	salt, err := strconv.Atoi(os.Getenv("BCRYPT_SALT"))
+	if err != nil {
+		return User{}, err
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(createdUser.Password), salt)
+	if err != nil {
+		return User{}, err
+	}
+
+	createdUser.Password = bytes.NewBuffer(hashedPassword).String()
+
+	insertQuery := `
+		INSERT INTO users(fullname, email, password)
+		VALUES($1, $2, $3) RETURNING id
+	`
+
+	err = db.QueryRow(insertQuery, createdUser.FullName, createdUser.Email, createdUser.Password).Scan(&createdUser.ID)
+
+	if err != nil {
+		return User{}, err
+	}
+
+	return createdUser, nil
 }

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"gin-mvc/config"
 	"gin-mvc/dtos"
 	"gin-mvc/internal"
@@ -11,6 +12,23 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
+
+func generteToken(user models.User) (string, error) {
+	jwtConfig := config.NewJWT()
+
+	data := map[string]interface{}{
+		"id":    user.ID,
+		"email": user.Email,
+	}
+
+	jwtToken, err := jwtConfig.GenerateJWT(data)
+
+	if err != nil {
+		return "", err
+	}
+
+	return jwtToken, nil
+}
 
 func Login(c *gin.Context) {
 	jwtConfig := config.NewJWT()
@@ -37,9 +55,10 @@ func Login(c *gin.Context) {
 			"data":    gin.H{},
 		})
 	}
+
 	data := map[string]interface{}{
-		"id":   user.ID,
-		"emil": user.Email,
+		"id":    user.ID,
+		"email": user.Email,
 	}
 
 	jwtToken, err := jwtConfig.GenerateJWT(data)
@@ -53,6 +72,63 @@ func Login(c *gin.Context) {
 			"email":       user.Email,
 			"name":        user.FullName,
 			"accessToken": jwtToken, // token should have 8 hours until expiration
+		},
+	})
+}
+
+func Register(c *gin.Context) {
+	// TODO: adjust based on project requirement
+	reqBody := struct {
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
+		Fullname string `json:"name" binding:"required"`
+	}{}
+
+	if err := c.BindJSON(&reqBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	createdUser, err := models.CreateUser(models.RegisterUser{
+		Email:    reqBody.Email,
+		Password: reqBody.Password,
+		FullName: reqBody.Fullname,
+	})
+
+	// TODO: make an error handler
+	if err != nil {
+		switch {
+		case errors.Is(err, models.ErrUserEmailAlreadyRegistered):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "INTERNAL SERVER ERROR",
+			})
+			return
+		}
+	}
+
+	accessToken, err := generteToken(createdUser)
+
+	// TODO: make a proper error handler
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "INTERNAL SERVER ERROR",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "User registered successfully",
+		"data": gin.H{
+			"email":       createdUser.Email,
+			"name":        createdUser.FullName,
+			"accessToken": accessToken,
 		},
 	})
 }
