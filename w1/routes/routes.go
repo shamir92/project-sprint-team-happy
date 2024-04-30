@@ -7,6 +7,11 @@ import (
 )
 
 func RegisterRoutes(r *gin.Engine) {
-	r.GET("/", controllers.Index)
-	r.GET("/users", controllers.GetUsers)
+	r.GET("/ping", controllers.Ping)
+	v1 := r.Group("/v1")
+	{
+		v1.POST("/login", controllers.Login)
+
+	}
+
 }
