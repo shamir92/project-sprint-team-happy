@@ -33,6 +33,18 @@ type Cat struct {
 	UpdatedAt   sql.NullTime `db:"updated_at" json:"updated_at"`     // timestamp with time zone, nullable
 }
 
+type CatMatchResponse struct {
+	ID          uuid.UUID      `db:"id" json:"id"`                     // UUID primary key
+	Name        string         `db:"name" json:"name"`                 // VARCHAR(30)
+	Sex         string         `db:"sex" json:"sex"`                   // VARCHAR(10)
+	AgeInMonth  int            `db:"age_in_month" json:"age_in_month"` // INT
+	Description string         `db:"description" json:"description"`   // VARCHAR(20)
+	ImageURLs   pq.StringArray `db:"image_urls" json:"image_urls"`     // TEXT[], array of strings in Go
+	Race        string         `db:"race" json:"race"`                 // VARCHAR(50)
+	HasMatched  bool           `db:"has_matched" json:"has_matched"`   // BOOLEAN with default false
+	CreatedAt   time.Time      `db:"created_at" json:"created_at"`     // timestamp with time zone
+}
+
 func (c *Cat) update(in EditCatIn) {
 	c.Name = in.Name
 	c.Race = in.Race
@@ -120,4 +132,25 @@ func EditCat(in EditCatIn, userId string) (Cat, error) {
 	}
 
 	return cat, nil
+}
+
+func CatGetById(id string, db *sqlx.DB) (Cat, error) {
+	if db == nil {
+		db = internal.GetDB()
+	}
+
+	cat := Cat{}
+	query := `
+		SELECT 
+			id, name, sex, owner_id, has_matched
+		FROM 
+			cats WHERE id = $1 AND deleted_at IS NULL
+	`
+	err := db.QueryRow(query, id).Scan(&cat.ID, &cat.Name, &cat.Sex, &cat.OwnerID, &cat.HasMatched)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
+	}
+
+	return cat, err
 }

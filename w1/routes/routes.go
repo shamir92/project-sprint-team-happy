@@ -19,5 +19,9 @@ func RegisterRoutes(r *gin.Engine) {
 
 		// cats
 		v1.PUT("/cat/:catId", middlewares.AuthMiddleware(), controllers.EditCatById)
+
+		match := v1.Group("/match")
+		match.GET("", controllers.MatchBrowse)
+		match.POST("", controllers.MatchCreate)
 	}
 }
