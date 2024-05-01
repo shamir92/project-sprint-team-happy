@@ -12,6 +12,23 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func generateJwtToken(user models.User) (string, error) {
+	jwtConfig := config.NewJWT()
+
+	data := map[string]interface{}{
+		"id":    user.ID,
+		"email": user.Email,
+	}
+
+	jwtToken, err := jwtConfig.GenerateJWT(data)
+
+	if err != nil {
+		return "", err
+	}
+
+	return jwtToken, nil
+}
+
 func Login(c *gin.Context) {
 	jwtConfig := config.NewJWT()
 	var db = internal.GetDB()
@@ -37,9 +54,10 @@ func Login(c *gin.Context) {
 			"data":    gin.H{},
 		})
 	}
+
 	data := map[string]interface{}{
-		"id":   user.ID,
-		"emil": user.Email,
+		"id":    user.ID,
+		"email": user.Email,
 	}
 
 	jwtToken, err := jwtConfig.GenerateJWT(data)
@@ -53,6 +71,48 @@ func Login(c *gin.Context) {
 			"email":       user.Email,
 			"name":        user.FullName,
 			"accessToken": jwtToken, // token should have 8 hours until expiration
+		},
+	})
+}
+
+func Register(c *gin.Context) {
+	// TODO: adjust based on project requirement
+	reqBody := struct {
+		Email    string `json:"email" binding:"required,email"`
+		Name     string `json:"name" binding:"required,min=5,max=50"`
+		Password string `json:"password" binding:"required,min=5,max=15"`
+	}{}
+
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		handleError(c, err)
+		return
+	}
+
+	createdUser, err := models.CreateUser(models.RegisterUser{
+		Email:    reqBody.Email,
+		Password: reqBody.Password,
+		FullName: reqBody.Name,
+	})
+
+	// TODO: make an error handler
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	accessToken, err := generateJwtToken(createdUser)
+
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "User registered successfully",
+		"data": gin.H{
+			"email":       createdUser.Email,
+			"name":        createdUser.FullName,
+			"accessToken": accessToken,
 		},
 	})
 }
