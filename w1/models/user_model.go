@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"gin-mvc/internal"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -18,6 +19,19 @@ var (
 	ErrUserNotFound               = errors.New("user not found")
 	ErrUserEmailAlreadyRegistered = errors.New("email already registered")
 )
+
+type UserError struct {
+	Message    string
+	StatusCode int
+}
+
+func (u UserError) Error() string {
+	return u.Message
+}
+
+func (u UserError) HTTPStatusCode() int {
+	return u.StatusCode
+}
 
 type User struct {
 	ID        uuid.UUID  `db:"id" json:"id"`                 // uuid from github.com/google/uuid
@@ -41,12 +55,14 @@ func CreateUser(newUser RegisterUser) (User, error) {
 	var scannedEmail string
 	err := db.QueryRow(`SELECT email FROM users WHERE email = $1`, strings.ToLower(newUser.Email)).Scan(&scannedEmail)
 
-	if err != nil && errors.Is(err, sql.ErrNoRows) {
+	// if the error is sql.ErrNowRows, it means the email  hasn't registered yet
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Fatalln(err)
 		return User{}, err
 	}
 
 	if len(scannedEmail) > 0 {
-		return User{}, ErrUserEmailAlreadyRegistered
+		return User{}, UserError{Message: ErrUserEmailAlreadyRegistered.Error()}
 	}
 
 	createdUser := User{
@@ -57,7 +73,9 @@ func CreateUser(newUser RegisterUser) (User, error) {
 
 	// Bcrypt Salt
 	var salt int
+
 	salt, err = strconv.Atoi(os.Getenv("BCRYPT_SALT"))
+
 	if err != nil {
 		return User{}, err
 	}
