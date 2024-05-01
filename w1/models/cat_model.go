@@ -33,7 +33,7 @@ type Cat struct {
 	UpdatedAt   sql.NullTime `db:"updated_at" json:"updated_at"`     // timestamp with time zone, nullable
 }
 
-func (c *Cat) update(in EditCatIn) {
+func (c *Cat) update(in CreateOrUpdateCatIn) {
 	c.Name = in.Name
 	c.Race = in.Race
 	c.AgeInMonth = in.Age
@@ -58,10 +58,11 @@ func (c CatError) HTTPStatusCode() int {
 	return c.Code
 }
 
-type EditCatIn struct {
+type CreateOrUpdateCatIn struct {
 	ID          string
 	Name        string
 	Race        string
+	Sex         string
 	Age         int
 	Description string
 	ImageURLs   []string
@@ -84,7 +85,25 @@ func getCatByIdAndOwnerId(catId string, ownerId string, db *sqlx.DB) (Cat, error
 	return cat, err
 }
 
-func EditCat(in EditCatIn, userId string) (Cat, error) {
+func CreateCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
+	db := internal.GetDB()
+	insertCatQuery := `
+		INSERT INTO cats (name, race, sex, age_in_month, description, image_urls, owner_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, created_at;
+	`
+
+	createdCat := Cat{}
+	err := db.QueryRow(insertCatQuery, in.Name, in.Race, in.Sex, in.Age, in.Description, pq.Array(in.ImageURLs), userId).Scan(&createdCat.ID, &createdCat.CreatedAt)
+
+	if err != nil {
+		return Cat{}, err
+	}
+
+	return createdCat, nil
+}
+
+func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 	if _, err := uuid.Parse(in.ID); err != nil {
 		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
