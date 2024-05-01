@@ -81,3 +81,19 @@ func EditCatById(c *gin.Context) {
 		},
 	})
 }
+
+func DeleteCatById(c *gin.Context) {
+	catId := c.Param("catId")
+	userId := c.GetString("userId")
+
+	err := models.DeleteCatById(catId, userId)
+
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+	})
+}

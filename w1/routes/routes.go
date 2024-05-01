@@ -20,5 +20,6 @@ func RegisterRoutes(r *gin.Engine) {
 		// cats
 		v1.POST("/cat", middlewares.AuthMiddleware(), controllers.CreateCat)
 		v1.PUT("/cat/:catId", middlewares.AuthMiddleware(), controllers.EditCatById)
+		v1.DELETE("/cat/:catId", middlewares.AuthMiddleware(), controllers.DeleteCatById)
 	}
 }
