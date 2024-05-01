@@ -39,7 +39,7 @@ func Login(c *gin.Context) {
 	}
 
 	user := models.User{}
-	err := db.Get(&user, "SELECT id,  email, password FROM users WHERE email=$1", reqData.Email)
+	err := db.Get(&user, "SELECT id,  email, fullname, password FROM users WHERE email=$1", reqData.Email)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message": "user not found",
