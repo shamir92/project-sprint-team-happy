@@ -16,5 +16,8 @@ func RegisterRoutes(r *gin.Engine) {
 		v1.POST("/user/register", controllers.Register)
 		// private route with auth middleware
 		v1.GET("/ping-private", middlewares.AuthMiddleware(), controllers.Ping)
+
+		// cats
+		v1.PUT("/cat/:catId", middlewares.AuthMiddleware(), controllers.EditCatById)
 	}
 }
