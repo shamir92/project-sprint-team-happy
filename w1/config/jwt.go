@@ -50,7 +50,7 @@ func (jt *jsonToken) GenerateJWT(data map[string]interface{}) (string, error) {
 		claims[key] = value
 	}
 	claims["nbf"] = time.Now().Unix()
-	claims["exp"] = jt.getExpirationTIme()
+	claims["exp"] = jt.getExpirationTIme().Unix()
 
 	// Create a new JWT token with the claims and signing method
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
