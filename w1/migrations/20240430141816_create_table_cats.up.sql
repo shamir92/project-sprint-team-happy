@@ -6,7 +6,7 @@ CREATE TABLE cats (
     "description" VARCHAR(200) NOT NULL,
     image_urls TEXT [],
     race VARCHAR(50) NOT NULL,
-    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     has_matched BOOLEAN DEFAULT FALSE,
     owner_id UUID NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
