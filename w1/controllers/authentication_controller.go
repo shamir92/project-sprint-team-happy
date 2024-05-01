@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"gin-mvc/config"
 	"gin-mvc/dtos"
 	"gin-mvc/internal"
@@ -79,47 +78,32 @@ func Login(c *gin.Context) {
 func Register(c *gin.Context) {
 	// TODO: adjust based on project requirement
 	reqBody := struct {
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
-		Fullname string `json:"name" binding:"required"`
+		Email    string `json:"email" binding:"required,email"`
+		Name     string `json:"name" binding:"required,min=5,max=50"`
+		Password string `json:"password" binding:"required,min=5,max=15"`
 	}{}
 
-	if err := c.BindJSON(&reqBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-		})
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		handleError(c, err)
 		return
 	}
 
 	createdUser, err := models.CreateUser(models.RegisterUser{
 		Email:    reqBody.Email,
 		Password: reqBody.Password,
-		FullName: reqBody.Fullname,
+		FullName: reqBody.Name,
 	})
 
 	// TODO: make an error handler
 	if err != nil {
-		switch {
-		case errors.Is(err, models.ErrUserEmailAlreadyRegistered):
-			c.JSON(http.StatusBadRequest, gin.H{
-				"message": err.Error(),
-			})
-			return
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "INTERNAL SERVER ERROR",
-			})
-			return
-		}
+		handleError(c, err)
+		return
 	}
 
 	accessToken, err := generteToken(createdUser)
 
-	// TODO: make a proper error handler
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "INTERNAL SERVER ERROR",
-		})
+		handleError(c, err)
 		return
 	}
 
