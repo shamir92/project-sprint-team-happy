@@ -12,7 +12,7 @@ func RegisterRoutes(r *gin.Engine) {
 	v1 := r.Group("/v1")
 	{
 		// public route without auth middleware
-		v1.POST("/login", controllers.Login)
+		v1.POST("/user/login", controllers.Login)
 		v1.POST("/user/register", controllers.Register)
 		// private route with auth middleware
 		v1.GET("/ping-private", middlewares.AuthMiddleware(), controllers.Ping)
