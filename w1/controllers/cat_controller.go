@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gin-mvc/internal"
 	"gin-mvc/models"
 	"net/http"
 
@@ -43,7 +44,7 @@ func CreateCat(c *gin.Context) {
 		"message": "success",
 		"data": gin.H{
 			"id":        cat.ID,
-			"createdAt": cat.CreatedAt.Format("2006-01-02T15:04:05Z07:00"), // ISO8601
+			"createdAt": internal.ToISO8601Format(cat.CreatedAt), // ISO8601
 		},
 	})
 }
