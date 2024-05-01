@@ -12,7 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func generteToken(user models.User) (string, error) {
+func generateJwtToken(user models.User) (string, error) {
 	jwtConfig := config.NewJWT()
 
 	data := map[string]interface{}{
@@ -100,7 +100,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := generteToken(createdUser)
+	accessToken, err := generateJwtToken(createdUser)
 
 	if err != nil {
 		handleError(c, err)
