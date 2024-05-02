@@ -69,6 +69,7 @@ func EditCatById(c *gin.Context) {
 		Age:         reqBody.AgeInMonth,
 		Description: reqBody.Description,
 		ImageURLs:   reqBody.ImageUrls,
+		Sex:         reqBody.Sex,
 	}, userId)
 
 	if err != nil {

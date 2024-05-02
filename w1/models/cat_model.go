@@ -206,6 +206,7 @@ func CreateCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 	return createdCat, nil
 }
 
+// TODO: impelement edit cat's sex requirement
 func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 	if _, err := uuid.Parse(in.ID); err != nil {
 		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
@@ -244,6 +245,7 @@ func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 	return cat, nil
 }
 
+// TODO: validate cat based on requirement matches before deleting the cat
 func DeleteCatById(catId string, userId string) error {
 	db := internal.GetDB()
 	if _, err := uuid.Parse(catId); err != nil {
