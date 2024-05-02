@@ -42,6 +42,12 @@ type User struct {
 	UpdatedAt *time.Time `db:"updated_at" json:"updated_at"` // timestamp with time zone, nullable
 }
 
+type UserMatch struct {
+	FullName  string    `json:"name"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type RegisterUser struct {
 	FullName string `json:"fullname"`
 	Email    string `json:"email"`

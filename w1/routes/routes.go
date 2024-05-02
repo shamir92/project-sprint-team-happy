@@ -21,5 +21,9 @@ func RegisterRoutes(r *gin.Engine) {
 		v1.POST("/cat", middlewares.AuthMiddleware(), controllers.CreateCat)
 		v1.PUT("/cat/:catId", middlewares.AuthMiddleware(), controllers.EditCatById)
 		v1.DELETE("/cat/:catId", middlewares.AuthMiddleware(), controllers.DeleteCatById)
+
+		match := v1.Group("/match")
+		match.GET("", middlewares.AuthMiddleware(), controllers.MatchBrowse)
+		match.POST("", middlewares.AuthMiddleware(), controllers.MatchCreate)
 	}
 }

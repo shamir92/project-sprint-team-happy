@@ -14,23 +14,24 @@ import (
 )
 
 var (
-	ErrCatNotFound = errors.New("cat not found")
+	ErrCatNotFound   = errors.New("cat not found")
+	ErrCatIsNotOwned = errors.New("cat is not owned")
 )
 
 type Cat struct {
-	ID          uuid.UUID    `db:"id" json:"id"`                     // UUID primary key
-	Name        string       `db:"name" json:"name"`                 // VARCHAR(30)
-	Sex         string       `db:"sex" json:"sex"`                   // VARCHAR(10)
-	AgeInMonth  int          `db:"age_in_month" json:"age_in_month"` // INT
-	Description string       `db:"description" json:"description"`   // VARCHAR(20)
-	ImageURLs   []string     `db:"image_urls" json:"image_urls"`     // TEXT[], array of strings in Go
-	Race        string       `db:"race" json:"race"`                 // VARCHAR(50)
-	CreatedBy   uuid.UUID    `db:"created_by" json:"created_by"`     // UUID
-	DeletedAt   sql.NullTime `db:"deleted_at" json:"deleted_at"`     // TIMESTAMP WITH TIME ZONE, nullable
-	HasMatched  bool         `db:"has_matched" json:"has_matched"`   // BOOLEAN with default false
-	OwnerID     uuid.UUID    `db:"owner_id" json:"owner_id"`         // UUID
-	CreatedAt   time.Time    `db:"created_at" json:"created_at"`     // timestamp with time zone
-	UpdatedAt   sql.NullTime `db:"updated_at" json:"updated_at"`     // timestamp with time zone, nullable
+	ID          uuid.UUID      `db:"id" json:"id"`                     // UUID primary key
+	Name        string         `db:"name" json:"name"`                 // VARCHAR(30)
+	Sex         string         `db:"sex" json:"sex"`                   // VARCHAR(10)
+	AgeInMonth  int            `db:"age_in_month" json:"age_in_month"` // INT
+	Description string         `db:"description" json:"description"`   // VARCHAR(20)
+	ImageURLs   pq.StringArray `db:"image_urls" json:"image_urls"`     // TEXT[], array of strings in Go
+	Race        string         `db:"race" json:"race"`                 // VARCHAR(50)
+	CreatedBy   uuid.UUID      `db:"created_by" json:"created_by"`     // UUID
+	DeletedAt   sql.NullTime   `db:"deleted_at" json:"deleted_at"`     // TIMESTAMP WITH TIME ZONE, nullable
+	HasMatched  bool           `db:"has_matched" json:"has_matched"`   // BOOLEAN with default false
+	OwnerID     uuid.UUID      `db:"owner_id" json:"owner_id"`         // UUID
+	CreatedAt   time.Time      `db:"created_at" json:"created_at"`     // timestamp with time zone
+	UpdatedAt   sql.NullTime   `db:"updated_at" json:"updated_at"`     // timestamp with time zone, nullable
 }
 
 func (c *Cat) update(in CreateOrUpdateCatIn) {
@@ -68,7 +69,7 @@ type CreateOrUpdateCatIn struct {
 	ImageURLs   []string
 }
 
-func getCatByIdAndOwnerId(catId string, ownerId string, db *sqlx.DB) (Cat, error) {
+func GetCayById(catId string, db *sqlx.DB) (Cat, error) {
 	cat := Cat{}
 
 	selectQuery := `
@@ -76,7 +77,23 @@ func getCatByIdAndOwnerId(catId string, ownerId string, db *sqlx.DB) (Cat, error
 			id, name, sex, age_in_month, description,
 			image_urls, race, owner_id
 		FROM 
-			cats WHERE id = $1 AND owner_id = $2
+			cats WHERE id = $1 AND deleted_at IS NULL
+	`
+
+	err := db.Get(&cat, selectQuery, catId)
+
+	return cat, err
+}
+
+func GetCatByIdAndOwnerId(catId string, ownerId string, db *sqlx.DB) (Cat, error) {
+	cat := Cat{}
+
+	selectQuery := `
+		SELECT 
+			id, name, sex, age_in_month, description,
+			image_urls, race, owner_id
+		FROM 
+			cats WHERE id = $1 AND owner_id $2 AND deleted_at IS NULL
 	`
 
 	err := db.Get(&cat, selectQuery, catId, ownerId)
@@ -109,7 +126,7 @@ func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 
 	db := internal.GetDB()
 
-	cat, err := getCatByIdAndOwnerId(in.ID, userId, db)
+	cat, err := GetCatByIdAndOwnerId(in.ID, userId, db)
 
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
@@ -146,7 +163,7 @@ func DeleteCatById(catId string, userId string) error {
 		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
 
-	_, err := getCatByIdAndOwnerId(catId, userId, db)
+	_, err := GetCatByIdAndOwnerId(catId, userId, db)
 
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
@@ -168,6 +185,14 @@ func DeleteCatById(catId string, userId string) error {
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func CheckIfCatIsOwnedByUser(ownerId string, userId string) error {
+	if ownerId != userId {
+		return CatError{Message: ErrCatIsNotOwned.Error(), Code: http.StatusBadRequest}
 	}
 
 	return nil
