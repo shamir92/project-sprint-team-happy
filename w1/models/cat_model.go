@@ -314,7 +314,7 @@ func GetCats(opts GetCatOption, userId string) ([]CatOut, error) {
 		query += fmt.Sprintf(" AND owner_id = $%d", len(values))
 	}
 
-	if IsValidCatRice(opts.Race) {
+	if IsValidCatRace(opts.Race) {
 		values = append(values, opts.Race)
 		query += fmt.Sprintf(" AND race = $%d", len(values))
 	}

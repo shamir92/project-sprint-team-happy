@@ -22,7 +22,7 @@ const (
 	CatFemale CatSex = "female"
 )
 
-func IsValidCatRice(race string) bool {
+func IsValidCatRace(race string) bool {
 	var raceNames = map[string]CatRace{
 		"Persian":           Persian,
 		"Maine Coon":        MaineCoon,
