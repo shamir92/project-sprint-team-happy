@@ -26,14 +26,14 @@ type Cat struct {
 	ImageURLs   []string     `db:"image_urls" json:"image_urls"`     // TEXT[], array of strings in Go
 	Race        string       `db:"race" json:"race"`                 // VARCHAR(50)
 	CreatedBy   uuid.UUID    `db:"created_by" json:"created_by"`     // UUID
-	DeletedAt   *time.Time   `db:"deleted_at" json:"deleted_at"`     // TIMESTAMP WITH TIME ZONE, nullable
+	DeletedAt   sql.NullTime `db:"deleted_at" json:"deleted_at"`     // TIMESTAMP WITH TIME ZONE, nullable
 	HasMatched  bool         `db:"has_matched" json:"has_matched"`   // BOOLEAN with default false
 	OwnerID     uuid.UUID    `db:"owner_id" json:"owner_id"`         // UUID
 	CreatedAt   time.Time    `db:"created_at" json:"created_at"`     // timestamp with time zone
 	UpdatedAt   sql.NullTime `db:"updated_at" json:"updated_at"`     // timestamp with time zone, nullable
 }
 
-func (c *Cat) update(in EditCatIn) {
+func (c *Cat) update(in CreateOrUpdateCatIn) {
 	c.Name = in.Name
 	c.Race = in.Race
 	c.AgeInMonth = in.Age
@@ -58,17 +58,17 @@ func (c CatError) HTTPStatusCode() int {
 	return c.Code
 }
 
-type EditCatIn struct {
+type CreateOrUpdateCatIn struct {
 	ID          string
 	Name        string
 	Race        string
+	Sex         string
 	Age         int
 	Description string
 	ImageURLs   []string
 }
 
 func getCatByIdAndOwnerId(catId string, ownerId string, db *sqlx.DB) (Cat, error) {
-
 	cat := Cat{}
 
 	selectQuery := `
@@ -84,7 +84,25 @@ func getCatByIdAndOwnerId(catId string, ownerId string, db *sqlx.DB) (Cat, error
 	return cat, err
 }
 
-func EditCat(in EditCatIn, userId string) (Cat, error) {
+func CreateCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
+	db := internal.GetDB()
+	insertCatQuery := `
+		INSERT INTO cats (name, race, sex, age_in_month, description, image_urls, owner_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, created_at;
+	`
+
+	createdCat := Cat{}
+	err := db.QueryRow(insertCatQuery, in.Name, in.Race, in.Sex, in.Age, in.Description, pq.Array(in.ImageURLs), userId).Scan(&createdCat.ID, &createdCat.CreatedAt)
+
+	if err != nil {
+		return Cat{}, err
+	}
+
+	return createdCat, nil
+}
+
+func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 	if _, err := uuid.Parse(in.ID); err != nil {
 		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
@@ -93,7 +111,7 @@ func EditCat(in EditCatIn, userId string) (Cat, error) {
 
 	cat, err := getCatByIdAndOwnerId(in.ID, userId, db)
 
-	if errors.Is(err, sql.ErrNoRows) {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
 
@@ -104,12 +122,12 @@ func EditCat(in EditCatIn, userId string) (Cat, error) {
 			cats
 		SET 
 			name = $1, race = $2, age_in_month = $3, 
-			description = $4, image_urls = $5
+			description = $4, image_urls = $5, updated_at = $6
 		WHERE
-			id = $6
+			id = $7
 	`
 
-	res, err := db.Exec(updateQuery, cat.Name, cat.Race, cat.AgeInMonth, cat.Description, pq.Array(cat.ImageURLs), cat.ID)
+	res, err := db.Exec(updateQuery, cat.Name, cat.Race, cat.AgeInMonth, cat.Description, pq.Array(cat.ImageURLs), cat.UpdatedAt, cat.ID)
 
 	if err != nil {
 		return Cat{}, err
@@ -120,4 +138,37 @@ func EditCat(in EditCatIn, userId string) (Cat, error) {
 	}
 
 	return cat, nil
+}
+
+func DeleteCatById(catId string, userId string) error {
+	db := internal.GetDB()
+	if _, err := uuid.Parse(catId); err != nil {
+		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
+	}
+
+	_, err := getCatByIdAndOwnerId(catId, userId, db)
+
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
+	}
+
+	softDeleteCatQuery := `
+		UPDATE cats
+		SET deleted_at = $1
+		WHERE (id = $2 AND owner_id = $3)
+	`
+
+	result, err := db.Exec(softDeleteCatQuery, time.Now(), catId, userId)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
