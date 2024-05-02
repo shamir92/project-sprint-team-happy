@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 var (
@@ -16,11 +17,9 @@ var (
 	MatchStatusRejected = "rejected"
 	MatchStatusApproved = "approved"
 
-	ErrNeitherCatNotFound   = errors.New("neither match/own cat is not found")
-	ErrSameGender           = errors.New("can't match cat with same gender")
-	ErrCatAlreadyMatched    = errors.New("cat already matched")
-	ErrCantMatchYourOwnCats = errors.New("can't match your own cat(s)")
-	ErrCantMatchOtherCats   = errors.New("can't match other cat(s)")
+	ErrSameGender                 = errors.New("can't match cats with same gender")
+	ErrCantMatchAlreadyMatchedCat = errors.New("cats already matched")
+	ErrCantMatchOwnedCats         = errors.New("can't match owned cats")
 )
 
 type MatchError struct {
@@ -49,22 +48,32 @@ type Match struct {
 	DeletedAt     *time.Time `db:"deleted_at" json:"deleted_at"`           // TIMESTAMP WITH TIME ZONE, nullable
 }
 
-type MatchInfo struct {
-	ID             uuid.UUID        `db:"id" json:"id"`
-	IssuedBy       UserMatch        `json:"issuedBy"`
-	MatchCatDetail CatMatchResponse `json:"matchCatDetail"`
-	UserCatDetail  CatMatchResponse `json:"userCatDetail"`
-	Message        string           `db:"message" json:"message"`      // VARCHAR(120)
-	Status         string           `db:"status" json:"status"`        // VARCHAR(20)
-	CreatedAt      time.Time        `db:"created_at" json:"createdAt"` // timestamp with time zone
+type MatchCatDetail struct {
+	ID          uuid.UUID      `db:"id" json:"id"`                   // UUID primary key
+	Name        string         `db:"name" json:"name"`               // VARCHAR(30)
+	Sex         string         `db:"sex" json:"sex"`                 // VARCHAR(10)
+	AgeInMonth  int            `db:"age_in_month" json:"ageInMonth"` // INT
+	Description string         `db:"description" json:"description"` // VARCHAR(20)
+	ImageURLs   pq.StringArray `db:"image_urls" json:"imageUrls"`    // TEXT[], array of strings in Go
+	Race        string         `db:"race" json:"race"`               // VARCHAR(50)
+	HasMatched  bool           `db:"has_matched" json:"hasMatched"`  // BOOLEAN with default false
+	CreatedAt   time.Time      `db:"created_at" json:"createdAt"`    // timestamp with time zone
 }
 
-type MatchSubmit struct {
-	IssuerID      string
-	IssuerCatID   string `json:"userCatId"`
-	ReceiverID    string
-	ReceiverCatID string `json:"matchCatId"`
-	Message       string `json:"message" validate:"required, min=5, max=120"`
+type MatchInfo struct {
+	ID             uuid.UUID      `db:"id" json:"id"`
+	IssuedBy       UserMatch      `json:"issuedBy"`
+	MatchCatDetail MatchCatDetail `json:"matchCatDetail"`
+	UserCatDetail  MatchCatDetail `json:"userCatDetail"`
+	Message        string         `db:"message" json:"message"`      // VARCHAR(120)
+	Status         string         `db:"status" json:"status"`        // VARCHAR(20)
+	CreatedAt      time.Time      `db:"created_at" json:"createdAt"` // timestamp with time zone
+}
+
+type MatchCreateIn struct {
+	IssuerCatID   string
+	ReceiverCatID string
+	Message       string
 }
 
 func MatchAll(userID string) ([]MatchInfo, error) {
@@ -158,10 +167,41 @@ func MatchAll(userID string) ([]MatchInfo, error) {
 	return matches, nil
 }
 
-func MatchCreate(userID string, data MatchSubmit) error {
+func MatchCreate(userID string, data MatchCreateIn) error {
 	db := internal.GetDB()
 
-	err := matchAlreadyExists(data.IssuerCatID, data.ReceiverCatID, db)
+	issuerCat, err := GetCayById(data.IssuerCatID, db)
+	if err != nil {
+		return err
+	}
+
+	if err := CheckIfCatIsOwnedByUser(issuerCat.OwnerID.String(), userID); err != nil {
+		return err
+	}
+
+	receiverCat, err := GetCayById(data.ReceiverCatID, db)
+	if err != nil {
+		return err
+	}
+
+	if err := CheckIfCatIsOwnedByUser(receiverCat.OwnerID.String(), userID); err == nil {
+		return err
+	}
+
+	if issuerCat.OwnerID == receiverCat.OwnerID {
+		return MatchError{Message: ErrCantMatchOwnedCats.Error(), StatusCode: http.StatusBadRequest}
+	}
+
+	err = matchCheckIfSameSex(issuerCat.Sex, receiverCat.Sex)
+	if err != nil {
+		return err
+	}
+
+	if issuerCat.HasMatched || receiverCat.HasMatched {
+		return MatchError{Message: ErrCantMatchAlreadyMatchedCat.Error(), StatusCode: http.StatusBadRequest}
+	}
+
+	err = matchAlreadyExists(data.IssuerCatID, data.ReceiverCatID, db)
 	if err != nil {
 		return err
 	}
@@ -170,10 +210,10 @@ func MatchCreate(userID string, data MatchSubmit) error {
 		INSERT INTO matches(id, issuer_id, receiver_id, issuer_cat_id, receiver_cat_id, message, status, updated_at)
 		VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5, $6, NOW())
 	`,
-		data.IssuerID,
-		data.ReceiverID,
-		data.IssuerCatID,
-		data.ReceiverCatID,
+		issuerCat.OwnerID,
+		receiverCat.OwnerID,
+		issuerCat.ID,
+		receiverCat.ID,
 		data.Message,
 		MatchStatusPending,
 	)
@@ -185,12 +225,20 @@ func MatchCreate(userID string, data MatchSubmit) error {
 	return nil
 }
 
+func matchCheckIfSameSex(issuerSex string, receiverSex string) error {
+	if issuerSex == receiverSex {
+		return MatchError{Message: ErrSameGender.Error(), StatusCode: http.StatusBadRequest}
+	}
+
+	return nil
+}
+
 func matchAlreadyExists(issuerCatId string, receiverCatId string, db *sqlx.DB) error {
 	var exist bool
 	_ = db.QueryRow("SELECT CASE WHEN EXISTS(SELECT 1 FROM matches WHERE issuer_cat_id = $1 AND receiver_cat_id = $2) THEN true ELSE false END", issuerCatId, receiverCatId).Scan(&exist)
 
 	if exist {
-		return MatchError{Message: ErrCatAlreadyMatched.Error(), StatusCode: http.StatusBadRequest}
+		return MatchError{Message: ErrCantMatchAlreadyMatchedCat.Error(), StatusCode: http.StatusBadRequest}
 	}
 
 	return nil
