@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"gin-mvc/internal"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
+	"unicode"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -69,6 +72,91 @@ type CreateOrUpdateCatIn struct {
 	ImageURLs   []string
 }
 
+type GetCatOption struct {
+	ID         string `form:"id"`
+	Limit      *int   `form:"limit, omitempty"`
+	Offset     *int   `form:"offset, omitempty"`
+	Race       string `form:"race"`
+	Sex        string `form:"sex"`
+	Age        string `form:"ageInMonth"`
+	Owned      string `form:"owned"` // true | false
+	Search     string `form:"search"`
+	HasMatched string `form:"hasMatched"` // true | false
+}
+
+/*
+*
+
+	Parsing ageInMonth string:
+
+	- `ageInMonth=>4` searches data that have more than 4 months
+	- `ageInMonth=<4` searches data that have less than 4 months
+	- `ageInMonth=4` searches data that have exact 4 month
+
+*
+*/
+func (opt GetCatOption) ParseAge() (op string, ageInMonth int, valid bool) {
+	prefix := "ageInMonth"
+
+	if !strings.HasPrefix(opt.Age, prefix) {
+		return op, ageInMonth, valid // default value
+	}
+
+	var (
+		lt = "<="
+		gt = ">="
+		eq = "="
+	)
+
+	opWithValue := opt.Age[len(prefix):]
+
+	// The minimum length of op+age is 2: (e.g: =1..9)
+	if len(opWithValue) < 2 {
+		return op, ageInMonth, valid
+	}
+
+	// Find the index where the operator ends and the age part begins
+	var ageStartIdx int
+	for i, char := range opWithValue {
+		if unicode.IsDigit(char) {
+			ageStartIdx = i
+			break
+		}
+	}
+
+	// Extract the operator and age part based on the index found
+	opPart := opWithValue[:ageStartIdx]
+	agePart := opWithValue[ageStartIdx:]
+
+	age, err := strconv.Atoi(string(agePart))
+
+	if err != nil {
+		return op, ageInMonth, valid // default value
+	}
+
+	switch opPart {
+	case lt, gt, eq:
+		op = opPart
+		ageInMonth = age
+		valid = true
+	}
+
+	return
+}
+
+type CatOut struct {
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Sex         string         `json:"sex"`
+	AgeInMonth  int            `json:"ageInMonth"`
+	Description string         `json:"description"`
+	ImageURLs   pq.StringArray `json:"imageUrls"`
+	Race        string         `json:"race"`
+	HasMatched  bool           `json:"hasMatched"`
+	OwnerID     uuid.UUID      `json:"ownerId"`
+	CreatedAt   time.Time      `json:"createdAt"`
+}
+
 func GetCayById(catId string, db *sqlx.DB) (Cat, error) {
 	cat := Cat{}
 
@@ -111,7 +199,6 @@ func CreateCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 
 	createdCat := Cat{}
 	err := db.QueryRow(insertCatQuery, in.Name, in.Race, in.Sex, in.Age, in.Description, pq.Array(in.ImageURLs), userId).Scan(&createdCat.ID, &createdCat.CreatedAt)
-
 	if err != nil {
 		return Cat{}, err
 	}
@@ -196,4 +283,103 @@ func CheckIfCatIsOwnedByUser(ownerId string, userId string) error {
 	}
 
 	return nil
+}
+
+func GetCats(opts GetCatOption, userId string) ([]CatOut, error) {
+	db := internal.GetDB()
+
+	values := []interface{}{}
+
+	fmt.Println(opts.HasMatched)
+
+	query := `
+		SELECT 
+			id, name, sex,
+			age_in_month, description,
+			image_urls, race, owner_id,
+			created_at
+		FROM cats
+		WHERE deleted_at IS NULL
+	`
+
+	if _, err := uuid.Parse(opts.ID); err == nil {
+		values = append(values, opts.ID)
+		query += fmt.Sprintf(" AND id = $%d", len(values))
+	}
+
+	if owned, err := strconv.ParseBool(opts.Owned); err == nil && owned {
+		values = append(values, userId)
+		query += fmt.Sprintf(" AND owner_id = $%d", len(values))
+	}
+
+	if IsValidCatRice(opts.Race) {
+		values = append(values, opts.Race)
+		query += fmt.Sprintf(" AND race = $%d", len(values))
+	}
+
+	if IsValidCatSex(opts.Sex) {
+		values = append(values, opts.Sex)
+		query += fmt.Sprintf(" AND sex = $%d", len(values))
+	}
+
+	if _, err := strconv.ParseBool(opts.HasMatched); err == nil && opts.HasMatched != "" {
+		values = append(values, opts.HasMatched)
+		query += fmt.Sprintf(" AND has_matched = $%d", len(values))
+	}
+
+	if opts.Search != "" {
+		values = append(values, fmt.Sprintf("%%%s%%", opts.Search))
+		query += fmt.Sprintf(" AND name ILIKE $%d", len(values))
+	}
+
+	if op, age, valid := opts.ParseAge(); valid {
+		query += fmt.Sprintf(" AND age_in_month %s %d", op, age)
+	}
+
+	offset, limit := 0, 5
+
+	if opts.Offset != nil {
+		offset = *opts.Offset
+	}
+
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	query += fmt.Sprintf(" ORDER BY created_at DESC LIMIT %d OFFSET %d", limit, offset)
+
+	rows, err := db.Query(query, values...)
+
+	if err != nil {
+		return []CatOut{}, err
+	}
+
+	defer rows.Close()
+
+	var cats []CatOut = []CatOut{}
+	for rows.Next() {
+		var c CatOut
+
+		if err := rows.Scan(
+			&c.ID,
+			&c.Name,
+			&c.Sex,
+			&c.AgeInMonth,
+			&c.Description,
+			&c.ImageURLs,
+			&c.Race,
+			&c.OwnerID,
+			&c.CreatedAt,
+		); err != nil {
+			return []CatOut{}, err
+		}
+
+		cats = append(cats, c)
+	}
+
+	if err := rows.Err(); err != nil {
+		return cats, err
+	}
+
+	return cats, nil
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 type createOrUpdateCatIn struct {
@@ -33,6 +34,7 @@ func CreateCat(c *gin.Context) {
 		Age:         reqBody.AgeInMonth,
 		Description: reqBody.Description,
 		ImageURLs:   reqBody.ImageUrls,
+		Sex:         reqBody.Sex,
 	}, userId)
 
 	if err != nil {
@@ -95,5 +97,27 @@ func DeleteCatById(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",
+	})
+}
+
+func GetCats(c *gin.Context) {
+	var query models.GetCatOption
+	if err := c.ShouldBindWith(&query, binding.Query); err != nil {
+		handleError(c, err)
+		return
+	}
+
+	userId := c.GetString("userId")
+
+	cats, err := models.GetCats(query, userId)
+
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success get cats",
+		"data":    cats,
 	})
 }
