@@ -57,7 +57,6 @@ func EditCatById(c *gin.Context) {
 	reqBody := createOrUpdateCatIn{}
 
 	if err := c.BindJSON(&reqBody); err != nil {
-		handleError(c, err)
 		return
 	}
 
@@ -95,7 +94,6 @@ func EditCatById(c *gin.Context) {
 }
 
 func DeleteCatById(c *gin.Context) {
-
 	db := internal.GetDB()
 	catId := c.Param("catId")
 	userId := c.GetString("userId")

@@ -28,5 +28,7 @@ func RegisterRoutes(r *gin.Engine) {
 		match.POST("", middlewares.AuthMiddleware(), controllers.MatchCreate)
 		match.POST("/approve", middlewares.AuthMiddleware(), controllers.MatchAnswerApprove)
 		match.POST("/reject", middlewares.AuthMiddleware(), controllers.MatchAnswerReject)
+		match.DELETE("/:matchId", middlewares.AuthMiddleware(), controllers.MatchDelete)
+
 	}
 }
