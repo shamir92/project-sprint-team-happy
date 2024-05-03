@@ -39,7 +39,7 @@ func MatchCreate(c *gin.Context) {
 
 	var req matchCreateIn
 	if err := c.BindJSON(&req); err != nil {
-		handleError(c, err)
+		// handleError(c, err)
 		return
 	}
 
@@ -91,4 +91,20 @@ func MatchAnswerApprove(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func MatchDelete(c *gin.Context) {
+	userId := c.GetString("userId")
+	matchId := c.Param("matchId")
+
+	err := models.DeleteMatch(matchId, userId)
+
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+	})
 }

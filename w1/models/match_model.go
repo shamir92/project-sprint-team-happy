@@ -340,3 +340,30 @@ func matchAlreadyExists(issuerCatId string, receiverCatId string, db *sqlx.DB) e
 
 	return nil
 }
+
+func DeleteMatch(matchId, userId string) error {
+	if _, err := uuid.Parse(matchId); err != nil {
+		return MatchError{Message: ErrMatchNotFound.Error(), StatusCode: http.StatusNotFound}
+	}
+
+	db := internal.GetDB()
+
+	var match Match
+	err := db.Get(&match, `SELECT id, status, issuer_id FROM matches WHERE id = $1 AND issuer_id = $2`, matchId, userId)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return MatchError{Message: ErrMatchNotFound.Error(), StatusCode: http.StatusNotFound}
+	}
+
+	if match.Status == MatchStatusApproved || match.Status == MatchStatusRejected {
+		return MatchError{Message: ErrMatchIsNoLongerValid.Error(), StatusCode: http.StatusBadRequest}
+	}
+
+	_, err = db.Exec(`UPDATE matches SET deleted_at = $1 WHERE id = $2`, time.Now(), matchId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
