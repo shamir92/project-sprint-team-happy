@@ -3,7 +3,6 @@ package middlewares
 import (
 	"fmt"
 	"gin-mvc/config"
-	"log"
 	"net/http"
 	"strings"
 
@@ -31,8 +30,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Extract the JWT token
 		tokenString := authHeaderParts[1]
 		// Parse the JWT token
-		// log.Println(tokenString)
-		// log.Println(jwtConfig.GetSigningKey())
+
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			// Check the signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -41,9 +39,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			// Provide the secret key used to sign the token
 			return []byte(jwtConfig.GetSigningKey()), nil
 		})
-		// log.Println(token)
 		if err != nil {
-			log.Println(err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			return
 		}
