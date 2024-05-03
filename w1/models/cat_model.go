@@ -386,12 +386,11 @@ func GetCats(opts GetCatOption, userId string) ([]CatOut, error) {
 	return cats, nil
 }
 
-func UpdateHasMatchedCat(catIds []string, userIds []string, db *sqlx.DB) error {
+func UpdateHasMatchedCat(catIds []string, db *sqlx.DB) error {
 	arg := map[string]interface{}{
-		"catIds":  catIds,
-		"userIds": userIds,
+		"catIds": catIds,
 	}
-	query := `UPDATE cats SET has_matched = true WHERE id IN (:catIds) AND owner_id IN (:userIds)`
+	query := `UPDATE cats SET has_matched = true WHERE id IN (:catIds)`
 	query, args, err := sqlx.Named(query, arg)
 	if err != nil {
 		return err
