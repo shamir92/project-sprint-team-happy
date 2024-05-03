@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"gin-mvc/internal"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -216,9 +215,6 @@ func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 	db := internal.GetDB()
 
 	cat, err := GetCatByIdAndOwnerId(in.ID, userId, db)
-	log.Println(userId)
-	log.Println(cat)
-	log.Println(err)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
