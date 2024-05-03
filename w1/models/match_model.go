@@ -243,7 +243,6 @@ func MatchApprove(userID string, data MatchAnswerIn) error {
 
 	err = UpdateHasMatchedCat(
 		[]string{match.IssuerCatID.String(), match.ReceiverCatID.String()},
-		[]string{match.IssuerID.String(), match.ReceiverID.String()},
 		db,
 	)
 
