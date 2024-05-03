@@ -6,9 +6,9 @@ import (
 	"errors"
 	"gin-mvc/internal"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -59,7 +59,7 @@ func CreateUser(newUser RegisterUser) (User, error) {
 
 	// check email already registered or not
 	var scannedEmail string
-	err := db.QueryRow(`SELECT email FROM users WHERE email = $1`, strings.ToLower(newUser.Email)).Scan(&scannedEmail)
+	err := db.QueryRow(`SELECT email FROM users WHERE email = $1`, newUser.Email).Scan(&scannedEmail)
 
 	// if the error is sql.ErrNowRows, it means the email  hasn't registered yet
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -68,13 +68,13 @@ func CreateUser(newUser RegisterUser) (User, error) {
 	}
 
 	if len(scannedEmail) > 0 {
-		return User{}, UserError{Message: ErrUserEmailAlreadyRegistered.Error()}
+		return User{}, UserError{Message: ErrUserEmailAlreadyRegistered.Error(), StatusCode: http.StatusConflict}
 	}
 
 	createdUser := User{
 		FullName: newUser.FullName,
 		Password: newUser.Password,
-		Email:    strings.ToLower(newUser.Email),
+		Email:    newUser.Email,
 	}
 
 	// Bcrypt Salt

@@ -85,8 +85,7 @@ func Register(c *gin.Context) {
 		Password string `json:"password" binding:"required,min=5,max=15"`
 	}{}
 
-	if err := c.ShouldBindJSON(&reqBody); err != nil {
-		handleError(c, err)
+	if err := c.BindJSON(&reqBody); err != nil {
 		return
 	}
 
