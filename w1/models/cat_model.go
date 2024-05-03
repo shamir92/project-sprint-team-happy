@@ -7,7 +7,6 @@ import (
 	"gin-mvc/internal"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 	"unicode"
 
@@ -97,19 +96,16 @@ type GetCatOption struct {
 *
 */
 func (opt GetCatOption) ParseAge() (op string, ageInMonth int, valid bool) {
-	prefix := "ageInMonth"
-
-	if !strings.HasPrefix(opt.Age, prefix) {
-		return op, ageInMonth, valid // default value
-	}
 
 	var (
-		lt = "<="
-		gt = ">="
-		eq = "="
+		lt  = "<"
+		gt  = ">"
+		lte = "<="
+		gte = ">="
+		eq  = "="
 	)
 
-	opWithValue := opt.Age[len(prefix):]
+	opWithValue := opt.Age
 
 	// The minimum length of op+age is 2: (e.g: =1..9)
 	if len(opWithValue) < 2 {
@@ -136,7 +132,7 @@ func (opt GetCatOption) ParseAge() (op string, ageInMonth int, valid bool) {
 	}
 
 	switch opPart {
-	case lt, gt, eq:
+	case lt, gt, eq, lte, gte:
 		op = opPart
 		ageInMonth = age
 		valid = true
@@ -191,6 +187,13 @@ func GetCatByIdAndOwnerId(catId string, ownerId string, db *sqlx.DB) (Cat, error
 }
 
 func CreateCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
+	if !IsValidCatRace(in.Race) {
+		return Cat{}, CatError{
+			Message: "race is not valid",
+			Code:    http.StatusBadRequest,
+		}
+	}
+
 	db := internal.GetDB()
 	insertCatQuery := `
 		INSERT INTO cats (name, race, sex, age_in_month, description, image_urls, owner_id)
@@ -211,6 +214,13 @@ func CreateCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 	if _, err := uuid.Parse(in.ID); err != nil {
 		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
+	}
+
+	if !IsValidCatRace(in.Race) {
+		return Cat{}, CatError{
+			Message: "race is not valid",
+			Code:    http.StatusBadRequest,
+		}
 	}
 
 	db := internal.GetDB()
