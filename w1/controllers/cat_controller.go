@@ -11,11 +11,11 @@ import (
 
 type createOrUpdateCatIn struct {
 	Name        string   `json:"name" binding:"required,min=1,max=30"`
-	Race        string   `json:"race" binding:"required,oneof='Persian' 'Maine Coon' 'Siamese' 'Ragdoll' 'Bengal' 'Sphynx' 'British Shorthair' 'Abyssinian' 'Scottish Fold' 'Birman'"`
+	Race        string   `json:"race" binding:"required"`
 	Sex         string   `json:"sex" binding:"required,oneof=male female"`
 	AgeInMonth  int      `json:"ageInMonth" binding:"required,min=1,max=120082"`
 	Description string   `json:"description" binding:"required,min=1,max=200"`
-	ImageUrls   []string `json:"imageUrls" binding:"required,min=1,dive,url"`
+	ImageUrls   []string `json:"imageUrls" binding:"required,dive,min=1,url"`
 }
 
 func CreateCat(c *gin.Context) {
@@ -23,8 +23,7 @@ func CreateCat(c *gin.Context) {
 
 	reqBody := createOrUpdateCatIn{}
 
-	if err := c.ShouldBindJSON(&reqBody); err != nil {
-		handleError(c, err)
+	if err := c.BindJSON(&reqBody); err != nil {
 		return
 	}
 
