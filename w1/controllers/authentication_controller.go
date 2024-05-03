@@ -45,6 +45,7 @@ func Login(c *gin.Context) {
 			"message": "user not found",
 			"data":    gin.H{},
 		})
+		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(reqData.Password))
@@ -53,6 +54,7 @@ func Login(c *gin.Context) {
 			"message": "email and password does not same",
 			"data":    gin.H{},
 		})
+		return
 	}
 
 	data := map[string]interface{}{

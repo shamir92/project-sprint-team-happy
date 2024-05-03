@@ -52,13 +52,23 @@ func CreateCat(c *gin.Context) {
 }
 
 func EditCatById(c *gin.Context) {
+	db := internal.GetDB()
 	catId := c.Param("catId")
 	userId := c.GetString("userId")
-
 	reqBody := createOrUpdateCatIn{}
 
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
 		handleError(c, err)
+		return
+	}
+
+	var count int
+	db.Get(&count, "SELECT count(id) FROM matches WHERE issuer_cat_id=$1 or receiver_cat_id=$1", catId)
+	if count > 0 {
+		c.JSON(400, gin.H{
+			"message": "sex is edited when cat is already requested to match",
+			"data":    gin.H{},
+		})
 		return
 	}
 
