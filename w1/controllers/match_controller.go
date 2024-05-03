@@ -38,17 +38,21 @@ func MatchCreate(c *gin.Context) {
 	userId := c.GetString("userId")
 
 	var req matchCreateIn
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.BindJSON(&req); err != nil {
 		handleError(c, err)
 		return
 	}
 
-	if err := models.MatchCreate(userId, models.MatchCreateIn{
+	statusCode, err := models.MatchCreate(userId, models.MatchCreateIn{
 		IssuerCatID:   req.IssuerCatID,
 		ReceiverCatID: req.ReceiverCatID,
 		Message:       req.Message,
-	}); err != nil {
-		handleError(c, err)
+	})
+	if err != nil {
+		c.JSON(statusCode, gin.H{
+			"message": err.Error(),
+			"data":    gin.H{},
+		})
 		return
 	}
 
