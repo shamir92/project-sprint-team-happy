@@ -15,6 +15,10 @@ type matchCreateIn struct {
 	Message       string `json:"message" binding:"required,min=5,max=120"`
 }
 
+type matchAnswerIn struct {
+	MatchID string `json:"matchId" binding:"required"`
+}
+
 func MatchBrowse(c *gin.Context) {
 	userId := c.GetString("userId")
 
@@ -49,4 +53,38 @@ func MatchCreate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "success"})
+}
+
+func MatchAnswerReject(c *gin.Context) {
+	userId := c.GetString("userId")
+
+	var req matchAnswerIn
+	if err := c.ShouldBindJSON(&req); err != nil {
+		handleError(c, err)
+		return
+	}
+
+	if err := models.MatchReject(userId, models.MatchAnswerIn{MatchID: req.MatchID}); err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func MatchAnswerApprove(c *gin.Context) {
+	userId := c.GetString("userId")
+
+	var req matchAnswerIn
+	if err := c.ShouldBindJSON(&req); err != nil {
+		handleError(c, err)
+		return
+	}
+
+	if err := models.MatchApprove(userId, models.MatchAnswerIn{MatchID: req.MatchID}); err != nil {
+		handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
 	"gin-mvc/internal"
 	"log"
@@ -20,6 +21,8 @@ var (
 	ErrSameGender                 = errors.New("can't match cats with same gender")
 	ErrCantMatchAlreadyMatchedCat = errors.New("cats already matched")
 	ErrCantMatchOwnedCats         = errors.New("can't match owned cats")
+	ErrMatchNotFound              = errors.New("match not found")
+	ErrMatchIsNoLongerValid       = errors.New("match is no longer valid")
 )
 
 type MatchError struct {
@@ -74,6 +77,10 @@ type MatchCreateIn struct {
 	IssuerCatID   string
 	ReceiverCatID string
 	Message       string
+}
+
+type MatchAnswerIn struct {
+	MatchID string
 }
 
 func MatchAll(userID string) ([]MatchInfo, error) {
@@ -184,11 +191,7 @@ func MatchCreate(userID string, data MatchCreateIn) error {
 		return err
 	}
 
-	if err := CheckIfCatIsOwnedByUser(receiverCat.OwnerID.String(), userID); err == nil {
-		return err
-	}
-
-	if issuerCat.OwnerID == receiverCat.OwnerID {
+	if issuerCat.OwnerID.String() == receiverCat.OwnerID.String() {
 		return MatchError{Message: ErrCantMatchOwnedCats.Error(), StatusCode: http.StatusBadRequest}
 	}
 
@@ -223,6 +226,101 @@ func MatchCreate(userID string, data MatchCreateIn) error {
 	}
 
 	return nil
+}
+
+func MatchApprove(userID string, data MatchAnswerIn) error {
+	db := internal.GetDB()
+
+	match, err := matchGetByIdAndReceiverId(data.MatchID, userID, db)
+	if err != nil {
+		return err
+	}
+
+	err = matchUpdateStatus(match.ID.String(), MatchStatusApproved, db)
+	if err != nil {
+		return err
+	}
+
+	err = UpdateHasMatchedCat(
+		[]string{match.IssuerCatID.String(), match.ReceiverCatID.String()},
+		[]string{match.IssuerID.String(), match.ReceiverID.String()},
+		db,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = matchRemoveRelatedMatch(match.ID.String(), match.ReceiverCatID.String(), db)
+
+	return err
+}
+
+func MatchReject(userId string, data MatchAnswerIn) error {
+	db := internal.GetDB()
+
+	match, err := matchGetByIdAndReceiverId(data.MatchID, userId, db)
+	if err != nil {
+		return err
+	}
+
+	if match.Status == MatchStatusApproved {
+		return MatchError{Message: ErrMatchIsNoLongerValid.Error(), StatusCode: http.StatusBadRequest}
+	}
+
+	err = matchUpdateStatus(match.ID.String(), MatchStatusRejected, db)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func matchUpdateStatus(matchId string, status string, db *sqlx.DB) error {
+	query := `UPDATE matches SET status = $1 WHERE id = $2`
+	_, err := db.Exec(query, status, matchId)
+	return err
+}
+
+func matchRemoveRelatedMatch(matchId string, receiverCatId string, db *sqlx.DB) error {
+	query := `UPDATE matches SET status = $1, updated_at = NOW(), deleted_at = NOW() WHERE id != $2 AND receiver_cat_id = $3`
+	_, err := db.Exec(query, MatchStatusRejected, matchId, receiverCatId)
+	return err
+}
+
+func matchGetByIdAndReceiverId(matchId string, receiverId string, db *sqlx.DB) (Match, error) {
+	var match Match
+
+	query := `
+		SELECT id, issuer_id, issuer_cat_id, receiver_id, receiver_cat_id, message, status, deleted_at
+		FROM matches
+		WHERE id = $1 AND receiver_id = $2 AND deleted_at is null
+	`
+
+	err := db.QueryRowx(query, matchId, receiverId).Scan(
+		&match.ID,
+		&match.IssuerID,
+		&match.IssuerCatID,
+		&match.ReceiverID,
+		&match.ReceiverCatID,
+		&match.Message,
+		&match.Status,
+		&match.DeletedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return match, MatchError{Message: ErrMatchNotFound.Error(), StatusCode: http.StatusNotFound}
+		}
+
+		return match, err
+	}
+
+	if match.Status == MatchStatusRejected {
+		return match, MatchError{Message: ErrMatchIsNoLongerValid.Error(), StatusCode: http.StatusBadRequest}
+	}
+
+	return match, nil
 }
 
 func matchCheckIfSameSex(issuerSex string, receiverSex string) error {

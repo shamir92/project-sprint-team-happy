@@ -23,8 +23,10 @@ func RegisterRoutes(r *gin.Engine) {
 		v1.PUT("/cat/:catId", middlewares.AuthMiddleware(), controllers.EditCatById)
 		v1.DELETE("/cat/:catId", middlewares.AuthMiddleware(), controllers.DeleteCatById)
 
-		match := v1.Group("/match")
+		match := v1.Group("/cat/match")
 		match.GET("", middlewares.AuthMiddleware(), controllers.MatchBrowse)
 		match.POST("", middlewares.AuthMiddleware(), controllers.MatchCreate)
+		match.POST("/approve", middlewares.AuthMiddleware(), controllers.MatchAnswerApprove)
+		match.POST("/reject", middlewares.AuthMiddleware(), controllers.MatchAnswerReject)
 	}
 }
