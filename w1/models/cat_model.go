@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gin-mvc/internal"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -181,7 +182,7 @@ func GetCatByIdAndOwnerId(catId string, ownerId string, db *sqlx.DB) (Cat, error
 			id, name, sex, age_in_month, description,
 			image_urls, race, owner_id
 		FROM 
-			cats WHERE id = $1 AND owner_id $2 AND deleted_at IS NULL
+			cats WHERE id = $1 AND owner_id = $2 AND deleted_at IS NULL
 	`
 
 	err := db.Get(&cat, selectQuery, catId, ownerId)
@@ -215,7 +216,9 @@ func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 	db := internal.GetDB()
 
 	cat, err := GetCatByIdAndOwnerId(in.ID, userId, db)
-
+	log.Println(userId)
+	log.Println(cat)
+	log.Println(err)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
