@@ -174,39 +174,39 @@ func MatchAll(userID string) ([]MatchInfo, error) {
 	return matches, nil
 }
 
-func MatchCreate(userID string, data MatchCreateIn) error {
+func MatchCreate(userID string, data MatchCreateIn) (int, error) {
 	db := internal.GetDB()
 
 	issuerCat, err := GetCayById(data.IssuerCatID, db)
 	if err != nil {
-		return err
-	}
-
-	if err := CheckIfCatIsOwnedByUser(issuerCat.OwnerID.String(), userID); err != nil {
-		return err
+		return 404, errors.New("cat not found")
 	}
 
 	receiverCat, err := GetCayById(data.ReceiverCatID, db)
 	if err != nil {
-		return err
+		return 404, errors.New("cat not found")
 	}
 
-	if issuerCat.OwnerID.String() == receiverCat.OwnerID.String() {
-		return MatchError{Message: ErrCantMatchOwnedCats.Error(), StatusCode: http.StatusBadRequest}
+	if issuerCat.OwnerID.String() != userID {
+		return 404, errors.New("issuer cat is not owned by user")
+	}
+
+	if receiverCat.OwnerID.String() == userID {
+		return 400, errors.New("match cat that is owner")
 	}
 
 	err = matchCheckIfSameSex(issuerCat.Sex, receiverCat.Sex)
 	if err != nil {
-		return err
+		return 400, errors.New("cat is same sex")
 	}
 
 	if issuerCat.HasMatched || receiverCat.HasMatched {
-		return MatchError{Message: ErrCantMatchAlreadyMatchedCat.Error(), StatusCode: http.StatusBadRequest}
+		return 400, errors.New("cat already matched")
 	}
 
 	err = matchAlreadyExists(data.IssuerCatID, data.ReceiverCatID, db)
 	if err != nil {
-		return err
+		return 400, errors.New("cat already matched")
 	}
 
 	_, err = db.Exec(`
@@ -222,10 +222,10 @@ func MatchCreate(userID string, data MatchCreateIn) error {
 	)
 
 	if err != nil {
-		return err
+		return 500, err
 	}
 
-	return nil
+	return 200, nil
 }
 
 func MatchApprove(userID string, data MatchAnswerIn) error {

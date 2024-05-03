@@ -292,7 +292,7 @@ func DeleteCatById(catId string, userId string) error {
 
 func CheckIfCatIsOwnedByUser(ownerId string, userId string) error {
 	if ownerId != userId {
-		return CatError{Message: ErrCatIsNotOwned.Error(), Code: http.StatusBadRequest}
+		return CatError{Message: ErrCatIsNotOwned.Error(), Code: http.StatusNotFound}
 	}
 
 	return nil
@@ -320,9 +320,17 @@ func GetCats(opts GetCatOption, userId string) ([]CatOut, error) {
 		query += fmt.Sprintf(" AND id = $%d", len(values))
 	}
 
-	if owned, err := strconv.ParseBool(opts.Owned); err == nil && owned {
-		values = append(values, userId)
-		query += fmt.Sprintf(" AND owner_id = $%d", len(values))
+	if owned, err := strconv.ParseBool(opts.Owned); err == nil {
+		if owned {
+			values = append(values, userId)
+			query += fmt.Sprintf(" AND owner_id = $%d", len(values))
+		}
+
+		if !owned {
+			values = append(values, userId)
+			query += fmt.Sprintf(" AND owner_id != $%d", len(values))
+		}
+
 	}
 
 	if IsValidCatRace(opts.Race) {
