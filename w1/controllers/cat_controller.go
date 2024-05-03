@@ -11,7 +11,7 @@ import (
 
 type createOrUpdateCatIn struct {
 	Name        string   `json:"name" binding:"required,min=1,max=30"`
-	Race        string   `json:"race" binding:"required,oneof=Persian MaineCoon Siamese Ragdoll Bengal Sphynx BritishShorthair Abyssinian ScottishFold Birman"`
+	Race        string   `json:"race" binding:"required,oneof='Persian' 'Maine Coon' 'Siamese' 'Ragdoll' 'Bengal' 'Sphynx' 'British Shorthair' 'Abyssinian' 'Scottish Fold' 'Birman'"`
 	Sex         string   `json:"sex" binding:"required,oneof=male female"`
 	AgeInMonth  int      `json:"ageInMonth" binding:"required,min=1,max=120082"`
 	Description string   `json:"description" binding:"required,min=1,max=200"`
@@ -57,7 +57,7 @@ func EditCatById(c *gin.Context) {
 	userId := c.GetString("userId")
 	reqBody := createOrUpdateCatIn{}
 
-	if err := c.ShouldBindJSON(&reqBody); err != nil {
+	if err := c.BindJSON(&reqBody); err != nil {
 		handleError(c, err)
 		return
 	}

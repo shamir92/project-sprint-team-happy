@@ -43,6 +43,7 @@ func (c *Cat) update(in CreateOrUpdateCatIn) {
 	c.AgeInMonth = in.Age
 	c.Description = in.Description
 	c.ImageURLs = in.ImageURLs
+	c.Sex = in.Sex
 	c.UpdatedAt = sql.NullTime{
 		Time:  time.Now(),
 		Valid: true,
@@ -226,12 +227,13 @@ func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 			cats
 		SET 
 			name = $1, race = $2, age_in_month = $3, 
-			description = $4, image_urls = $5, updated_at = $6
+			description = $4, image_urls = $5, updated_at = $6, 
+			sex = $8
 		WHERE
 			id = $7
 	`
 
-	res, err := db.Exec(updateQuery, cat.Name, cat.Race, cat.AgeInMonth, cat.Description, pq.Array(cat.ImageURLs), cat.UpdatedAt, cat.ID)
+	res, err := db.Exec(updateQuery, cat.Name, cat.Race, cat.AgeInMonth, cat.Description, pq.Array(cat.ImageURLs), cat.UpdatedAt, cat.ID, cat.Sex)
 
 	if err != nil {
 		return Cat{}, err
