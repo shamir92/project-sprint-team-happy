@@ -9,3 +9,5 @@ CREATE TABLE IF NOT EXISTS public.users (
     CONSTRAINT users_pkey PRIMARY KEY (id),
     CONSTRAINT users_email_key UNIQUE (email)
 );
+CREATE INDEX idx_users_id ON users (id);
+CREATE INDEX idx_users_email ON users (email);
