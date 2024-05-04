@@ -36,19 +36,6 @@ type Cat struct {
 	UpdatedAt   sql.NullTime   `db:"updated_at" json:"updated_at"`     // timestamp with time zone, nullable
 }
 
-func (c *Cat) update(in CreateOrUpdateCatIn) {
-	c.Name = in.Name
-	c.Race = in.Race
-	c.AgeInMonth = in.Age
-	c.Description = in.Description
-	c.ImageURLs = in.ImageURLs
-	c.Sex = in.Sex
-	c.UpdatedAt = sql.NullTime{
-		Time:  time.Now(),
-		Valid: true,
-	}
-}
-
 type CatError struct {
 	Message string
 	Code    int
@@ -211,13 +198,13 @@ func CreateCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 }
 
 // TODO: impelement edit cat's sex requirement
-func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
+func EditCat(in CreateOrUpdateCatIn, userId string) error {
 	if _, err := uuid.Parse(in.ID); err != nil {
-		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
+		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
 
 	if !IsValidCatRace(in.Race) {
-		return Cat{}, CatError{
+		return CatError{
 			Message: "race is not valid",
 			Code:    http.StatusBadRequest,
 		}
@@ -225,12 +212,18 @@ func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 
 	db := internal.GetDB()
 
-	cat, err := GetCatByIdAndOwnerId(in.ID, userId, db)
-	if err != nil && errors.Is(err, sql.ErrNoRows) {
-		return Cat{}, CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
+	cat, err := GetCayById(in.ID, db)
+
+	if err != nil {
+		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
 
-	cat.update(in)
+	if cat.HasMatched {
+		return CatError{
+			Message: "can't update sex when the cat have already matched",
+			Code:    http.StatusBadRequest,
+		}
+	}
 
 	updateQuery := `
 		UPDATE 
@@ -238,22 +231,29 @@ func EditCat(in CreateOrUpdateCatIn, userId string) (Cat, error) {
 		SET 
 			name = $1, race = $2, age_in_month = $3, 
 			description = $4, image_urls = $5, updated_at = $6, 
-			sex = $8
+			sex = $7
 		WHERE
-			id = $7
+			(id = $8 AND owner_id = $9)
 	`
 
-	res, err := db.Exec(updateQuery, cat.Name, cat.Race, cat.AgeInMonth, cat.Description, pq.Array(cat.ImageURLs), cat.UpdatedAt, cat.ID, cat.Sex)
+	res, err := db.Exec(updateQuery, in.Name, in.Race, in.Age, in.Description, pq.Array(in.ImageURLs), time.Now(), in.Sex, in.ID, userId)
 
 	if err != nil {
-		return Cat{}, err
+		return err
 	}
 
-	if _, err := res.RowsAffected(); err != nil {
-		return Cat{}, err
+	rowsAffected, err := res.RowsAffected()
+
+	if err != nil {
+		return err
 	}
 
-	return cat, nil
+	if rowsAffected < 1 {
+		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
+
+	}
+
+	return nil
 }
 
 // TODO: validate cat based on requirement matches before deleting the cat
@@ -263,10 +263,14 @@ func DeleteCatById(catId string, userId string) error {
 		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
 
-	_, err := GetCatByIdAndOwnerId(catId, userId, db)
+	cat, err := GetCatByIdAndOwnerId(catId, userId, db)
 
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
+	}
+
+	if cat.HasMatched {
+		return CatError{Message: "cat can't be deleted when already matched", Code: http.StatusBadRequest}
 	}
 
 	softDeleteCatQuery := `
@@ -281,10 +285,14 @@ func DeleteCatById(catId string, userId string) error {
 		return err
 	}
 
-	_, err = result.RowsAffected()
+	totalAffected, err := result.RowsAffected()
 
 	if err != nil {
 		return err
+	}
+
+	if totalAffected < 1 {
+		return CatError{Message: ErrCatNotFound.Error(), Code: http.StatusNotFound}
 	}
 
 	return nil
@@ -302,8 +310,6 @@ func GetCats(opts GetCatOption, userId string) ([]CatOut, error) {
 	db := internal.GetDB()
 
 	values := []interface{}{}
-
-	fmt.Println(opts.HasMatched)
 
 	query := `
 		SELECT 
