@@ -14,3 +14,6 @@ CREATE TABLE cats (
 );
 ALTER TABLE cats
 ADD CONSTRAINT fk_cats_users FOREIGN KEY (owner_id) REFERENCES "users" (id);
+CREATE INDEX idx_cats_id ON cats (id);
+CREATE INDEX idx_cats_owner_id ON cats (owner_id);
+CREATE INDEX idx_cats_deleted_at ON cats (deleted_at);

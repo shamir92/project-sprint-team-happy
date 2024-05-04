@@ -18,3 +18,8 @@ ALTER TABLE matches
 ADD CONSTRAINT fk_matches_receiver_cat_id_to_cats_id FOREIGN KEY (receiver_cat_id) REFERENCES "cats"(id);
 ALTER TABLE matches
 ADD CONSTRAINT fk_matches_issuer_cat_id_to_cats_id FOREIGN KEY (issuer_cat_id) REFERENCES "cats"(id);
+CREATE INDEX idx_matches_id ON matches (id);
+CREATE INDEX idx_matches_deleted_at ON matches (deleted_at);
+CREATE INDEX idx_matches_receiver_id ON matches (receiver_id);
+CREATE INDEX idx_matches_issuer_cat_id ON matches (issuer_cat_id);
+CREATE INDEX idx_matches_receiver_cat_id ON matches (receiver_cat_id);

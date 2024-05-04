@@ -6,6 +6,7 @@ import (
 	"gin-mvc/routes"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -29,11 +30,16 @@ func main() {
 	dbName := os.Getenv("DB_NAME")
 	dbParams := os.Getenv("DB_PARAMS")
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s", dbUsername, dbPassword, dbHost, dbPort, dbName, dbParams)
+
 	db, err := sqlx.Connect("postgres", connStr)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxIdleTime(10 * time.Second)
+	db.SetMaxOpenConns(80)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer db.Close()
+
 	fmt.Println("Successfully connected!")
 	// load the memory to global package
 	internal.SetDB(db)
