@@ -182,9 +182,15 @@ func MatchAll(userID string) ([]MatchInfo, error) {
 func getCatsForMatching(issuerCatID, receiverCatID string, db *sqlx.DB) ([]Cat, error) {
 	rows, err := db.Query(`
 		SELECT 
-			id, name, sex, age_in_month, has_matched, owner_id
-		FROM 
-			cats WHERE id IN ($1, $2) AND deleted_at IS NULL`,
+			c.id, c.name, c.sex, c.age_in_month, c.has_matched, c.owner_id,
+			CASE
+				WHEN m.issuer_cat_id IS NOT NULL THEN TRUE
+				ELSE FALSE
+			END AS has_matched_with
+		FROM
+			cats c
+		LEFT JOIN matches m ON (m.issuer_cat_id = $1 AND m.receiver_cat_id = $2) AND m.deleted_at IS NULL
+		WHERE c.id IN ($1, $2) AND c.deleted_at IS NULL`,
 		issuerCatID,
 		receiverCatID,
 	)
@@ -200,7 +206,7 @@ func getCatsForMatching(issuerCatID, receiverCatID string, db *sqlx.DB) ([]Cat, 
 	for rows.Next() {
 		var cat Cat
 
-		if err := rows.Scan(&cat.ID, &cat.Name, &cat.Sex, &cat.AgeInMonth, &cat.HasMatched, &cat.OwnerID); err != nil {
+		if err := rows.Scan(&cat.ID, &cat.Name, &cat.Sex, &cat.AgeInMonth, &cat.HasMatched, &cat.OwnerID, &cat.HasMatchedWith); err != nil {
 			return nil, err
 		}
 
@@ -262,8 +268,11 @@ func MatchCreate(userID string, data MatchCreateIn) (int, error) {
 		return 400, errors.New("cat already matched")
 	}
 
-	err = matchAlreadyExists(data.IssuerCatID, data.ReceiverCatID, db)
-	if err != nil {
+	if issuerCat.HasMatchedWith.Valid && issuerCat.HasMatchedWith.Bool {
+		return 400, errors.New("cat already matched")
+	}
+
+	if receiverCat.HasMatchedWith.Valid && receiverCat.HasMatchedWith.Bool {
 		return 400, errors.New("cat already matched")
 	}
 
@@ -392,17 +401,6 @@ func matchGetByIdAndReceiverId(matchId string, receiverId string, db *sqlx.DB) (
 func matchCheckIfSameSex(issuerSex string, receiverSex string) error {
 	if issuerSex == receiverSex {
 		return MatchError{Message: ErrSameGender.Error(), StatusCode: http.StatusBadRequest}
-	}
-
-	return nil
-}
-
-func matchAlreadyExists(issuerCatId string, receiverCatId string, db *sqlx.DB) error {
-	var exist bool
-	_ = db.QueryRow("SELECT CASE WHEN EXISTS(SELECT 1 FROM matches WHERE issuer_cat_id = $1 AND receiver_cat_id = $2) THEN true ELSE false END", issuerCatId, receiverCatId).Scan(&exist)
-
-	if exist {
-		return MatchError{Message: ErrCantMatchAlreadyMatchedCat.Error(), StatusCode: http.StatusBadRequest}
 	}
 
 	return nil
