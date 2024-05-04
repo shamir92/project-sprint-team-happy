@@ -28,7 +28,7 @@ func main() {
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 	dbParams := os.Getenv("DB_PARAMS")
-	connStr := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s %s", dbUsername, dbPassword, dbHost, dbPort, dbName, dbParams)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s", dbUsername, dbPassword, dbHost, dbPort, dbName, dbParams)
 	db, err := sqlx.Connect("postgres", connStr)
 	if err != nil {
 		log.Fatalln(err)
