@@ -39,7 +39,6 @@ func MatchCreate(c *gin.Context) {
 
 	var req matchCreateIn
 	if err := c.BindJSON(&req); err != nil {
-		// handleError(c, err)
 		return
 	}
 

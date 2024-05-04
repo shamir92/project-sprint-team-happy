@@ -225,6 +225,15 @@ func MatchCreate(userID string, data MatchCreateIn) (int, error) {
 		return 500, err
 	}
 
+	err = UpdateHasMatchedCat(
+		[]string{issuerCat.ID.String(), receiverCat.ID.String()},
+		db,
+	)
+
+	if err != nil {
+		return 500, err
+	}
+
 	return 200, nil
 }
 
