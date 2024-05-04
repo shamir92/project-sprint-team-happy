@@ -17,8 +17,8 @@ type jsonToken struct {
 func NewJWT() *jsonToken {
 	return &jsonToken{
 		signingKey:     os.Getenv("JWT_SECRET"),
-		issuer:         os.Getenv("JWT_ISSUER"),
-		expireInMinute: os.Getenv("JWT_EXPIRES_IN_MINUTE"),
+		issuer:         "app",
+		expireInMinute: "60",
 	}
 }
 
@@ -38,7 +38,7 @@ func (jt *jsonToken) GetIssuer() string {
 }
 
 func (jt *jsonToken) getExpirationTIme() time.Time {
-	expiresInMinute, _ := strconv.Atoi(os.Getenv("JWT_EXPIRES_IN_MINUTE"))
+	expiresInMinute, _ := strconv.Atoi(jt.expireInMinute)
 	expirationTime := time.Now().Add(time.Duration(expiresInMinute) * time.Minute)
 	return expirationTime
 }
