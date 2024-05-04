@@ -131,6 +131,8 @@ func MatchAll(userID string) ([]MatchInfo, error) {
 		return matches, err
 	}
 
+	defer rows.Close()
+
 	for rows.Next() {
 		var match MatchInfo
 		err = rows.Scan(
@@ -171,6 +173,9 @@ func MatchAll(userID string) ([]MatchInfo, error) {
 		matches = append(matches, match)
 	}
 
+	if err := rows.Err(); err != nil {
+		return matches, err
+	}
 	return matches, nil
 }
 
