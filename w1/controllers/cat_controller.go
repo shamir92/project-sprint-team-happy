@@ -51,7 +51,6 @@ func CreateCat(c *gin.Context) {
 }
 
 func EditCatById(c *gin.Context) {
-	db := internal.GetDB()
 	catId := c.Param("catId")
 	userId := c.GetString("userId")
 	reqBody := createOrUpdateCatIn{}
@@ -60,17 +59,7 @@ func EditCatById(c *gin.Context) {
 		return
 	}
 
-	var count int
-	db.Get(&count, "SELECT count(id) FROM matches WHERE issuer_cat_id=$1 or receiver_cat_id=$1", catId)
-	if count > 0 {
-		c.JSON(400, gin.H{
-			"message": "sex is edited when cat is already requested to match",
-			"data":    gin.H{},
-		})
-		return
-	}
-
-	cat, err := models.EditCat(models.CreateOrUpdateCatIn{
+	err := models.EditCat(models.CreateOrUpdateCatIn{
 		ID:          catId,
 		Name:        reqBody.Name,
 		Race:        reqBody.Race,
@@ -88,25 +77,14 @@ func EditCatById(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "cat updated successfully",
 		"data": gin.H{
-			"id": cat.ID,
+			"id": catId,
 		},
 	})
 }
 
 func DeleteCatById(c *gin.Context) {
-	db := internal.GetDB()
 	catId := c.Param("catId")
 	userId := c.GetString("userId")
-
-	var count int
-	db.Get(&count, "SELECT count(id) FROM matches WHERE issuer_cat_id=$1 or receiver_cat_id=$1", catId)
-	if count > 0 {
-		c.JSON(400, gin.H{
-			"message": "cat cannot be deleted when cat is already requested to match",
-			"data":    gin.H{},
-		})
-		return
-	}
 
 	err := models.DeleteCatById(catId, userId)
 
