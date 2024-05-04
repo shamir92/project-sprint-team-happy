@@ -179,17 +179,70 @@ func MatchAll(userID string) ([]MatchInfo, error) {
 	return matches, nil
 }
 
+func getCatsForMatching(issuerCatID, receiverCatID string, db *sqlx.DB) ([]Cat, error) {
+	rows, err := db.Query(`
+		SELECT 
+			id, name, sex, age_in_month, has_matched, owner_id
+		FROM 
+			cats WHERE id IN ($1, $2) AND deleted_at IS NULL`,
+		issuerCatID,
+		receiverCatID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var cats []Cat
+
+	for rows.Next() {
+		var cat Cat
+
+		if err := rows.Scan(&cat.ID, &cat.Name, &cat.Sex, &cat.AgeInMonth, &cat.HasMatched, &cat.OwnerID); err != nil {
+			return nil, err
+		}
+
+		cats = append(cats, cat)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return cats, err
+}
+
 func MatchCreate(userID string, data MatchCreateIn) (int, error) {
 	db := internal.GetDB()
 
-	issuerCat, err := GetCayById(data.IssuerCatID, db)
+	cats, err := getCatsForMatching(data.IssuerCatID, data.ReceiverCatID, db)
+
 	if err != nil {
-		return 404, errors.New("cat not found")
+		return 500, err
 	}
 
-	receiverCat, err := GetCayById(data.ReceiverCatID, db)
-	if err != nil {
-		return 404, errors.New("cat not found")
+	var issuerCat, receiverCat Cat
+	var foundIssuer, foundReceiver bool
+	for _, cat := range cats {
+		if cat.ID.String() == data.IssuerCatID {
+			foundIssuer = true
+			issuerCat = cat
+		}
+
+		if cat.ID.String() == data.ReceiverCatID {
+			foundReceiver = true
+			receiverCat = cat
+		}
+	}
+
+	if !foundIssuer {
+		return 404, errors.New("issuer cat not found")
+	}
+
+	if !foundReceiver {
+		return 404, errors.New("receiver cat not found")
 	}
 
 	if issuerCat.OwnerID.String() != userID {
@@ -239,7 +292,7 @@ func MatchCreate(userID string, data MatchCreateIn) (int, error) {
 		return 500, err
 	}
 
-	return 200, nil
+	return 201, nil
 }
 
 func MatchApprove(userID string, data MatchAnswerIn) error {
