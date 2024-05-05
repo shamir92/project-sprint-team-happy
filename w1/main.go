@@ -32,12 +32,15 @@ func main() {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s", dbUsername, dbPassword, dbHost, dbPort, dbName, dbParams)
 
 	db, err := sqlx.Connect("postgres", connStr)
-	db.SetMaxIdleConns(5)
-	db.SetConnMaxIdleTime(10 * time.Second)
-	db.SetMaxOpenConns(80)
+
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxIdleTime(10 * time.Second)
+	db.SetMaxOpenConns(80)
+
 	defer db.Close()
 
 	fmt.Println("Successfully connected!")
