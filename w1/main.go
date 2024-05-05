@@ -39,7 +39,7 @@ func main() {
 
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxIdleTime(10 * time.Second)
-	db.SetMaxOpenConns(80)
+	db.SetMaxOpenConns(75)
 
 	defer db.Close()
 
