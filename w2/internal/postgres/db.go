@@ -2,19 +2,18 @@ package postgres
 
 import (
 	"database/sql"
-	"log"
 )
 
-func NewDB(dsn string) *sql.DB {
+func NewDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", dsn)
 
 	if err != nil {
-		log.Fatalf("db init: %v", err)
+		return nil, err
 	}
 
 	if err := db.Ping(); err != nil {
-		log.Fatalf("db ping: %v", err)
+		return nil, err
 	}
 
-	return db
+	return db, nil
 }

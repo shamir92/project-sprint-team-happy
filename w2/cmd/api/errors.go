@@ -4,8 +4,17 @@ import (
 	"net/http"
 )
 
-func (s *server) errorResponse(w http.ResponseWriter, r *http.Request, status int, err error) {
-	env := map[string]any{"error": err.Error()}
+type httpStatusCodeProvider interface {
+	HTTPStatusCode() int
+}
 
-	s.writeJSON(w, r, status, env)
+func (s *server) errorResponse(w http.ResponseWriter, r *http.Request, status int, err error) {
+	statusCode := http.StatusInternalServerError
+
+	switch e := err.(type) {
+	case httpStatusCodeProvider:
+		statusCode = e.HTTPStatusCode()
+	}
+
+	s.writeJSON(w, r, statusCode, map[string]any{"error": err.Error()})
 }

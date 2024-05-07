@@ -16,8 +16,6 @@ type server struct {
 	router  *chi.Mux
 }
 
-type response map[string]interface{}
-
 func newServer(service *service.Service) *server {
 	s := &server{
 		service: service,
@@ -31,7 +29,7 @@ func newServer(service *service.Service) *server {
 }
 
 func (s *server) writeJSON(w http.ResponseWriter, r *http.Request, status int, data any) error {
-	body, err := json.Marshal(response{"data": data})
+	body, err := json.Marshal(data)
 
 	if err != nil {
 		return err

@@ -1,15 +1,24 @@
 package service
 
 import (
-	"database/sql"
+	"eniqlostore/internal/entity"
 )
 
 type Service struct {
-	db *sql.DB
+	userRepository userRepository
 }
 
-func NewService(db *sql.DB) *Service {
+type userRepository interface {
+	Insert(user entity.User) (entity.User, error)
+	CheckExistByPhoneNumber(phoneNumber string) (bool, error)
+}
+
+type ServiceDeps struct {
+	UserRepository userRepository
+}
+
+func NewService(opts ServiceDeps) *Service {
 	return &Service{
-		db: db,
+		userRepository: opts.UserRepository,
 	}
 }

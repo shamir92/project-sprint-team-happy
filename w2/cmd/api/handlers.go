@@ -13,12 +13,12 @@ func (s *server) handleStaffCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newStaff, err := s.service.StaffCreate(payload)
+	newStaff, err := s.service.UserCreate(payload)
 
 	if err != nil {
 		s.errorResponse(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	s.writeJSON(w, r, http.StatusCreated, newStaff)
+	s.writeJSON(w, r, http.StatusCreated, map[string]any{"data": newStaff})
 }
