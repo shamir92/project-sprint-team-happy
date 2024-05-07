@@ -2,29 +2,25 @@ package main
 
 import (
 	"eniqlostore/internal/postgres"
-	"eniqlostore/internal/repository"
-	"eniqlostore/internal/service"
 	"log"
-	"net/http"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
-
 	db, err := postgres.NewDB("postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable")
 
 	if err != nil {
 		log.Fatalf("database failed to open: %v", err)
 	}
 
-	service := service.NewService(service.ServiceDeps{
-		UserRepository: repository.NewUserRepository(db),
+	server := newServer(serverOpts{
+		db: db,
 	})
 
-	httpServer := newServer(service)
+	httpServer := server.newHttpServer(":8080")
 
-	err = http.ListenAndServe(":8080", httpServer.router)
+	err = httpServer.ListenAndServe()
 
 	if err != nil {
 		log.Fatalf("server failed to start: %v", err)

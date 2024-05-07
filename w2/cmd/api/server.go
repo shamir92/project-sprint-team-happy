@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"eniqlostore/internal/repository"
 	"eniqlostore/internal/service"
 	"errors"
 	"fmt"
@@ -11,21 +13,41 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type server struct {
-	service *service.Service
-	router  *chi.Mux
+type serverOpts struct {
+	db *sql.DB
 }
 
-func newServer(service *service.Service) *server {
-	s := &server{
-		service: service,
+type server struct {
+	userService *service.UserService
+}
+
+func newServer(opts serverOpts) *server {
+	// Setup deps
+	userRepo := repository.NewUserRepository(opts.db)
+	userService := service.NewUserService(service.UserServiceDeps{
+		UserRepository: userRepo,
+	})
+
+	return &server{
+		userService: userService,
 	}
+}
 
-	s.router = chi.NewRouter()
+func (s *server) newHttpServer(addr string) *http.Server {
+	router := chi.NewRouter()
 
-	s.routes()
+	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hey, What's Up!"))
+	})
 
-	return s
+	router.Route("/v1", func(r chi.Router) {
+		r.Post("/staff/register", s.handleStaffCreate)
+	})
+
+	return &http.Server{
+		Addr:    addr,
+		Handler: router,
+	}
 }
 
 func (s *server) writeJSON(w http.ResponseWriter, r *http.Request, status int, data any) error {

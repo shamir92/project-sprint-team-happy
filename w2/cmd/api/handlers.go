@@ -13,7 +13,7 @@ func (s *server) handleStaffCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newStaff, err := s.service.UserCreate(payload)
+	newStaff, err := s.userService.UserCreate(payload)
 
 	if err != nil {
 		s.errorResponse(w, r, http.StatusBadRequest, err)
