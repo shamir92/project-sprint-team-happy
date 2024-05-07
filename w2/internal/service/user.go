@@ -5,13 +5,32 @@ import (
 	"fmt"
 )
 
+type IUserRepository interface {
+	Insert(user entity.User) (entity.User, error)
+	CheckExistByPhoneNumber(phoneNumber string) (bool, error)
+}
+
+type UserServiceDeps struct {
+	UserRepository IUserRepository
+}
+
+type UserService struct {
+	userRepository IUserRepository
+}
+
+func NewUserService(deps UserServiceDeps) *UserService {
+	return &UserService{
+		userRepository: deps.UserRepository,
+	}
+}
+
 type CreateStaffRequest struct {
 	PhoneNumber string `json:"phoneNumber"`
 	Name        string `json:"name"`
 	Password    string `json:"password"`
 }
 
-func (s *Service) UserCreate(in CreateStaffRequest) (entity.User, error) {
+func (s *UserService) UserCreate(in CreateStaffRequest) (entity.User, error) {
 	isExist, err := s.userRepository.CheckExistByPhoneNumber(in.PhoneNumber)
 
 	if err != nil {

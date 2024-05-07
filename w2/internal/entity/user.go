@@ -24,11 +24,11 @@ type User struct {
 
 func validateName(name string) error {
 	const MIN_NAME = 5
-	const MAX_NAME = 15
+	const MAX_NAME = 50
 
 	if len(name) < MIN_NAME || len(name) > MAX_NAME {
 		return UserError{
-			Message: fmt.Sprintf("password: min = %d and max = %d characters", MIN_NAME, MAX_NAME),
+			Message: fmt.Sprintf("name: min = %d and max = %d characters", MIN_NAME, MAX_NAME),
 		}
 	}
 
