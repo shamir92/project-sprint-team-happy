@@ -6,15 +6,15 @@ import (
 	"errors"
 )
 
-type UserRepository struct {
+type userRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) (repo *UserRepository) {
-	return &UserRepository{db}
+func NewUserRepository(db *sql.DB) *userRepository {
+	return &userRepository{db}
 }
 
-func (r *UserRepository) Insert(user entity.User) (entity.User, error) {
+func (r *userRepository) Insert(user entity.User) (entity.User, error) {
 	query := `
 		INSERT INTO users(phone_number, name, password) 
 		VALUES($1, $2, $3) 
@@ -31,7 +31,7 @@ func (r *UserRepository) Insert(user entity.User) (entity.User, error) {
 	return newUser, nil
 }
 
-func (r *UserRepository) CheckExistByPhoneNumber(phoneNumber string) (bool, error) {
+func (r *userRepository) CheckExistByPhoneNumber(phoneNumber string) (bool, error) {
 	query := `
 		SELECT phone_number FROM users WHERE phone_number = $1
 	`
