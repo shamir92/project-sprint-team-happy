@@ -1,7 +1,24 @@
 package main
 
-import "net/http"
+import (
+	"eniqlostore/internal/service"
+	"net/http"
+)
 
-func (s *server) handleCreateStaff(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Creating new staff"))
+func (s *server) handleStaffCreate(w http.ResponseWriter, r *http.Request) {
+	payload := service.CreateStaffRequest{}
+
+	if err := s.decodeJSON(w, r, &payload); err != nil {
+		s.errorResponse(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	newStaff, err := s.service.StaffCreate(payload)
+
+	if err != nil {
+		s.errorResponse(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	s.writeJSON(w, r, http.StatusCreated, newStaff)
 }

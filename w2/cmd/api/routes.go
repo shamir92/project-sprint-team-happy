@@ -12,6 +12,6 @@ func (s *server) routes() {
 	})
 
 	s.router.Route("/v1", func(r chi.Router) {
-		r.Get("/staff/register", s.handleCreateStaff)
+		r.Post("/staff/register", s.handleStaffCreate)
 	})
 }

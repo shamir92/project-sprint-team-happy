@@ -1,30 +1,30 @@
 package service
 
 type Staff struct {
-	ID          string
-	PhoneNumber string
-	Name        string
-	Password    string
+	UserID      string `json:"userId"`
+	PhoneNumber string `json:"phoneNumber"`
+	Name        string `json:"name"`
+	Password    string `json:"-"`
 }
 
-type CreateStafIn struct {
-	PhoneNumber string
-	Name        string
-	Password    string
+type CreateStaffRequest struct {
+	PhoneNumber string `json:"phoneNumber"`
+	Name        string `json:"name"`
+	Password    string `json:"password"`
 }
 
-func (s *Service) CreateStaff(in CreateStafIn) (Staff, error) {
+func (s *Service) StaffCreate(in CreateStaffRequest) (Staff, error) {
 	insertUserQuery := `
 		INSERT INTO users(phone_number, name, password) 
-		VALUES($1, $2, $3, $4) 
-		RETURNING id`
+		VALUES($1, $2, $3) 
+		RETURNING user_id`
 
 	staff := Staff{
-		PhoneNumber: in.Password,
+		PhoneNumber: in.PhoneNumber,
 		Name:        in.Name,
 	}
 
-	err := s.db.QueryRow(insertUserQuery, in.Name, in.PhoneNumber, in.Password).Scan(&staff.ID)
+	err := s.db.QueryRow(insertUserQuery, in.Name, in.PhoneNumber, in.Password).Scan(&staff.UserID)
 
 	if err != nil {
 		return Staff{}, err
