@@ -3,6 +3,7 @@ package httpserver
 import (
 	"database/sql"
 	"encoding/json"
+	"eniqlostore/internal/auth"
 	"eniqlostore/internal/repository"
 	"eniqlostore/internal/service"
 	"errors"
@@ -24,9 +25,11 @@ type HttpServer struct {
 }
 
 func New(opts ServerOpts) *HttpServer {
+
 	userRepo := repository.NewUserRepository(opts.DB)
 	userService := service.NewUserService(service.UserServiceDeps{
-		UserRepository: userRepo,
+		UserRepository:   userRepo,
+		AuthTokenManager: auth.NewJwt(),
 	})
 
 	return &HttpServer{
