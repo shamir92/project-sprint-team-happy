@@ -43,7 +43,7 @@ func (s *UserService) UserCreate(in CreateStaffRequest) (entity.User, error) {
 		}
 	}
 
-	newUser, err := entity.NewUser(in.Password, in.Name, in.Password)
+	newUser, err := entity.NewUser(in.PhoneNumber, in.Name, in.Password)
 
 	if err != nil {
 		return newUser, err

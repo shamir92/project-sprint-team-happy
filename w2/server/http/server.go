@@ -1,4 +1,4 @@
-package main
+package httpserver
 
 import (
 	"database/sql"
@@ -10,30 +10,32 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi"
 )
 
-type serverOpts struct {
-	db *sql.DB
+type ServerOpts struct {
+	Addr string
+	DB   *sql.DB
 }
 
-type server struct {
+type HttpServer struct {
+	addr        string // todo: change to HttpServerConfig
 	userService *service.UserService
 }
 
-func newServer(opts serverOpts) *server {
-	// Setup deps
-	userRepo := repository.NewUserRepository(opts.db)
+func New(opts ServerOpts) *HttpServer {
+	userRepo := repository.NewUserRepository(opts.DB)
 	userService := service.NewUserService(service.UserServiceDeps{
 		UserRepository: userRepo,
 	})
 
-	return &server{
+	return &HttpServer{
+		addr:        opts.Addr,
 		userService: userService,
 	}
 }
 
-func (s *server) newHttpServer(addr string) *http.Server {
+func (s *HttpServer) Server() *http.Server {
 	router := chi.NewRouter()
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -45,12 +47,12 @@ func (s *server) newHttpServer(addr string) *http.Server {
 	})
 
 	return &http.Server{
-		Addr:    addr,
+		Addr:    s.addr,
 		Handler: router,
 	}
 }
 
-func (s *server) writeJSON(w http.ResponseWriter, r *http.Request, status int, data any) error {
+func (s *HttpServer) writeJSON(w http.ResponseWriter, r *http.Request, status int, data any) error {
 	body, err := json.Marshal(data)
 
 	if err != nil {
@@ -64,7 +66,7 @@ func (s *server) writeJSON(w http.ResponseWriter, r *http.Request, status int, d
 	return nil
 }
 
-func (s *server) decodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
+func (s *HttpServer) decodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	err := json.NewDecoder(r.Body).Decode(dst)
 
 	if err != nil {

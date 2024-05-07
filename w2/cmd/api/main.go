@@ -2,6 +2,7 @@ package main
 
 import (
 	"eniqlostore/internal/postgres"
+	httpserver "eniqlostore/server/http"
 	"log"
 
 	_ "github.com/lib/pq"
@@ -14,13 +15,14 @@ func main() {
 		log.Fatalf("database failed to open: %v", err)
 	}
 
-	server := newServer(serverOpts{
-		db: db,
+	httpServer := httpserver.New(httpserver.ServerOpts{
+		DB:   db,
+		Addr: ":8080",
 	})
 
-	httpServer := server.newHttpServer(":8080")
+	server := httpServer.Server()
 
-	err = httpServer.ListenAndServe()
+	err = server.ListenAndServe()
 
 	if err != nil {
 		log.Fatalf("server failed to start: %v", err)

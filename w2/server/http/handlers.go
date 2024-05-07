@@ -1,11 +1,11 @@
-package main
+package httpserver
 
 import (
 	"eniqlostore/internal/service"
 	"net/http"
 )
 
-func (s *server) handleStaffCreate(w http.ResponseWriter, r *http.Request) {
+func (s *HttpServer) handleStaffCreate(w http.ResponseWriter, r *http.Request) {
 	payload := service.CreateStaffRequest{}
 
 	if err := s.decodeJSON(w, r, &payload); err != nil {
