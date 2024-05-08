@@ -30,6 +30,7 @@ func New(opts ServerOpts) *HttpServer {
 	userService := service.NewUserService(service.UserServiceDeps{
 		UserRepository:   userRepo,
 		AuthTokenManager: auth.NewJwt(),
+		PasswordHash:     auth.NewBcryptPasswordHash(),
 	})
 
 	return &HttpServer{
