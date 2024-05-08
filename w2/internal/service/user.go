@@ -14,20 +14,27 @@ type IAuthTokenManager interface {
 	CreateToken(user entity.User) (string, error)
 }
 
+type IPasswordHash interface {
+	Hash(password string) (string, error)
+}
+
 type UserServiceDeps struct {
 	UserRepository   IUserRepository
 	AuthTokenManager IAuthTokenManager
+	PasswordHash     IPasswordHash
 }
 
 type UserService struct {
 	userRepository IUserRepository
 	tokenManager   IAuthTokenManager
+	passwordHash   IPasswordHash
 }
 
 func NewUserService(deps UserServiceDeps) *UserService {
 	return &UserService{
 		userRepository: deps.UserRepository,
 		tokenManager:   deps.AuthTokenManager,
+		passwordHash:   deps.PasswordHash,
 	}
 }
 
@@ -61,6 +68,13 @@ func (s *UserService) UserCreate(in CreateStaffRequest) (CreateUserOut, error) {
 		return CreateUserOut{}, err
 	}
 
+	hashedPassword, err := s.passwordHash.Hash(newUser.Password)
+
+	if err != nil {
+		return CreateUserOut{}, err
+	}
+
+	newUser.Password = hashedPassword
 	user, err := s.userRepository.Insert(newUser)
 
 	if err != nil {
