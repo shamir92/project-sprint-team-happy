@@ -10,17 +10,24 @@ type IUserRepository interface {
 	CheckExistByPhoneNumber(phoneNumber string) (bool, error)
 }
 
+type IAuthTokenManager interface {
+	CreateToken(user entity.User) (string, error)
+}
+
 type UserServiceDeps struct {
-	UserRepository IUserRepository
+	UserRepository   IUserRepository
+	AuthTokenManager IAuthTokenManager
 }
 
 type UserService struct {
 	userRepository IUserRepository
+	tokenManager   IAuthTokenManager
 }
 
 func NewUserService(deps UserServiceDeps) *UserService {
 	return &UserService{
 		userRepository: deps.UserRepository,
+		tokenManager:   deps.AuthTokenManager,
 	}
 }
 
@@ -30,15 +37,20 @@ type CreateStaffRequest struct {
 	Password    string `json:"password"`
 }
 
-func (s *UserService) UserCreate(in CreateStaffRequest) (entity.User, error) {
+type CreateUserOut struct {
+	entity.User
+	AccessToken string `json:"accessToken"`
+}
+
+func (s *UserService) UserCreate(in CreateStaffRequest) (CreateUserOut, error) {
 	isExist, err := s.userRepository.CheckExistByPhoneNumber(in.PhoneNumber)
 
 	if err != nil {
-		return entity.User{}, err
+		return CreateUserOut{}, err
 	}
 
 	if isExist {
-		return entity.User{}, entity.UserError{
+		return CreateUserOut{}, entity.UserError{
 			Message: fmt.Sprintf("user with phone number %s already exist", in.PhoneNumber),
 		}
 	}
@@ -46,14 +58,23 @@ func (s *UserService) UserCreate(in CreateStaffRequest) (entity.User, error) {
 	newUser, err := entity.NewUser(in.PhoneNumber, in.Name, in.Password)
 
 	if err != nil {
-		return newUser, err
+		return CreateUserOut{}, err
 	}
 
 	user, err := s.userRepository.Insert(newUser)
 
 	if err != nil {
-		return entity.User{}, err
+		return CreateUserOut{}, err
 	}
 
-	return user, nil
+	token, err := s.tokenManager.CreateToken(user)
+
+	if err != nil {
+		return CreateUserOut{}, err
+	}
+
+	return CreateUserOut{
+		User:        user,
+		AccessToken: token,
+	}, nil
 }

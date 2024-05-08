@@ -22,10 +22,6 @@
 # Dependency directories
 /vendor/
 
-# Ignore Go modules directory
-/vendor/
-*.mod
-*.sum
 
 # Editor and IDE directories and files
 /.idea/
