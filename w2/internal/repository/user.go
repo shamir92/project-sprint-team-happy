@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"eniqlostore/internal/entity"
 	"errors"
+	"net/http"
 )
 
 type userRepository struct {
@@ -48,4 +49,28 @@ func (r *userRepository) CheckExistByPhoneNumber(phoneNumber string) (bool, erro
 
 	// A users by given phone number  exist when the scanned phone number isn't empty string
 	return scannedPhoneNumber != "", nil
+}
+
+func (r *userRepository) GetByPhoneNumber(phoneNumber string) (entity.User, error) {
+	query := `
+		SELECT user_id, name, phone_number, password FROM users WHERE phone_number = $1
+	`
+
+	var user entity.User
+	err := r.db.QueryRow(query, phoneNumber).Scan(&user.UserID, &user.Name, &user.PhoneNumber, &user.Password)
+
+	// User is not registered in db
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return user, entity.UserError{
+			Message: "user not found",
+			Code:    http.StatusNotFound,
+		}
+	}
+
+	// Unknown error
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
