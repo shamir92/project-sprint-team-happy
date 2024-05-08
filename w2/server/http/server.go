@@ -20,8 +20,9 @@ type ServerOpts struct {
 }
 
 type HttpServer struct {
-	addr        string // todo: change to HttpServerConfig
-	userService *service.UserService
+	addr           string // todo: change to HttpServerConfig
+	userService    *service.UserService
+	productService *service.ProductService
 }
 
 func New(opts ServerOpts) *HttpServer {
@@ -32,9 +33,15 @@ func New(opts ServerOpts) *HttpServer {
 		AuthTokenManager: auth.NewJwt(),
 	})
 
+	productRepo := repository.NewProductRepository(opts.DB)
+	productService := service.NewProductService(service.ProductServiceDeps{
+		ProductRepository: productRepo,
+	})
+
 	return &HttpServer{
-		addr:        opts.Addr,
-		userService: userService,
+		addr:           opts.Addr,
+		userService:    userService,
+		productService: productService,
 	}
 }
 
@@ -47,6 +54,13 @@ func (s *HttpServer) Server() *http.Server {
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Post("/staff/register", s.handleStaffCreate)
+
+		r.Route("/products", func(r chi.Router) {
+			r.Get("/", s.handleProductBrowse)
+			r.Post("/", s.handleProductCreate)
+			r.Put("/{productId}", s.handleProductEdit)
+			r.Delete("/{productId}", s.handleProductDelete)
+		})
 	})
 
 	return &http.Server{

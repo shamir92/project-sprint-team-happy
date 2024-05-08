@@ -23,7 +23,6 @@ func (r *userRepository) Insert(user entity.User) (entity.User, error) {
 	newUser := user
 
 	err := r.db.QueryRow(query, user.PhoneNumber, user.Name, user.Password).Scan(&newUser.UserID)
-
 	if err != nil {
 		return entity.User{}, err
 	}
