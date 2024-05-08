@@ -54,7 +54,10 @@ func (s *HttpServer) Server() *http.Server {
 	})
 
 	router.Route("/v1", func(r chi.Router) {
-		r.Post("/staff/register", s.handleStaffCreate)
+		r.Route("/staff", func(r chi.Router) {
+			r.Post("/register", s.handleStaffCreate)
+			r.Post("/login", s.handleStaffLogin)
+		})
 
 		r.Route("/products", func(r chi.Router) {
 			r.Get("/", s.handleProductBrowse)
