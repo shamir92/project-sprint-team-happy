@@ -8,8 +8,9 @@ type httpStatusCodeProvider interface {
 	HTTPStatusCode() int
 }
 
+// TODO: Re-thinking how to structure this function
 func (s *HttpServer) errorResponse(w http.ResponseWriter, r *http.Request, status int, err error) {
-	statusCode := http.StatusInternalServerError
+	statusCode := status
 
 	switch e := err.(type) {
 	case httpStatusCodeProvider:
