@@ -2,6 +2,7 @@ package entity
 
 import (
 	"errors"
+	"strings"
 )
 
 var (
@@ -257,6 +258,27 @@ func (phone PhoneNumber) Valid() error {
 	const MIN_LENGTH = 10
 	const MAX_LENGTH = 16
 	const LONGEST_COUNTRY_CODE = 8 // "+" + 7 the longest character of country code(e.g: 44-1534(Jersey country))
+	/**
+		The shortest country codes don't have "-" character,
+		so we assume the shortest country code just has 1 character (e.g: 7 Kazakhstan)
+	**/
+	var COUNTRY_CODE_START_AT_INDEX = 1
+
+	if strings.Contains(string(phone), "-") {
+		/**
+			If the country codes has "-" character,
+			we can say the minimum length of country code is 3
+
+			Example:
+				+1-649
+				+1-340
+				+1-868
+				+44-1624
+
+			As we see example of county codes above, all of them has "-" and at least 3 characters
+		**/
+		COUNTRY_CODE_START_AT_INDEX = 3
+	}
 
 	if len(phone) < MIN_LENGTH || len(phone) > MAX_LENGTH {
 		return ErrPhoneNumberLength
@@ -267,8 +289,8 @@ func (phone PhoneNumber) Valid() error {
 	}
 
 	var isValid bool
-	for i := 1; i < LONGEST_COUNTRY_CODE; i++ {
-		codeWithPrefix := phone[:i]
+	for i := COUNTRY_CODE_START_AT_INDEX; i < LONGEST_COUNTRY_CODE; i++ {
+		codeWithPrefix := phone[:i+1]
 
 		_, ok := phoneCountryCodes[string(codeWithPrefix)]
 
