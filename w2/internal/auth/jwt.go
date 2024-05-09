@@ -2,11 +2,21 @@ package auth
 
 import (
 	"eniqlostore/internal/entity"
+	"errors"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+var (
+	ErrInvalidToken = errors.New("invalid token")
+)
+
+type AuthJwtTokenManager interface {
+	CreateToken(user entity.User) (string, error)
+	GetClaim(tokenString string) (*JsonWebTokenClaims, error)
+}
 
 type jsonWebToken struct {
 	expirationTimeInMinute int
@@ -35,6 +45,7 @@ func (t *jsonWebToken) CreateToken(user entity.User) (string, error) {
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    t.issuer,
 		},
 	}
 
@@ -43,4 +54,33 @@ func (t *jsonWebToken) CreateToken(user entity.User) (string, error) {
 	ss, err := token.SignedString([]byte(t.signingKey))
 
 	return ss, err
+}
+
+func (j *jsonWebToken) GetClaim(tokenString string) (*JsonWebTokenClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &JsonWebTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, ErrInvalidToken
+		} else if method != jwt.SigningMethodHS256 {
+			return nil, ErrInvalidToken
+		}
+
+		return []byte(j.signingKey), nil
+
+	}, jwt.WithExpirationRequired(), jwt.WithIssuer(j.issuer))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, ErrInvalidToken
+	}
+
+	claim, ok := token.Claims.(*JsonWebTokenClaims)
+
+	if !ok {
+		return nil, ErrInvalidToken
+	}
+
+	return claim, nil
 }
