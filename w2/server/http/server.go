@@ -12,8 +12,8 @@ import (
 	"net/http"
 
 	// "github.com/go-chi/chi/middleware"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 type ServerOpts struct {
@@ -95,11 +95,8 @@ func (s *HttpServer) Server() *http.Server {
 			r.Use(s.AuthMiddleware)
 			r.Get("/", s.handleProductBrowse)
 			r.Post("/", s.handleProductCreate)
-
-		})
-		r.Route("/products/{productId}", func(r chi.Router) {
-			r.Put("/", s.handleProductEdit)
-			r.Delete("/", s.handleProductDelete)
+			r.Put("/{productId}", s.handleProductEdit)
+			r.Delete("/{productId}", s.handleProductDelete)
 		})
 
 		r.Post("/ping", s.handlePing)

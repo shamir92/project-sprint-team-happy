@@ -4,7 +4,6 @@ import (
 	"eniqlostore/commons"
 	"eniqlostore/internal/service"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -42,7 +41,6 @@ func (s *HttpServer) handleProductEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload.ID = chi.URLParam(r, "productId")
-	log.Println(payload.ID)
 	_, err := s.productService.UpdateProduct(payload)
 	if err != nil {
 		s.handleError(w, r, err)
@@ -54,7 +52,7 @@ func (s *HttpServer) handleProductEdit(w http.ResponseWriter, r *http.Request) {
 
 func (s *HttpServer) handleProductDelete(w http.ResponseWriter, r *http.Request) {
 	userID := fmt.Sprint(r.Context().Value(currentUserRequestKey))
-	fmt.Println("shamir ->", chi.URLParam(r, "shamir"))
+	fmt.Println("shamir ->", chi.URLParam(r, "productId"))
 	err := s.productService.DeleteProduct(chi.URLParam(r, "shamir"), userID)
 	if err != (commons.CustomError{}) {
 		s.handleError(w, r, err)
