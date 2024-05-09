@@ -6,5 +6,5 @@ import (
 
 func (s *HttpServer) handlePing(w http.ResponseWriter, r *http.Request) {
 
-	s.writeJSON(w, r, http.StatusCreated, map[string]any{"message": "pong"})
+	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "pong"})
 }
