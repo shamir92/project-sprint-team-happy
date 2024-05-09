@@ -9,14 +9,14 @@ func (s *HttpServer) handleCreateCustomer(w http.ResponseWriter, r *http.Request
 	body := service.CreateCustomerRequest{}
 
 	if err := s.decodeJSON(w, r, &body); err != nil {
-		s.errorResponse(w, r, http.StatusBadRequest, err)
+		s.errorBadRequest(w, r, err)
 		return
 	}
 
 	cust, err := s.customerService.CreateCustomer(body)
 
 	if err != nil {
-		s.errorResponse(w, r, http.StatusBadRequest, err)
+		s.handleError(w, r, err)
 		return
 	}
 
