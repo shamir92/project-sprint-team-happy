@@ -1,7 +1,10 @@
 package httpserver
 
 import (
+	"eniqlostore/commons"
 	"eniqlostore/internal/service"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -12,6 +15,7 @@ func (s *HttpServer) handleProductBrowse(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *HttpServer) handleProductCreate(w http.ResponseWriter, r *http.Request) {
+
 	var payload service.CreateProductRequest
 
 	if err := s.decodeJSON(w, r, &payload); err != nil {
@@ -19,7 +23,7 @@ func (s *HttpServer) handleProductCreate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	payload.CreatedBy = "44d300ce-c62c-421b-a432-78c825da877a"
+	payload.CreatedBy = fmt.Sprint(r.Context().Value(currentUserRequestKey))
 	product, err := s.productService.CreateProduct(payload)
 	if err != nil {
 		s.handleError(w, r, err)
@@ -38,6 +42,7 @@ func (s *HttpServer) handleProductEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload.ID = chi.URLParam(r, "productId")
+	log.Println(payload.ID)
 	_, err := s.productService.UpdateProduct(payload)
 	if err != nil {
 		s.handleError(w, r, err)
@@ -48,8 +53,10 @@ func (s *HttpServer) handleProductEdit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *HttpServer) handleProductDelete(w http.ResponseWriter, r *http.Request) {
-	err := s.productService.DeleteProduct(chi.URLParam(r, "productId"))
-	if err != nil {
+	userID := fmt.Sprint(r.Context().Value(currentUserRequestKey))
+	fmt.Println("shamir ->", chi.URLParam(r, "shamir"))
+	err := s.productService.DeleteProduct(chi.URLParam(r, "shamir"), userID)
+	if err != (commons.CustomError{}) {
 		s.handleError(w, r, err)
 		return
 	}

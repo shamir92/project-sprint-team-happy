@@ -31,7 +31,7 @@ type JsonWebTokenClaims struct {
 
 func NewJwt() *jsonWebToken {
 	return &jsonWebToken{
-		expirationTimeInMinute: 60,
+		expirationTimeInMinute: 600,
 		signingKey:             os.Getenv("JWT_SECRET"),
 		issuer:                 "app",
 	}

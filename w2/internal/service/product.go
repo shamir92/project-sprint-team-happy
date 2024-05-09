@@ -1,23 +1,19 @@
 package service
 
 import (
+	"eniqlostore/commons"
 	"eniqlostore/internal/entity"
+	"eniqlostore/internal/repository"
+	"log"
 	"time"
 )
 
-type IProductRepository interface {
-	Insert(product entity.Product) (entity.Product, error)
-	GetById(id string) (entity.Product, error)
-	Update(product entity.Product) error
-	Delete(id string) error
-}
-
 type ProductServiceDeps struct {
-	ProductRepository IProductRepository
+	ProductRepository repository.IProductRepository
 }
 
 type ProductService struct {
-	productRepository IProductRepository
+	productRepository repository.IProductRepository
 }
 
 func NewProductService(deps ProductServiceDeps) *ProductService {
@@ -93,16 +89,41 @@ func (s *ProductService) UpdateProduct(req UpdateProductRequest) (entity.Product
 	return product, nil
 }
 
-func (s *ProductService) DeleteProduct(productId string) error {
-	_, err := s.productRepository.GetById(productId)
+func (s *ProductService) DeleteProduct(productId string, userId string) commons.CustomError {
+	log.Println("delete product 1")
+	product, err := s.productRepository.GetById(productId)
 	if err != nil {
-		return err
+		return commons.CustomError{
+			Message: err.Error(),
+			Code:    500,
+		}
 	}
+	log.Println("delete product 2")
+
+	if product == (entity.Product{}) {
+		return commons.CustomError{
+			Message: "product not found",
+			Code:    404,
+		}
+	}
+	log.Println("delete product 3")
+
+	if product.CreatedBy != userId {
+		return commons.CustomError{
+			Message: "product is not yours",
+			Code:    401,
+		}
+	}
+
+	log.Println("delete product 4")
 
 	err = s.productRepository.Delete(productId)
 	if err != nil {
-		return err
+		return commons.CustomError{
+			Message: err.Error(),
+			Code:    500,
+		}
 	}
 
-	return nil
+	return commons.CustomError{}
 }

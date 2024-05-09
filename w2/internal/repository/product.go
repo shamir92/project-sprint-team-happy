@@ -10,6 +10,12 @@ import (
 type productRepository struct {
 	db *sql.DB
 }
+type IProductRepository interface {
+	Insert(product entity.Product) (entity.Product, error)
+	GetById(id string) (entity.Product, error)
+	Update(product entity.Product) error
+	Delete(id string) error
+}
 
 func NewProductRepository(db *sql.DB) *productRepository {
 	return &productRepository{db}

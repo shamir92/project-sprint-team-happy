@@ -9,14 +9,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
-	"time"
 
 	// "github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/httplog/v2"
 )
 
 type ServerOpts struct {
@@ -59,26 +56,29 @@ func New(opts ServerOpts) *HttpServer {
 }
 
 func (s *HttpServer) Server() *http.Server {
-	logger := httplog.NewLogger("httplog-example", httplog.Options{
-		// JSON:             true,
-		LogLevel:         slog.LevelDebug,
-		Concise:          true,
-		RequestHeaders:   true,
-		MessageFieldName: "message",
-		// TimeFieldFormat: time.RFC850,
-		Tags: map[string]string{
-			"version": "v1.0-81aa4244d9fc8076a",
-			"env":     "dev",
-		},
-		QuietDownRoutes: []string{
-			"/",
-			// "/ping",
-		},
-		QuietDownPeriod: 10 * time.Second,
-		// SourceFieldName: "source",
-	})
+	// logger := httplog.NewLogger("httplog-example", httplog.Options{
+	// 	// JSON:             true,
+	// 	LogLevel:         slog.LevelDebug,
+	// 	Concise:          true,
+	// 	RequestHeaders:   true,
+	// 	MessageFieldName: "message",
+	// 	// TimeFieldFormat: time.RFC850,
+	// 	Tags: map[string]string{
+	// 		"version": "v1.0-81aa4244d9fc8076a",
+	// 		"env":     "dev",
+	// 	},
+	// 	QuietDownRoutes: []string{
+	// 		"/",
+	// 		// "/ping",
+	// 	},
+	// 	QuietDownPeriod: 10 * time.Second,
+	// 	// SourceFieldName: "source",
+	// })
 	router := chi.NewRouter()
-	router.Use(httplog.RequestLogger(logger))
+	// router.Use(httplog.RequestLogger(logger))
+	router.Use(middleware.Logger)
+	router.Use(middleware.URLFormat)
+
 	router.Use(middleware.Heartbeat("/ping"))
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -95,8 +95,11 @@ func (s *HttpServer) Server() *http.Server {
 			r.Use(s.AuthMiddleware)
 			r.Get("/", s.handleProductBrowse)
 			r.Post("/", s.handleProductCreate)
-			r.Put("/{productId}", s.handleProductEdit)
-			r.Delete("/{productId}", s.handleProductDelete)
+
+		})
+		r.Route("/products/{productId}", func(r chi.Router) {
+			r.Put("/", s.handleProductEdit)
+			r.Delete("/", s.handleProductDelete)
 		})
 
 		r.Post("/ping", s.handlePing)
