@@ -22,3 +22,19 @@ func (s *HttpServer) handleCreateCustomer(w http.ResponseWriter, r *http.Request
 
 	s.writeJSON(w, r, http.StatusCreated, map[string]any{"data": cust})
 }
+
+func (s *HttpServer) handleGetCustomers(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	customers, err := s.customerService.GetCustomers(service.GetCustomerRequst{
+		Name:        query.Get("name"),
+		PhoneNumber: query.Get("phoneNumber"),
+	})
+
+	if err != nil {
+		s.handleError(w, r, err)
+		return
+	}
+
+	s.writeJSON(w, r, http.StatusOK, map[string]any{"data": customers})
+}
