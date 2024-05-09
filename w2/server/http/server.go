@@ -76,7 +76,9 @@ func (s *HttpServer) Server() *http.Server {
 
 		r.Post("/ping", s.handlePing)
 		r.Route("/customer", func(custRouter chi.Router) {
+			custRouter.Use(s.AuthMiddleware)
 			custRouter.Post("/register", s.handleCreateCustomer)
+			custRouter.Get("/", s.handleGetCustomers)
 		})
 	})
 
