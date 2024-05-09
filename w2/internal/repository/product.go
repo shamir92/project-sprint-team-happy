@@ -40,11 +40,11 @@ func (r *productRepository) GetById(id string) (entity.Product, error) {
 
 	query := `
 		SELECT 
-		id, name, sku, category, image_url, notes, price, stock, location, is_available, created_at
+		id, name, sku, category, image_url, notes, price, stock, location, is_available, created_at, created_by
 		FROM products
 		WHERE id = $1 AND deleted_at IS NULL
 	`
-	err := r.db.QueryRow(query, id).Scan(&product.ID, &product.Name, &product.SKU, &product.Category, &product.ImageUrl, &product.Notes, &product.Price, &product.Stock, &product.Location, &product.IsAvailable, &product.CreatedAt)
+	err := r.db.QueryRow(query, id).Scan(&product.ID, &product.Name, &product.SKU, &product.Category, &product.ImageUrl, &product.Notes, &product.Price, &product.Stock, &product.Location, &product.IsAvailable, &product.CreatedAt, &product.CreatedBy)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return product, commons.CustomError{Message: "product not found", Code: 404}
