@@ -55,7 +55,7 @@ func (s *HttpServer) handleProductEdit(w http.ResponseWriter, r *http.Request) {
 func (s *HttpServer) handleProductDelete(w http.ResponseWriter, r *http.Request) {
 	userID := fmt.Sprint(r.Context().Value(currentUserRequestKey))
 	err := s.productService.DeleteProduct(chi.URLParam(r, "productId"), userID)
-	if err != (commons.CustomError{}) {
+	if err != nil {
 		s.handleError(w, r, err)
 		return
 	}

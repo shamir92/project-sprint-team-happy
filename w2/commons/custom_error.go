@@ -6,6 +6,7 @@ type CustomError struct {
 }
 
 func (c CustomError) Error() string {
+
 	return c.Message
 }
 
