@@ -67,6 +67,7 @@ func (s *UserService) UserCreate(in CreateStaffRequest) (CreateUserOut, error) {
 	if isExist {
 		return CreateUserOut{}, entity.UserError{
 			Message: fmt.Sprintf("user with phone number %s already exist", in.PhoneNumber),
+			Code:    http.StatusConflict,
 		}
 	}
 
