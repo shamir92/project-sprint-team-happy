@@ -14,7 +14,7 @@ func (s *HttpServer) errorResponse(w http.ResponseWriter, r *http.Request, statu
 }
 
 func (s *HttpServer) errorBadRequest(w http.ResponseWriter, r *http.Request, err error) {
-	s.writeJSON(w, r, http.StatusBadRequest, err)
+	s.writeJSON(w, r, http.StatusBadRequest, map[string]any{"error": err.Error()})
 }
 
 func (s *HttpServer) handleError(w http.ResponseWriter, r *http.Request, err error) {
