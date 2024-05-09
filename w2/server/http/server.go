@@ -62,6 +62,8 @@ func (s *HttpServer) Server() *http.Server {
 			r.Put("/{productId}", s.handleProductEdit)
 			r.Delete("/{productId}", s.handleProductDelete)
 		})
+
+		r.Post("/ping", s.handlePing)
 	})
 
 	return &http.Server{
