@@ -10,4 +10,8 @@ require (
 
 require github.com/joho/godotenv v1.5.1
 
-require golang.org/x/crypto v0.23.0
+require (
+	github.com/go-chi/chi/v5 v5.0.12
+	github.com/go-chi/httplog/v2 v2.0.11
+	golang.org/x/crypto v0.23.0
+)
