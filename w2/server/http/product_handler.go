@@ -1,7 +1,6 @@
 package httpserver
 
 import (
-	"eniqlostore/commons"
 	"eniqlostore/internal/service"
 	"fmt"
 	"net/http"
@@ -54,10 +53,28 @@ func (s *HttpServer) handleProductDelete(w http.ResponseWriter, r *http.Request)
 	userID := fmt.Sprint(r.Context().Value(currentUserRequestKey))
 	fmt.Println("shamir ->", chi.URLParam(r, "productId"))
 	err := s.productService.DeleteProduct(chi.URLParam(r, "shamir"), userID)
-	if err != (commons.CustomError{}) {
+	if err != nil {
 		s.handleError(w, r, err)
 		return
 	}
 
 	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "success"})
 }
+
+// func (s *HttpServer) handleProductCheckout(w http.ResponseWriter, r *http.Request) {
+// 	var payload service.CreateProductRequest
+
+// 	if err := s.decodeJSON(w, r, &payload); err != nil {
+// 		s.errorBadRequest(w, r, err)
+// 		return
+// 	}
+
+// 	payload.CreatedBy = fmt.Sprint(r.Context().Value(currentUserRequestKey))
+// 	product, err := s.productService.CreateProduct(payload)
+// 	if err != nil {
+// 		s.handleError(w, r, err)
+// 		return
+// 	}
+
+// 	s.writeJSON(w, r, http.StatusCreated, map[string]any{"message": "success", "data": "ok"})
+// }

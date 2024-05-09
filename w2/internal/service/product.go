@@ -4,7 +4,6 @@ import (
 	"eniqlostore/commons"
 	"eniqlostore/internal/entity"
 	"eniqlostore/internal/repository"
-	"log"
 	"time"
 )
 
@@ -90,7 +89,6 @@ func (s *ProductService) UpdateProduct(req UpdateProductRequest) (entity.Product
 }
 
 func (s *ProductService) DeleteProduct(productId string, userId string) commons.CustomError {
-	log.Println("delete product 1")
 	product, err := s.productRepository.GetById(productId)
 	if err != nil {
 		return commons.CustomError{
@@ -98,7 +96,6 @@ func (s *ProductService) DeleteProduct(productId string, userId string) commons.
 			Code:    500,
 		}
 	}
-	log.Println("delete product 2")
 
 	if product == (entity.Product{}) {
 		return commons.CustomError{
@@ -106,7 +103,6 @@ func (s *ProductService) DeleteProduct(productId string, userId string) commons.
 			Code:    404,
 		}
 	}
-	log.Println("delete product 3")
 
 	if product.CreatedBy != userId {
 		return commons.CustomError{
@@ -114,9 +110,6 @@ func (s *ProductService) DeleteProduct(productId string, userId string) commons.
 			Code:    401,
 		}
 	}
-
-	log.Println("delete product 4")
-
 	err = s.productRepository.Delete(productId)
 	if err != nil {
 		return commons.CustomError{
@@ -126,4 +119,8 @@ func (s *ProductService) DeleteProduct(productId string, userId string) commons.
 	}
 
 	return commons.CustomError{}
+}
+
+func (s *ProductService) ProductCheckout() ([]entity.Product, error) {
+	return s.productRepository.GetAll()
 }

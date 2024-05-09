@@ -91,12 +91,14 @@ func (s *HttpServer) Server() *http.Server {
 			r.Post("/login", s.handleStaffLogin)
 		})
 
-		r.Route("/products", func(r chi.Router) {
+		r.Route("/product", func(r chi.Router) {
 			r.Use(s.AuthMiddleware)
 			r.Get("/", s.handleProductBrowse)
 			r.Post("/", s.handleProductCreate)
 			r.Put("/{productId}", s.handleProductEdit)
 			r.Delete("/{productId}", s.handleProductDelete)
+			r.Post("/checkout", s.handleProductCheckout)
+
 		})
 
 		r.Post("/ping", s.handlePing)
