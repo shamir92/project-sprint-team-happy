@@ -20,17 +20,19 @@ type ServerOpts struct {
 }
 
 type HttpServer struct {
-	addr           string // todo: change to HttpServerConfig
-	userService    *service.UserService
-	productService *service.ProductService
+	addr            string // todo: change to HttpServerConfig
+	userService     *service.UserService
+	productService  *service.ProductService
+	customerService *service.CustomerService
+	tokenManager    auth.AuthJwtTokenManager
 }
 
 func New(opts ServerOpts) *HttpServer {
-
+	jwtTokenManager := auth.NewJwt()
 	userRepo := repository.NewUserRepository(opts.DB)
 	userService := service.NewUserService(service.UserServiceDeps{
 		UserRepository:   userRepo,
-		AuthTokenManager: auth.NewJwt(),
+		AuthTokenManager: jwtTokenManager,
 		PasswordHash:     auth.NewBcryptPasswordHash(),
 	})
 
@@ -39,10 +41,15 @@ func New(opts ServerOpts) *HttpServer {
 		ProductRepository: productRepo,
 	})
 
+	custRepo := repository.NewCustomerRepository(opts.DB)
+	custService := service.NewCustomerService(custRepo)
+
 	return &HttpServer{
-		addr:           opts.Addr,
-		userService:    userService,
-		productService: productService,
+		addr:            opts.Addr,
+		userService:     userService,
+		productService:  productService,
+		customerService: custService,
+		tokenManager:    jwtTokenManager,
 	}
 }
 
@@ -54,9 +61,13 @@ func (s *HttpServer) Server() *http.Server {
 	})
 
 	router.Route("/v1", func(r chi.Router) {
-		r.Post("/staff/register", s.handleStaffCreate)
+		r.Route("/staff", func(r chi.Router) {
+			r.Post("/register", s.handleStaffCreate)
+			r.Post("/login", s.handleStaffLogin)
+		})
 
 		r.Route("/products", func(r chi.Router) {
+			r.Use(s.AuthMiddleware)
 			r.Get("/", s.handleProductBrowse)
 			r.Post("/", s.handleProductCreate)
 			r.Put("/{productId}", s.handleProductEdit)
@@ -64,6 +75,9 @@ func (s *HttpServer) Server() *http.Server {
 		})
 
 		r.Post("/ping", s.handlePing)
+		r.Route("/customer", func(custRouter chi.Router) {
+			custRouter.Post("/register", s.handleCreateCustomer)
+		})
 	})
 
 	return &http.Server{

@@ -8,13 +8,24 @@ type httpStatusCodeProvider interface {
 	HTTPStatusCode() int
 }
 
+// TODO: Re-thinking how to structure this function
 func (s *HttpServer) errorResponse(w http.ResponseWriter, r *http.Request, status int, err error) {
-	statusCode := http.StatusInternalServerError
+	s.writeJSON(w, r, status, map[string]any{"error": err.Error()})
+}
+
+func (s *HttpServer) errorBadRequest(w http.ResponseWriter, r *http.Request, err error) {
+	s.writeJSON(w, r, http.StatusBadRequest, err)
+}
+
+func (s *HttpServer) handleError(w http.ResponseWriter, r *http.Request, err error) {
+	var statusCode int
 
 	switch e := err.(type) {
 	case httpStatusCodeProvider:
 		statusCode = e.HTTPStatusCode()
+	default:
+		statusCode = http.StatusInternalServerError
 	}
 
-	s.writeJSON(w, r, statusCode, map[string]any{"error": err.Error()})
+	s.errorResponse(w, r, statusCode, err)
 }

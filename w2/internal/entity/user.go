@@ -1,6 +1,9 @@
 package entity
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 type UserError struct {
 	Message string
@@ -11,7 +14,7 @@ func (u UserError) Error() string {
 	return u.Message
 }
 
-func (u UserError) HttpStatusCode() int {
+func (u UserError) HTTPStatusCode() int {
 	return u.Code
 }
 
@@ -29,6 +32,7 @@ func validateName(name string) error {
 	if len(name) < MIN_NAME || len(name) > MAX_NAME {
 		return UserError{
 			Message: fmt.Sprintf("name: min = %d and max = %d characters", MIN_NAME, MAX_NAME),
+			Code:    http.StatusBadRequest,
 		}
 	}
 
@@ -42,6 +46,18 @@ func validatePassword(password string) error {
 	if len(password) < MIN_PASSWORD || len(password) > MAX_PASSWORD {
 		return UserError{
 			Message: fmt.Sprintf("password: min = %d and max = %d characters", MIN_PASSWORD, MAX_PASSWORD),
+			Code:    http.StatusBadRequest,
+		}
+	}
+
+	return nil
+}
+
+func validatePhoneNumber(phoneNumber string) error {
+	if err := PhoneNumber(phoneNumber).Valid(); err != nil {
+		return UserError{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
 		}
 	}
 
@@ -57,6 +73,10 @@ func NewUser(phoneNumber string, name string, password string) (User, error) {
 	}
 
 	if err := validateName(name); err != nil {
+		return emptyUser, err
+	}
+
+	if err := validatePhoneNumber(phoneNumber); err != nil {
 		return emptyUser, err
 	}
 
