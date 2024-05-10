@@ -3,6 +3,7 @@ package entity
 import (
 	"eniqlostore/commons"
 	"fmt"
+	"regexp"
 	"time"
 )
 
@@ -23,8 +24,30 @@ type Product struct {
 	DeletedAt   *time.Time `json:"-"`
 }
 
+func ValidateProductName(name string) error {
+	const MIN_LENGTH = 1
+	const MAX_LENGTH = 30
+
+	if length := len(name); length < MIN_LENGTH || length > MAX_LENGTH {
+		return commons.CustomError{Message: fmt.Sprintf("name cannot be empty and must be between %d and %d characters long", MIN_LENGTH, MAX_LENGTH), Code: 400}
+	}
+
+	return nil
+}
+
+func ValidateProductSKU(sku string) error {
+	const MIN_LENGTH = 1
+	const MAX_LENGTH = 30
+
+	if length := len(sku); length < MIN_LENGTH || length > MAX_LENGTH {
+		return commons.CustomError{Message: fmt.Sprintf("sku cannot be empty and must be between %d and %d characters long", MIN_LENGTH, MAX_LENGTH), Code: 400}
+	}
+
+	return nil
+}
+
 func ValidateStock(stock int) error {
-	const MIN_STOCK = 0
+	const MIN_STOCK = 1
 	const MAX_STOCK = 10000
 	if stock < MIN_STOCK {
 		return commons.CustomError{Message: fmt.Sprintf("stock must be greater or equal than %d", MIN_STOCK), Code: 400}
@@ -59,6 +82,34 @@ func ValidateNotes(notes string) error {
 	return nil
 }
 
+func ValidateProductCategory(category string) error {
+	if category == "" {
+		return commons.CustomError{
+			Message: "category cannot be empty",
+			Code:    400,
+		}
+	}
+
+	return nil
+}
+
+func ValidateProductImageUrl(rawURL string) error {
+	pattern := `^(http|https):\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(\/\S*)?$`
+
+	// Compile the regular expression
+	regex := regexp.MustCompile(pattern)
+
+	// Check if the URL matches the pattern
+	if !regex.MatchString(rawURL) {
+		return commons.CustomError{
+			Message: "imageUrl should be valid url",
+			Code:    400,
+		}
+	}
+
+	return nil
+}
+
 func ValidateLocation(location string) error {
 	const MIN_LOCATION = 1
 	const MAX_LOCATION = 200
@@ -84,6 +135,22 @@ func NewProduct(
 	createdBy string,
 ) (Product, error) {
 	var product Product
+
+	if err := ValidateProductName(name); err != nil {
+		return product, err
+	}
+
+	if err := ValidateProductSKU(sku); err != nil {
+		return product, err
+	}
+
+	if err := ValidateProductCategory(category); err != nil {
+		return product, err
+	}
+
+	if err := ValidateProductImageUrl(imageUrl); err != nil {
+		return product, err
+	}
 
 	if err := ValidateStock(stock); err != nil {
 		return product, err
