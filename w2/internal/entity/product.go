@@ -65,7 +65,7 @@ func ValidateProductSKU(sku string) error {
 }
 
 func ValidateStock(stock int) error {
-	const MIN_STOCK = 1
+	const MIN_STOCK = 0
 	const MAX_STOCK = 10000
 	if stock < MIN_STOCK {
 		return commons.CustomError{Message: fmt.Sprintf("stock must be greater or equal than %d", MIN_STOCK), Code: 400}
