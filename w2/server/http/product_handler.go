@@ -80,3 +80,26 @@ func (s *HttpServer) handleProductDelete(w http.ResponseWriter, r *http.Request)
 
 	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "success"})
 }
+
+func (s *HttpServer) handleSearchProducts(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	products, err := s.productService.GetProducts(service.GetProductsRequest{
+		Limit:         query.Get("limit"),
+		Offset:        query.Get("offset"),
+		Name:          query.Get("name"),
+		IsAvailable:   "true",
+		Category:      query.Get("category"),
+		SKU:           query.Get("sku"),
+		InStock:       query.Get("inStock"),
+		SortPrice:     query.Get("price"),
+		SortCreatedAt: query.Get("createdAt"),
+	})
+
+	if err != nil {
+		s.handleError(w, r, err)
+		return
+	}
+
+	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "success", "data": products})
+}
