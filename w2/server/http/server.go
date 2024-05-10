@@ -107,6 +107,10 @@ func (s *HttpServer) Server() *http.Server {
 			custRouter.Post("/register", s.handleCreateCustomer)
 			custRouter.Get("/", s.handleGetCustomers)
 		})
+
+		r.Route("/product", func(publicRouter chi.Router) {
+			publicRouter.Get("/customer", s.handleSearchProducts)
+		})
 	})
 
 	return &http.Server{

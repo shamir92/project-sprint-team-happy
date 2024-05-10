@@ -33,22 +33,14 @@ func (r *userRepository) Insert(user entity.User) (entity.User, error) {
 
 func (r *userRepository) CheckExistByPhoneNumber(phoneNumber string) (bool, error) {
 	query := `
-		SELECT phone_number FROM users WHERE phone_number = $1
+		SELECT COUNT(phone_number) FROM users WHERE phone_number = $1
 	`
 
-	var scannedPhoneNumber string = ""
-	err := r.db.QueryRow(query, phoneNumber).Scan(&scannedPhoneNumber)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil // No rows means user with given phone number isn't exist in database
-		} else {
-			return false, err
-		}
-	}
+	var count int
+	err := r.db.QueryRow(query, phoneNumber).Scan(&count)
 
 	// A users by given phone number  exist when the scanned phone number isn't empty string
-	return scannedPhoneNumber != "", nil
+	return count > 0, err
 }
 
 func (r *userRepository) GetByPhoneNumber(phoneNumber string) (entity.User, error) {

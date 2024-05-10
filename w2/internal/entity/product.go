@@ -23,7 +23,7 @@ type Product struct {
 	DeletedAt   *time.Time `json:"-"`
 }
 
-func validateStock(stock int) error {
+func ValidateStock(stock int) error {
 	const MIN_STOCK = 0
 	const MAX_STOCK = 10000
 	if stock < MIN_STOCK {
@@ -37,7 +37,7 @@ func validateStock(stock int) error {
 	return nil
 }
 
-func validatePrice(price int) error {
+func ValidatePrice(price int) error {
 	const MIN_PRICE = 1
 
 	if price < MIN_PRICE {
@@ -47,7 +47,7 @@ func validatePrice(price int) error {
 	return nil
 }
 
-func validateNotes(notes string) error {
+func ValidateNotes(notes string) error {
 	const MIN_NOTES = 1
 	const MAX_NOTES = 200
 
@@ -59,7 +59,7 @@ func validateNotes(notes string) error {
 	return nil
 }
 
-func validateLocation(location string) error {
+func ValidateLocation(location string) error {
 	const MIN_LOCATION = 1
 	const MAX_LOCATION = 200
 
@@ -85,19 +85,19 @@ func NewProduct(
 ) (Product, error) {
 	var product Product
 
-	if err := validateStock(stock); err != nil {
+	if err := ValidateStock(stock); err != nil {
 		return product, err
 	}
 
-	if err := validatePrice(price); err != nil {
+	if err := ValidatePrice(price); err != nil {
 		return product, err
 	}
 
-	if err := validateNotes(notes); err != nil {
+	if err := ValidateNotes(notes); err != nil {
 		return product, err
 	}
 
-	if err := validateLocation(location); err != nil {
+	if err := ValidateLocation(location); err != nil {
 		return product, err
 	}
 
