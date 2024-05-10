@@ -68,32 +68,33 @@ func (s *HttpServer) Server() *http.Server {
 		w.Write([]byte("Hey, What's Up!"))
 	})
 
-	router.Route("/v1", func(r chi.Router) {
-		r.Route("/staff", func(r chi.Router) {
+	// private routes
+	router.Route("/v1", func(v1 chi.Router) {
+		// public routes
+		v1.Route("/staff", func(r chi.Router) {
 			r.Post("/register", s.handleStaffCreate)
 			r.Post("/login", s.handleStaffLogin)
 		})
 
-		r.Route("/product", func(r chi.Router) {
-			r.Use(s.AuthMiddleware)
-			r.Get("/", s.handleProductBrowse)
-			r.Post("/", s.handleProductCreate)
-			r.Put("/{productId}", s.handleProductEdit)
-			r.Delete("/{productId}", s.handleProductDelete)
-			r.Post("/checkout", s.handleProductCheckout)
+		v1.Get("/product/customer", s.handleSearchProducts)
 
+		v1.Post("/ping", s.handlePing)
+
+		v1.Route("/product", func(productRouter chi.Router) {
+			productRouter.Use(s.AuthMiddleware)
+			productRouter.Get("/", s.handleProductBrowse)
+			productRouter.Post("/", s.handleProductCreate)
+			productRouter.Put("/{productId}", s.handleProductEdit)
+			productRouter.Delete("/{productId}", s.handleProductDelete)
+			productRouter.Post("/checkout", s.handleProductCheckout)
 		})
 
-		r.Post("/ping", s.handlePing)
-		r.Route("/customer", func(custRouter chi.Router) {
+		v1.Route("/customer", func(custRouter chi.Router) {
 			custRouter.Use(s.AuthMiddleware)
 			custRouter.Post("/register", s.handleCreateCustomer)
 			custRouter.Get("/", s.handleGetCustomers)
 		})
 
-		// r.Route("/product", func(publicRouter chi.Router) {
-		// 	publicRouter.Get("/customer", s.handleSearchProducts)
-		// })
 	})
 
 	return &http.Server{

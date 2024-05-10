@@ -48,8 +48,8 @@ type CreateUserOut struct {
 }
 
 type UserLoginRequest struct {
-	PhoneNumber string `json:"phoneNumber"`
-	Password    string `json:"password"`
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
+	Password    *string `json:"password,omitempty"`
 }
 
 func (s *UserService) UserCreate(in CreateStaffRequest) (CreateUserOut, error) {
@@ -98,13 +98,13 @@ func (s *UserService) UserCreate(in CreateStaffRequest) (CreateUserOut, error) {
 }
 
 func (s *UserService) UserLogin(in UserLoginRequest) (CreateUserOut, error) {
-	user, err := s.userRepository.GetByPhoneNumber(in.PhoneNumber)
+	user, err := s.userRepository.GetByPhoneNumber(*in.PhoneNumber)
 
 	if err != nil {
 		return CreateUserOut{}, err
 	}
 
-	if isMatch := s.passwordHash.Compare(user.Password, in.Password); !isMatch {
+	if isMatch := s.passwordHash.Compare(user.Password, *in.Password); !isMatch {
 		return CreateUserOut{}, entity.UserError{
 			Message: "phone number or password is wrong",
 			Code:    http.StatusBadRequest,

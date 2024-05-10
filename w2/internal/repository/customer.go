@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"eniqlostore/internal/entity"
 	"fmt"
-	"log"
 )
 
 type customerRepository struct {
@@ -29,7 +28,6 @@ func (c *customerRepository) GetById(id string) (entity.Customer, error) {
 		SELECT id, name, phone_number FROM customers WHERE id = $1
 	`
 	var cust entity.Customer
-	log.Println(id)
 	err := c.db.QueryRow(query, id).Scan(&cust.ID, &cust.Name, &cust.PhoneNumber)
 	if err != nil {
 		return cust, err

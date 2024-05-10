@@ -76,7 +76,7 @@ func (r *userRepository) GetByPhoneNumber(phoneNumber string) (entity.User, erro
 
 func (r *userRepository) GetById(id string) (entity.User, error) {
 	query := `
-		SELECT id, name, phone_number, password FROM users WHERE id = $1
+		SELECT user_id, name, phone_number, password FROM users WHERE user_id = $1
 	`
 	var user entity.User
 	err := r.db.QueryRow(query, id).Scan(&user.UserID, &user.Name, &user.PhoneNumber, &user.Password)

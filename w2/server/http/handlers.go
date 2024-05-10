@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"eniqlostore/internal/service"
+	"errors"
 	"net/http"
 )
 
@@ -28,6 +29,14 @@ func (s *HttpServer) handleStaffLogin(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.decodeJSON(w, r, &payload); err != nil {
 		s.errorBadRequest(w, r, err)
+		return
+	}
+
+	if payload.Password == nil || payload.PhoneNumber == nil {
+		s.errorBadRequest(w, r, errors.New("invalid payload"))
+		return
+	} else if *payload.Password == "" || *payload.PhoneNumber == "" {
+		s.errorBadRequest(w, r, errors.New("invalid payload"))
 		return
 	}
 

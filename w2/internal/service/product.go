@@ -4,8 +4,16 @@ import (
 	"eniqlostore/commons"
 	"eniqlostore/internal/entity"
 	"eniqlostore/internal/repository"
+	"errors"
+	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
+)
+
+var (
+	errProductNotFound = errors.New("product not found")
 )
 
 // Apakah bisa kita hilangin ini bila gak terlalu banyak?. ngurangin2 struct.
@@ -22,7 +30,11 @@ type ProductService struct {
 }
 
 func NewProductService(deps ProductServiceDeps) *ProductService {
-	return &ProductService{productRepository: deps.ProductRepository}
+	return &ProductService{
+		productRepository:  deps.ProductRepository,
+		customerRepository: deps.CustomerRepository,
+		userRepository:     deps.UserRepository,
+	}
 }
 
 type CreateProductRequest struct {
@@ -31,10 +43,10 @@ type CreateProductRequest struct {
 	Category    string `json:"category"`
 	ImageUrl    string `json:"imageUrl"`
 	Notes       string `json:"notes"`
-	Price       int    `json:"price"`
-	Stock       int    `json:"stock"`
+	Price       *int   `json:"price"`
+	Stock       *int   `json:"stock"`
 	Location    string `json:"location"`
-	IsAvailable bool   `json:"isAvailable"`
+	IsAvailable *bool  `json:"isAvailable"`
 	CreatedBy   string `json:"-"`
 }
 
@@ -50,15 +62,37 @@ type UpdateProductRequest struct {
 	Category    string `json:"category"`
 	ImageUrl    string `json:"imageUrl"`
 	Notes       string `json:"notes"`
-	Price       int    `json:"price"`
-	Stock       int    `json:"stock"`
+	Price       *int   `json:"price"`
+	Stock       *int   `json:"stock"`
 	Location    string `json:"location"`
-	IsAvailable bool   `json:"isAvailable"`
+	IsAvailable *bool  `json:"isAvailable"`
 }
 
 func (s *ProductService) CreateProduct(req CreateProductRequest) (CreateProductResponse, error) {
 	var resp CreateProductResponse
-	product, err := entity.NewProduct(req.Name, req.SKU, req.Category, req.ImageUrl, req.Notes, req.Price, req.Stock, req.Location, req.IsAvailable, req.CreatedBy)
+
+	if req.Price == nil {
+		return resp, commons.CustomError{
+			Message: "price cannot be empty",
+			Code:    400,
+		}
+	}
+
+	if req.Stock == nil {
+		return resp, commons.CustomError{
+			Message: "stock cannot be empty and must be a number",
+			Code:    400,
+		}
+	}
+
+	if req.IsAvailable == nil {
+		return resp, commons.CustomError{
+			Message: "isAvailable cannot be empty and must be a boolean",
+			Code:    400,
+		}
+	}
+
+	product, err := entity.NewProduct(req.Name, req.SKU, req.Category, req.ImageUrl, req.Notes, *req.Price, *req.Stock, req.Location, *req.IsAvailable, req.CreatedBy)
 	if err != nil {
 		return resp, err
 	}
@@ -75,51 +109,82 @@ func (s *ProductService) CreateProduct(req CreateProductRequest) (CreateProductR
 }
 
 func (s *ProductService) UpdateProduct(req UpdateProductRequest, userId string) (entity.Product, error) {
+	if err := uuid.Validate(req.ID); err != nil {
+		return entity.Product{}, commons.CustomError{
+			Message: errProductNotFound.Error(),
+			Code:    404,
+		}
+	}
+
+	var emptyProduct entity.Product
+	if req.Price == nil {
+		return emptyProduct, commons.CustomError{
+			Message: "price cannot be empty",
+			Code:    400,
+		}
+	}
+
+	if req.Stock == nil {
+		return emptyProduct, commons.CustomError{
+			Message: "stock cannot be empty and must be a number",
+			Code:    400,
+		}
+	}
+
+	if req.IsAvailable == nil {
+		return emptyProduct, commons.CustomError{
+			Message: "isAvailable cannot be empty and must be a boolean",
+			Code:    400,
+		}
+	}
+
+	if err := entity.ValidateProductName(req.Name); err != nil {
+		return emptyProduct, err
+	}
+
+	if err := entity.ValidateProductSKU(req.SKU); err != nil {
+		return emptyProduct, err
+	}
+
+	if err := entity.ValidateProductCategory(req.Category); err != nil {
+		return emptyProduct, err
+	}
+
+	if err := entity.ValidateProductImageUrl(req.ImageUrl); err != nil {
+		return emptyProduct, err
+	}
+
+	if err := entity.ValidateNotes(req.Notes); err != nil {
+		return emptyProduct, err
+	}
+
+	if err := entity.ValidatePrice(*req.Price); err != nil {
+		return emptyProduct, err
+	}
+
+	if err := entity.ValidateStock(*req.Stock); err != nil {
+		return emptyProduct, err
+	}
+
+	if err := entity.ValidateLocation(req.Location); err != nil {
+		return emptyProduct, err
+	}
+
 	productInfo, err := s.productRepository.GetById(req.ID)
+
 	if err != nil {
-		return entity.Product{}, err
-	}
-	if req.Name != "" {
-		productInfo.Name = req.Name
-	}
-	if req.SKU != "" {
-		productInfo.SKU = req.SKU
-	}
-	if req.Category != "" {
-		productInfo.Category = req.Category
-	}
-	if req.ImageUrl != "" {
-		productInfo.ImageUrl = req.ImageUrl
-	}
-	if req.Notes != "" {
-		if err := entity.ValidateNotes(req.Notes); err != nil {
-			return productInfo, err
-		}
-		productInfo.Notes = req.Notes
-	}
-	if req.Price != 0 {
-		if err := entity.ValidatePrice(req.Price); err != nil {
-			return productInfo, err
-		}
-		productInfo.Price = req.Price
-	}
-	if req.Stock != 0 {
-		if err := entity.ValidateStock(req.Stock); err != nil {
-			return productInfo, err
-		}
-		productInfo.Stock = req.Stock
+		return emptyProduct, err
 	}
 
-	if req.Location != "" {
-		if err := entity.ValidateLocation(req.Location); err != nil {
-			return productInfo, err
-		}
-		productInfo.Location = req.Location
-	}
-
-	if req.IsAvailable != productInfo.IsAvailable {
-		productInfo.IsAvailable = req.IsAvailable
-	}
+	productInfo.Name = req.Name
+	productInfo.SKU = req.SKU
+	productInfo.Category = req.Category
+	productInfo.Notes = req.Notes
+	productInfo.ImageUrl = req.ImageUrl
+	productInfo.Price = *req.Price
+	productInfo.Stock = *req.Stock
+	productInfo.Location = req.Location
+	productInfo.IsAvailable = *req.IsAvailable
 
 	err = s.productRepository.Update(productInfo)
 	if err != nil {
@@ -129,7 +194,7 @@ func (s *ProductService) UpdateProduct(req UpdateProductRequest, userId string) 
 		}
 	}
 
-	return productInfo, commons.CustomError{}
+	return productInfo, nil
 }
 
 func (s *ProductService) DeleteProduct(productId string, userId string) error {
@@ -198,16 +263,18 @@ func (s *ProductService) GetProducts(req GetProductsRequest) ([]entity.Product, 
 		options = append(options, entity.WithInStock(&inStock))
 	}
 
-	if req.SortPrice == entity.DESC.String() {
-		options = append(options, entity.WithSortPrice(entity.DESC))
-	} else if req.SortPrice == entity.ASC.String() {
-		options = append(options, entity.WithSortPrice(entity.ASC))
-	}
-
 	if req.SortCreatedAt == entity.DESC.String() {
 		options = append(options, entity.WithSortCreatedAt(entity.DESC))
 	} else if req.SortCreatedAt == entity.ASC.String() {
 		options = append(options, entity.WithSortCreatedAt(entity.ASC))
+	} else {
+		options = append(options, entity.WithSortCreatedAt(entity.DESC))
+	}
+
+	if req.SortPrice == entity.DESC.String() {
+		options = append(options, entity.WithSortPrice(entity.DESC))
+	} else if req.SortPrice == entity.ASC.String() {
+		options = append(options, entity.WithSortPrice(entity.ASC))
 	}
 
 	return s.productRepository.Find(options...)
@@ -223,40 +290,41 @@ type ProductCheckoutRequest struct {
 
 func (s *ProductService) ProductCheckout(payload ProductCheckoutRequest) error {
 
-	_, err := s.customerRepository.GetById("05b03c5a-cc67-4d17-8b31-b9370433d753")
+	cust, err := s.customerRepository.GetById(payload.CustomerID)
+	if err != nil {
+
+		return err
+	}
+
+	if cust == (entity.Customer{}) {
+		return commons.CustomError{
+			Message: "customer not found",
+			Code:    http.StatusNotFound,
+		}
+	}
+
+	user, err := s.userRepository.GetById(payload.UserID)
 	if err != nil {
 		return err
 	}
 
-	// if cust == (entity.Customer{}) {
-	// 	return commons.CustomError{
-	// 		Message: "customer not found",
-	// 		Code:    http.StatusNotFound,
-	// 	}
-	// }
+	if user == (entity.User{}) {
+		return commons.CustomError{
+			Message: "user not found",
+			Code:    http.StatusNotFound,
+		}
+	}
 
-	// user, err := s.userRepository.GetById(payload.UserID)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if user == (entity.User{}) {
-	// 	return commons.CustomError{
-	// 		Message: "user not found",
-	// 		Code:    http.StatusNotFound,
-	// 	}
-	// }
-
-	// err = s.productRepository.ProductCheckout(repository.ProductCheckoutRepositoryPayload{
-	// 	// Customer:       user,
-	// 	ProductDetails: payload.ProductDetails,
-	// 	Paid:           payload.Paid,
-	// 	Change:         payload.Change,
-	// 	User:           user,
-	// })
-	// if err != nil {
-	// 	return err
-	// }
+	err = s.productRepository.ProductCheckout(repository.ProductCheckoutRepositoryPayload{
+		Customer:       cust,
+		ProductDetails: payload.ProductDetails,
+		Paid:           payload.Paid,
+		Change:         payload.Change,
+		User:           user,
+	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

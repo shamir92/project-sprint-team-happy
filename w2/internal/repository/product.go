@@ -6,10 +6,12 @@ import (
 	"eniqlostore/internal/entity"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type productRepository struct {
@@ -67,17 +69,19 @@ func (r *productRepository) GetById(id string) (entity.Product, error) {
 func (r *productRepository) GetByIds(ids []uuid.UUID) ([]entity.Product, error) {
 	query := `
 		SELECT id, "name", sku, category, image_url, notes, price, stock, "location", is_available, created_by, created_at, updated_at, deleted_at
-			FROM public.products where id in ($1) AND deleted_at IS NULL
+			FROM public.products where id = ANY($1) AND deleted_at IS NULL
 	`
-	rows, err := r.db.Query(query, ids)
+
+	rows, err := r.db.Query(query, pq.Array(ids))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var products []entity.Product
 	for rows.Next() {
 		var product entity.Product
-		err := rows.Scan(&product.ID, &product.Name, &product.SKU, &product.Category, &product.ImageUrl, &product.Notes, &product.Price, &product.Stock, &product.Location, &product.IsAvailable, &product.CreatedAt)
+		err := rows.Scan(&product.ID, &product.Name, &product.SKU, &product.Category, &product.ImageUrl, &product.Notes, &product.Price, &product.Stock, &product.Location, &product.IsAvailable, &product.CreatedBy, &product.CreatedAt, &product.UpdatedAt, &product.DeletedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -186,12 +190,12 @@ func (r *productRepository) Find(opts ...entity.FindProductOptionBuilder) ([]ent
 
 	sorting := map[string]entity.SortType{} // key: column, val: desc | asc
 
-	if options.SortPrice.String() != "" {
-		sorting["p.price"] = options.SortPrice
-	}
-
 	if options.SortCreatedAt.String() != "" {
 		sorting["p.created_at"] = options.SortCreatedAt
+	}
+
+	if options.SortPrice.String() != "" {
+		sorting["p.price"] = options.SortPrice
 	}
 
 	if len(sorting) != 0 {
@@ -207,6 +211,8 @@ func (r *productRepository) Find(opts ...entity.FindProductOptionBuilder) ([]ent
 				sortQuery += fmt.Sprintf(" %s %s,", key, val)
 			}
 		}
+
+		fmt.Println(sortQuery)
 
 		query = fmt.Sprintf("%s\n%s", query, sortQuery)
 	}
@@ -316,6 +322,7 @@ func (r *productRepository) ProductCheckout(payload ProductCheckoutRepositoryPay
 	}
 	defer tx.Rollback()
 
+	log.Println("masuk sini ")
 	query :=
 		`
 		INSERT INTO checkouts
@@ -334,7 +341,7 @@ func (r *productRepository) ProductCheckout(payload ProductCheckoutRepositoryPay
 	for i := range checkoutItem {
 		checkoutItem[i].CheckoutID = checkoutID
 	}
-
+	log.Println("masuk sini 2")
 	// TODO: Prepare the bulk insert query
 	valueStrings := make([]string, 0, len(checkoutItem))
 	valueArgs := make([]interface{}, 0, len(checkoutItem)*4)
@@ -342,7 +349,7 @@ func (r *productRepository) ProductCheckout(payload ProductCheckoutRepositoryPay
 		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d)", i*4+1, i*4+2, i*4+3, i*4+4))
 		valueArgs = append(valueArgs, item.CheckoutID, item.ProductID, item.Quantity, item.Amount)
 	}
-
+	log.Println("masuk sini 3")
 	stmt := fmt.Sprintf("INSERT INTO checkout_items (checkout_id, product_id, quantity, amount) VALUES %s", strings.Join(valueStrings, ","))
 	_, err = tx.Exec(stmt, valueArgs...)
 	if err != nil {
@@ -350,8 +357,8 @@ func (r *productRepository) ProductCheckout(payload ProductCheckoutRepositoryPay
 	}
 	query3 := `
 		UPDATE products
-			SET  stock=?, updated_at=CURRENT_TIMESTAMP
-			WHERE id=?;
+			SET stock= $1, updated_at=CURRENT_TIMESTAMP
+			WHERE id=$2
 	`
 	for _, cle := range cleanProducts {
 		_, err := tx.Exec(query3, cle.Stock, cle.ID)

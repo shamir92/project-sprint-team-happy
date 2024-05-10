@@ -3,8 +3,8 @@ package entity
 type SortType string
 
 const (
-	DESC SortType = "ASC"
-	ASC  SortType = "DESC"
+	DESC SortType = "desc"
+	ASC  SortType = "asc"
 )
 
 func (s SortType) String() string {
