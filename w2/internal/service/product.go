@@ -8,12 +8,17 @@ import (
 	"time"
 )
 
+// Apakah bisa kita hilangin ini bila gak terlalu banyak?. ngurangin2 struct.
 type ProductServiceDeps struct {
-	ProductRepository repository.IProductRepository
+	ProductRepository  repository.IProductRepository
+	CustomerRepository repository.ICustomerRepository
+	UserRepository     repository.IUserRepository
 }
 
 type ProductService struct {
-	productRepository repository.IProductRepository
+	productRepository  repository.IProductRepository
+	customerRepository repository.ICustomerRepository
+	userRepository     repository.IUserRepository
 }
 
 func NewProductService(deps ProductServiceDeps) *ProductService {
@@ -208,6 +213,50 @@ func (s *ProductService) GetProducts(req GetProductsRequest) ([]entity.Product, 
 	return s.productRepository.Find(options...)
 }
 
-func (s *ProductService) ProductCheckout() ([]entity.Product, error) {
-	return s.productRepository.GetAll()
+type ProductCheckoutRequest struct {
+	CustomerID     string                              `json:"customerId" validate:"uuid4,required, number"`
+	ProductDetails []repository.ProductCheckoutDetails `json:"productDetails"`
+	Paid           int                                 `json:"paid" validate:"min=1,required, number"`
+	Change         int                                 `json:"change" validate:"min=0,required, number"`
+	UserID         string                              `json:"userId" validate:"uuid4,required"`
+}
+
+func (s *ProductService) ProductCheckout(payload ProductCheckoutRequest) error {
+
+	_, err := s.customerRepository.GetById("05b03c5a-cc67-4d17-8b31-b9370433d753")
+	if err != nil {
+		return err
+	}
+
+	// if cust == (entity.Customer{}) {
+	// 	return commons.CustomError{
+	// 		Message: "customer not found",
+	// 		Code:    http.StatusNotFound,
+	// 	}
+	// }
+
+	// user, err := s.userRepository.GetById(payload.UserID)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// if user == (entity.User{}) {
+	// 	return commons.CustomError{
+	// 		Message: "user not found",
+	// 		Code:    http.StatusNotFound,
+	// 	}
+	// }
+
+	// err = s.productRepository.ProductCheckout(repository.ProductCheckoutRepositoryPayload{
+	// 	// Customer:       user,
+	// 	ProductDetails: payload.ProductDetails,
+	// 	Paid:           payload.Paid,
+	// 	Change:         payload.Change,
+	// 	User:           user,
+	// })
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
 }

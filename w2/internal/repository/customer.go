@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"eniqlostore/internal/entity"
 	"fmt"
+	"log"
 )
 
 type customerRepository struct {
@@ -14,6 +15,26 @@ func NewCustomerRepository(db *sql.DB) *customerRepository {
 	return &customerRepository{
 		db: db,
 	}
+}
+
+type ICustomerRepository interface {
+	Insert(entity.Customer) (entity.Customer, error)
+	CheckExistByPhoneNumber(phoneNumber string) (isExist bool, err error)
+	FindBy(name string, phoneNumber string) ([]entity.Customer, error)
+	GetById(id string) (entity.Customer, error)
+}
+
+func (c *customerRepository) GetById(id string) (entity.Customer, error) {
+	query := `
+		SELECT id, name, phone_number FROM customers WHERE id = $1
+	`
+	var cust entity.Customer
+	log.Println(id)
+	err := c.db.QueryRow(query, id).Scan(&cust.ID, &cust.Name, &cust.PhoneNumber)
+	if err != nil {
+		return cust, err
+	}
+	return cust, err
 }
 
 func (c *customerRepository) CheckExistByPhoneNumber(phoneNumber string) (isExist bool, err error) {

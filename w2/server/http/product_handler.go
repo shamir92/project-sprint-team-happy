@@ -3,6 +3,7 @@ package httpserver
 import (
 	"eniqlostore/internal/service"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -102,4 +103,45 @@ func (s *HttpServer) handleSearchProducts(w http.ResponseWriter, r *http.Request
 	}
 
 	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "success", "data": products})
+}
+
+type ProductCheckoutRequest struct {
+	CustomerID     string                   `json:"customerId" validate:"uuid4,required, number"`
+	ProductDetails []ProductCheckoutDetails `json:"productDetails"`
+	Paid           int                      `json:"paid" validate:"min=1,required, number"`
+	Change         int                      `json:"change" validate:"min=0,required, number"`
+}
+
+type ProductCheckoutDetails struct {
+	ProductID string `json:"productId" validate:"uuid4,required"`
+	Quantity  int    `json:"quantity" validate:"min=1,required, number"`
+}
+
+func (s *HttpServer) handleProductCheckout(w http.ResponseWriter, r *http.Request) {
+
+	var payload service.ProductCheckoutRequest
+
+	if err := s.decodeJSON(w, r, &payload); err != nil {
+		s.errorBadRequest(w, r, err)
+		return
+	}
+
+	log.Println(payload)
+
+	err := s.productService.ProductCheckout(
+		service.ProductCheckoutRequest{
+			CustomerID:     payload.CustomerID,
+			ProductDetails: payload.ProductDetails,
+			Paid:           payload.Paid,
+			Change:         payload.Change,
+			UserID:         fmt.Sprint(r.Context().Value(currentUserRequestKey)),
+		},
+	)
+
+	if err != nil {
+		s.handleError(w, r, err)
+		return
+	}
+
+	s.writeJSON(w, r, http.StatusCreated, map[string]any{"message": "success", "data": "data"})
 }

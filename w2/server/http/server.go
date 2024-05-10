@@ -11,7 +11,6 @@ import (
 	"io"
 	"net/http"
 
-	// "github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -38,13 +37,15 @@ func New(opts ServerOpts) *HttpServer {
 		PasswordHash:     auth.NewBcryptPasswordHash(),
 	})
 
-	productRepo := repository.NewProductRepository(opts.DB)
-	productService := service.NewProductService(service.ProductServiceDeps{
-		ProductRepository: productRepo,
-	})
-
 	custRepo := repository.NewCustomerRepository(opts.DB)
 	custService := service.NewCustomerService(custRepo)
+
+	productRepo := repository.NewProductRepository(opts.DB)
+	productService := service.NewProductService(service.ProductServiceDeps{
+		ProductRepository:  productRepo,
+		CustomerRepository: custRepo,
+		UserRepository:     userRepo,
+	})
 
 	return &HttpServer{
 		addr:            opts.Addr,
@@ -56,26 +57,8 @@ func New(opts ServerOpts) *HttpServer {
 }
 
 func (s *HttpServer) Server() *http.Server {
-	// logger := httplog.NewLogger("httplog-example", httplog.Options{
-	// 	// JSON:             true,
-	// 	LogLevel:         slog.LevelDebug,
-	// 	Concise:          true,
-	// 	RequestHeaders:   true,
-	// 	MessageFieldName: "message",
-	// 	// TimeFieldFormat: time.RFC850,
-	// 	Tags: map[string]string{
-	// 		"version": "v1.0-81aa4244d9fc8076a",
-	// 		"env":     "dev",
-	// 	},
-	// 	QuietDownRoutes: []string{
-	// 		"/",
-	// 		// "/ping",
-	// 	},
-	// 	QuietDownPeriod: 10 * time.Second,
-	// 	// SourceFieldName: "source",
-	// })
+
 	router := chi.NewRouter()
-	// router.Use(httplog.RequestLogger(logger))
 	router.Use(middleware.Logger)
 	router.Use(middleware.URLFormat)
 
@@ -108,9 +91,9 @@ func (s *HttpServer) Server() *http.Server {
 			custRouter.Get("/", s.handleGetCustomers)
 		})
 
-		r.Route("/product", func(publicRouter chi.Router) {
-			publicRouter.Get("/customer", s.handleSearchProducts)
-		})
+		// r.Route("/product", func(publicRouter chi.Router) {
+		// 	publicRouter.Get("/customer", s.handleSearchProducts)
+		// })
 	})
 
 	return &http.Server{

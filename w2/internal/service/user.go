@@ -2,15 +2,10 @@ package service
 
 import (
 	"eniqlostore/internal/entity"
+	"eniqlostore/internal/repository"
 	"fmt"
 	"net/http"
 )
-
-type IUserRepository interface {
-	Insert(user entity.User) (entity.User, error)
-	CheckExistByPhoneNumber(phoneNumber string) (bool, error)
-	GetByPhoneNumber(phoneNumber string) (entity.User, error)
-}
 
 type IAuthTokenManager interface {
 	CreateToken(user entity.User) (string, error)
@@ -22,13 +17,13 @@ type IPasswordHash interface {
 }
 
 type UserServiceDeps struct {
-	UserRepository   IUserRepository
+	UserRepository   repository.IUserRepository
 	AuthTokenManager IAuthTokenManager
 	PasswordHash     IPasswordHash
 }
 
 type UserService struct {
-	userRepository IUserRepository
+	userRepository repository.IUserRepository
 	tokenManager   IAuthTokenManager
 	passwordHash   IPasswordHash
 }

@@ -3,18 +3,13 @@ package service
 import (
 	"eniqlostore/commons"
 	"eniqlostore/internal/entity"
+	"eniqlostore/internal/repository"
 	"fmt"
 	"net/http"
 )
 
-type ICustomerRepository interface {
-	Insert(entity.Customer) (entity.Customer, error)
-	CheckExistByPhoneNumber(phoneNumber string) (isExist bool, err error)
-	FindBy(name string, phoneNumber string) ([]entity.Customer, error)
-}
-
 type CustomerService struct {
-	customerRepository ICustomerRepository
+	customerRepository repository.ICustomerRepository
 }
 
 type CreateCustomerRequest struct {
@@ -27,7 +22,7 @@ type GetCustomerRequst struct {
 	Name        string `json:"name"`
 }
 
-func NewCustomerService(custRepo ICustomerRepository) *CustomerService {
+func NewCustomerService(custRepo repository.ICustomerRepository) *CustomerService {
 	return &CustomerService{
 		customerRepository: custRepo,
 	}
