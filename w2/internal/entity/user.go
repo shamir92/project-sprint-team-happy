@@ -77,7 +77,10 @@ func NewUser(phoneNumber string, name string, password string) (User, error) {
 	}
 
 	if err := validatePhoneNumber(phoneNumber); err != nil {
-		return emptyUser, err
+		return emptyUser, UserError{
+			Message: err.Error(),
+			Code:    400,
+		}
 	}
 
 	return User{
