@@ -215,16 +215,18 @@ func (s *ProductService) GetProducts(req GetProductsRequest) ([]entity.Product, 
 		options = append(options, entity.WithInStock(&inStock))
 	}
 
-	if req.SortPrice == entity.DESC.String() {
-		options = append(options, entity.WithSortPrice(entity.DESC))
-	} else if req.SortPrice == entity.ASC.String() {
-		options = append(options, entity.WithSortPrice(entity.ASC))
-	}
-
 	if req.SortCreatedAt == entity.DESC.String() {
 		options = append(options, entity.WithSortCreatedAt(entity.DESC))
 	} else if req.SortCreatedAt == entity.ASC.String() {
 		options = append(options, entity.WithSortCreatedAt(entity.ASC))
+	} else {
+		options = append(options, entity.WithSortCreatedAt(entity.DESC))
+	}
+
+	if req.SortPrice == entity.DESC.String() {
+		options = append(options, entity.WithSortPrice(entity.DESC))
+	} else if req.SortPrice == entity.ASC.String() {
+		options = append(options, entity.WithSortPrice(entity.ASC))
 	}
 
 	return s.productRepository.Find(options...)
