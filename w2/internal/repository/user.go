@@ -15,6 +15,13 @@ func NewUserRepository(db *sql.DB) *userRepository {
 	return &userRepository{db}
 }
 
+type IUserRepository interface {
+	Insert(user entity.User) (entity.User, error)
+	CheckExistByPhoneNumber(phoneNumber string) (bool, error)
+	GetByPhoneNumber(phoneNumber string) (entity.User, error)
+	GetById(id string) (entity.User, error)
+}
+
 func (r *userRepository) Insert(user entity.User) (entity.User, error) {
 	query := `
 		INSERT INTO users(phone_number, name, password) 
@@ -65,4 +72,17 @@ func (r *userRepository) GetByPhoneNumber(phoneNumber string) (entity.User, erro
 	}
 
 	return user, nil
+}
+
+func (r *userRepository) GetById(id string) (entity.User, error) {
+	query := `
+		SELECT user_id, name, phone_number, password FROM users WHERE user_id = $1
+	`
+	var user entity.User
+	err := r.db.QueryRow(query, id).Scan(&user.UserID, &user.Name, &user.PhoneNumber, &user.Password)
+	if err != nil {
+		return user, err
+	}
+
+	return user, err
 }

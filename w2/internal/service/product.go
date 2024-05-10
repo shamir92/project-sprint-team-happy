@@ -5,6 +5,7 @@ import (
 	"eniqlostore/internal/entity"
 	"eniqlostore/internal/repository"
 	"errors"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -15,16 +16,25 @@ var (
 	errProductNotFound = errors.New("product not found")
 )
 
+// Apakah bisa kita hilangin ini bila gak terlalu banyak?. ngurangin2 struct.
 type ProductServiceDeps struct {
-	ProductRepository repository.IProductRepository
+	ProductRepository  repository.IProductRepository
+	CustomerRepository repository.ICustomerRepository
+	UserRepository     repository.IUserRepository
 }
 
 type ProductService struct {
-	productRepository repository.IProductRepository
+	productRepository  repository.IProductRepository
+	customerRepository repository.ICustomerRepository
+	userRepository     repository.IUserRepository
 }
 
 func NewProductService(deps ProductServiceDeps) *ProductService {
-	return &ProductService{productRepository: deps.ProductRepository}
+	return &ProductService{
+		productRepository:  deps.ProductRepository,
+		customerRepository: deps.CustomerRepository,
+		userRepository:     deps.UserRepository,
+	}
 }
 
 type CreateProductRequest struct {
@@ -268,4 +278,53 @@ func (s *ProductService) GetProducts(req GetProductsRequest) ([]entity.Product, 
 	}
 
 	return s.productRepository.Find(options...)
+}
+
+type ProductCheckoutRequest struct {
+	CustomerID     string                              `json:"customerId" validate:"uuid4,required, number"`
+	ProductDetails []repository.ProductCheckoutDetails `json:"productDetails"`
+	Paid           int                                 `json:"paid" validate:"min=1,required, number"`
+	Change         int                                 `json:"change" validate:"min=0,required, number"`
+	UserID         string                              `json:"userId" validate:"uuid4,required"`
+}
+
+func (s *ProductService) ProductCheckout(payload ProductCheckoutRequest) error {
+
+	cust, err := s.customerRepository.GetById(payload.CustomerID)
+	if err != nil {
+
+		return err
+	}
+
+	if cust == (entity.Customer{}) {
+		return commons.CustomError{
+			Message: "customer not found",
+			Code:    http.StatusNotFound,
+		}
+	}
+
+	user, err := s.userRepository.GetById(payload.UserID)
+	if err != nil {
+		return err
+	}
+
+	if user == (entity.User{}) {
+		return commons.CustomError{
+			Message: "user not found",
+			Code:    http.StatusNotFound,
+		}
+	}
+
+	err = s.productRepository.ProductCheckout(repository.ProductCheckoutRepositoryPayload{
+		Customer:       cust,
+		ProductDetails: payload.ProductDetails,
+		Paid:           payload.Paid,
+		Change:         payload.Change,
+		User:           user,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
