@@ -1,7 +1,11 @@
 package httpserver
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"runtime/debug"
 )
 
 type httpStatusCodeProvider interface {
@@ -25,6 +29,14 @@ func (s *HttpServer) handleError(w http.ResponseWriter, r *http.Request, err err
 		statusCode = e.HTTPStatusCode()
 	default:
 		statusCode = http.StatusInternalServerError
+	}
+
+	if statusCode == http.StatusInternalServerError {
+		errLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+		trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
+
+		errLog.Output(2, trace)
 	}
 
 	s.errorResponse(w, r, statusCode, err)

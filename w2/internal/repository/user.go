@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"eniqlostore/commons"
 	"eniqlostore/internal/entity"
 	"errors"
 	"net/http"
@@ -10,6 +11,10 @@ import (
 type userRepository struct {
 	db *sql.DB
 }
+
+var (
+	errUserNotFound = errors.New("user not found")
+)
 
 func NewUserRepository(db *sql.DB) *userRepository {
 	return &userRepository{db}
@@ -81,8 +86,14 @@ func (r *userRepository) GetById(id string) (entity.User, error) {
 	var user entity.User
 	err := r.db.QueryRow(query, id).Scan(&user.UserID, &user.Name, &user.PhoneNumber, &user.Password)
 	if err != nil {
-		return user, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return user, commons.CustomError{
+				Message: errUserNotFound.Error(),
+				Code:    404,
+			}
+		} else {
+			return user, err
+		}
 	}
-
-	return user, err
+	return user, nil
 }

@@ -143,5 +143,5 @@ func (s *HttpServer) handleProductCheckout(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	s.writeJSON(w, r, http.StatusCreated, map[string]any{"message": "success", "data": "data"})
+	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "success", "data": "data"})
 }
