@@ -4,8 +4,14 @@ import (
 	"eniqlostore/commons"
 	"eniqlostore/internal/entity"
 	"eniqlostore/internal/repository"
+	"errors"
 	"fmt"
 	"net/http"
+)
+
+var (
+	errCustomerName             = errors.New("name cannot empty")
+	errCustomerPhoneNumberEmpty = errors.New("phone number cannot empty")
 )
 
 type CustomerService struct {
@@ -13,8 +19,8 @@ type CustomerService struct {
 }
 
 type CreateCustomerRequest struct {
-	PhoneNumber string `json:"phoneNumber"`
-	Name        string `json:"name"`
+	PhoneNumber *string `json:"phoneNumber"`
+	Name        *string `json:"name"`
 }
 
 type GetCustomerRequst struct {
@@ -31,14 +37,33 @@ func NewCustomerService(custRepo repository.ICustomerRepository) *CustomerServic
 func (c *CustomerService) CreateCustomer(in CreateCustomerRequest) (entity.Customer, error) {
 	var emptyCustomer entity.Customer
 
-	if err := entity.PhoneNumber(in.PhoneNumber).Valid(); err != nil {
+	if in.Name == nil {
+		return emptyCustomer, commons.CustomError{
+			Code:    400,
+			Message: errCustomerName.Error(),
+		}
+	} else if *in.Name == "" {
+		return emptyCustomer, commons.CustomError{
+			Code:    400,
+			Message: errCustomerName.Error(),
+		}
+	}
+
+	if in.PhoneNumber == nil {
+		return emptyCustomer, commons.CustomError{
+			Code:    400,
+			Message: errCustomerPhoneNumberEmpty.Error(),
+		}
+	}
+
+	if err := entity.PhoneNumber(*in.PhoneNumber).Valid(); err != nil {
 		return emptyCustomer, commons.CustomError{
 			Message: err.Error(),
 			Code:    http.StatusBadRequest,
 		}
 	}
 
-	isExist, err := c.customerRepository.CheckExistByPhoneNumber(in.PhoneNumber)
+	isExist, err := c.customerRepository.CheckExistByPhoneNumber(*in.PhoneNumber)
 
 	if err != nil {
 		return emptyCustomer, err
@@ -52,8 +77,8 @@ func (c *CustomerService) CreateCustomer(in CreateCustomerRequest) (entity.Custo
 	}
 
 	newCustomer, err := c.customerRepository.Insert(entity.Customer{
-		Name:        in.Name,
-		PhoneNumber: in.PhoneNumber,
+		Name:        *in.Name,
+		PhoneNumber: *in.PhoneNumber,
 	})
 
 	if err != nil {

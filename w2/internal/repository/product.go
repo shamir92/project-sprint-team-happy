@@ -147,7 +147,7 @@ func (r *productRepository) Find(opts ...entity.FindProductOptionBuilder) ([]ent
 			id, name, sku, category, image_url, notes, price, stock, location, is_available, created_at
 		FROM
 			products p
-		WHERE 1=1
+		WHERE p.deleted_at IS NULL
 	`
 
 	values := []interface{}{
@@ -190,12 +190,12 @@ func (r *productRepository) Find(opts ...entity.FindProductOptionBuilder) ([]ent
 
 	sorting := map[string]entity.SortType{} // key: column, val: desc | asc
 
-	if options.SortCreatedAt.String() != "" {
-		sorting["p.created_at"] = options.SortCreatedAt
-	}
-
 	if options.SortPrice.String() != "" {
 		sorting["p.price"] = options.SortPrice
+	}
+
+	if options.SortCreatedAt.String() != "" {
+		sorting["p.created_at"] = options.SortCreatedAt
 	}
 
 	if len(sorting) != 0 {
