@@ -1,7 +1,6 @@
 package httpserver
 
 import (
-	"eniqlostore/commons"
 	"eniqlostore/internal/service"
 	"fmt"
 	"net/http"
@@ -52,6 +51,8 @@ func (s *HttpServer) handleProductCreate(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *HttpServer) handleProductEdit(w http.ResponseWriter, r *http.Request) {
+	userID := fmt.Sprint(r.Context().Value(currentUserRequestKey))
+
 	var payload service.UpdateProductRequest
 
 	if err := s.decodeJSON(w, r, &payload); err != nil {
@@ -60,7 +61,7 @@ func (s *HttpServer) handleProductEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload.ID = chi.URLParam(r, "productId")
-	_, err := s.productService.UpdateProduct(payload)
+	_, err := s.productService.UpdateProduct(payload, userID)
 	if err != nil {
 		s.handleError(w, r, err)
 		return
@@ -71,9 +72,8 @@ func (s *HttpServer) handleProductEdit(w http.ResponseWriter, r *http.Request) {
 
 func (s *HttpServer) handleProductDelete(w http.ResponseWriter, r *http.Request) {
 	userID := fmt.Sprint(r.Context().Value(currentUserRequestKey))
-	fmt.Println("shamir ->", chi.URLParam(r, "productId"))
-	err := s.productService.DeleteProduct(chi.URLParam(r, "shamir"), userID)
-	if err != (commons.CustomError{}) {
+	err := s.productService.DeleteProduct(chi.URLParam(r, "productId"), userID)
+	if err != nil {
 		s.handleError(w, r, err)
 		return
 	}

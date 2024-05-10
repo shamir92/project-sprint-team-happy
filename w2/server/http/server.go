@@ -91,7 +91,7 @@ func (s *HttpServer) Server() *http.Server {
 			r.Post("/login", s.handleStaffLogin)
 		})
 
-		r.Route("/products", func(r chi.Router) {
+		r.Route("/product", func(r chi.Router) {
 			r.Use(s.AuthMiddleware)
 			r.Get("/", s.handleProductBrowse)
 			r.Post("/", s.handleProductCreate)

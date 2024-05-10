@@ -4,7 +4,6 @@ import (
 	"eniqlostore/commons"
 	"eniqlostore/internal/entity"
 	"eniqlostore/internal/repository"
-	"log"
 	"strconv"
 	"time"
 )
@@ -70,63 +69,76 @@ func (s *ProductService) CreateProduct(req CreateProductRequest) (CreateProductR
 	return resp, nil
 }
 
-func (s *ProductService) UpdateProduct(req UpdateProductRequest) (entity.Product, error) {
-	_, err := s.productRepository.GetById(req.ID)
+func (s *ProductService) UpdateProduct(req UpdateProductRequest, userId string) (entity.Product, error) {
+	productInfo, err := s.productRepository.GetById(req.ID)
 	if err != nil {
 		return entity.Product{}, err
 	}
-
-	product, err := entity.NewProduct(req.Name, req.SKU, req.Category, req.ImageUrl, req.Notes, req.Price, req.Stock, req.Location, req.IsAvailable, "")
-	if err != nil {
-		return entity.Product{}, err
+	if req.Name != "" {
+		productInfo.Name = req.Name
+	}
+	if req.SKU != "" {
+		productInfo.SKU = req.SKU
+	}
+	if req.Category != "" {
+		productInfo.Category = req.Category
+	}
+	if req.ImageUrl != "" {
+		productInfo.ImageUrl = req.ImageUrl
+	}
+	if req.Notes != "" {
+		if err := entity.ValidateNotes(req.Notes); err != nil {
+			return productInfo, err
+		}
+		productInfo.Notes = req.Notes
+	}
+	if req.Price != 0 {
+		if err := entity.ValidatePrice(req.Price); err != nil {
+			return productInfo, err
+		}
+		productInfo.Price = req.Price
+	}
+	if req.Stock != 0 {
+		if err := entity.ValidateStock(req.Stock); err != nil {
+			return productInfo, err
+		}
+		productInfo.Stock = req.Stock
 	}
 
-	product.ID = req.ID
-	err = s.productRepository.Update(product)
-	if err != nil {
-		return entity.Product{}, err
+	if req.Location != "" {
+		if err := entity.ValidateLocation(req.Location); err != nil {
+			return productInfo, err
+		}
+		productInfo.Location = req.Location
 	}
 
-	return product, nil
-}
+	if req.IsAvailable != productInfo.IsAvailable {
+		productInfo.IsAvailable = req.IsAvailable
+	}
 
-func (s *ProductService) DeleteProduct(productId string, userId string) commons.CustomError {
-	log.Println("delete product 1")
-	product, err := s.productRepository.GetById(productId)
+	err = s.productRepository.Update(productInfo)
 	if err != nil {
-		return commons.CustomError{
+		return entity.Product{}, commons.CustomError{
 			Message: err.Error(),
 			Code:    500,
 		}
 	}
-	log.Println("delete product 2")
 
-	if product == (entity.Product{}) {
-		return commons.CustomError{
-			Message: "product not found",
-			Code:    404,
-		}
+	return productInfo, commons.CustomError{}
+}
+
+func (s *ProductService) DeleteProduct(productId string, userId string) error {
+	_, err := s.productRepository.GetById(productId)
+	if err != nil {
+		return err
 	}
-	log.Println("delete product 3")
-
-	if product.CreatedBy != userId {
-		return commons.CustomError{
-			Message: "product is not yours",
-			Code:    401,
-		}
-	}
-
-	log.Println("delete product 4")
 
 	err = s.productRepository.Delete(productId)
 	if err != nil {
-		return commons.CustomError{
-			Message: err.Error(),
-			Code:    500,
-		}
+		return err
 	}
 
-	return commons.CustomError{}
+	return nil
 }
 
 type GetProductsRequest struct {
