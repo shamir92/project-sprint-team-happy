@@ -3,12 +3,17 @@ package repository
 import (
 	"database/sql"
 	"eniqlostore/internal/entity"
+	"errors"
 	"fmt"
 )
 
 type customerRepository struct {
 	db *sql.DB
 }
+
+var (
+	errCustomerNotFound = errors.New("customer not found")
+)
 
 func NewCustomerRepository(db *sql.DB) *customerRepository {
 	return &customerRepository{
@@ -30,7 +35,11 @@ func (c *customerRepository) GetById(id string) (entity.Customer, error) {
 	var cust entity.Customer
 	err := c.db.QueryRow(query, id).Scan(&cust.ID, &cust.Name, &cust.PhoneNumber)
 	if err != nil {
-		return cust, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.Customer{}, errCustomerNotFound
+		} else {
+			return cust, err
+		}
 	}
 	return cust, err
 }

@@ -5,7 +5,6 @@ import (
 	"eniqlostore/internal/entity"
 	"eniqlostore/internal/repository"
 	"errors"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -292,23 +291,63 @@ type ProductCheckoutRequest struct {
 	CustomerID     string                              `json:"customerId" validate:"uuid4,required, number"`
 	ProductDetails []repository.ProductCheckoutDetails `json:"productDetails"`
 	Paid           int                                 `json:"paid" validate:"min=1,required, number"`
-	Change         int                                 `json:"change" validate:"min=0,required, number"`
+	Change         *int                                `json:"change" validate:"min=0,required, number"`
 	UserID         string                              `json:"userId" validate:"uuid4,required"`
 }
 
 func (s *ProductService) ProductCheckout(payload ProductCheckoutRequest) error {
+	if err := uuid.Validate(payload.CustomerID); err != nil {
+		return commons.CustomError{
+			Message: "customer's id is invalid",
+			Code:    400,
+		}
+	}
+
+	if payload.Change == nil {
+		return commons.CustomError{
+			Message: "change cannot be empty",
+			Code:    400,
+		}
+	} else if *payload.Change < 0 {
+		return commons.CustomError{
+			Message: "change should be a number with minum 0 as value",
+			Code:    400,
+		}
+	}
+
+	if len(payload.ProductDetails) == 0 {
+		return commons.CustomError{
+			Message: "productDetails must be an array and cannot be empty",
+			Code:    400,
+		}
+	}
+
+	for _, item := range payload.ProductDetails {
+		if item.ProductID == "" {
+			return commons.CustomError{
+				Message: "product's id is invalid",
+				Code:    400,
+			}
+		}
+
+		if err := uuid.Validate(item.ProductID); err != nil {
+			return commons.CustomError{
+				Message: "product not found",
+				Code:    404,
+			}
+		}
+
+		if item.Quantity < 1 {
+			return commons.CustomError{
+				Message: "item's quantity must be at least 1",
+				Code:    400,
+			}
+		}
+	}
 
 	cust, err := s.customerRepository.GetById(payload.CustomerID)
 	if err != nil {
-
 		return err
-	}
-
-	if cust == (entity.Customer{}) {
-		return commons.CustomError{
-			Message: "customer not found",
-			Code:    http.StatusNotFound,
-		}
 	}
 
 	user, err := s.userRepository.GetById(payload.UserID)
@@ -316,20 +355,14 @@ func (s *ProductService) ProductCheckout(payload ProductCheckoutRequest) error {
 		return err
 	}
 
-	if user == (entity.User{}) {
-		return commons.CustomError{
-			Message: "user not found",
-			Code:    http.StatusNotFound,
-		}
-	}
-
 	err = s.productRepository.ProductCheckout(repository.ProductCheckoutRepositoryPayload{
 		Customer:       cust,
 		ProductDetails: payload.ProductDetails,
 		Paid:           payload.Paid,
-		Change:         payload.Change,
+		Change:         *payload.Change,
 		User:           user,
 	})
+
 	if err != nil {
 		return err
 	}

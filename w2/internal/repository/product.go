@@ -23,7 +23,7 @@ type IProductRepository interface {
 	Update(product entity.Product) error
 	Delete(id string) error
 	Find(...entity.FindProductOptionBuilder) ([]entity.Product, error)
-	GetByIds(ids []uuid.UUID) ([]entity.Product, error)
+	GetByIds(ids []string) ([]entity.Product, error)
 	ProductCheckout(payload ProductCheckoutRepositoryPayload) error
 }
 
@@ -66,7 +66,7 @@ func (r *productRepository) GetById(id string) (entity.Product, error) {
 	return product, nil
 }
 
-func (r *productRepository) GetByIds(ids []uuid.UUID) ([]entity.Product, error) {
+func (r *productRepository) GetByIds(ids []string) ([]entity.Product, error) {
 	query := `
 		SELECT id, "name", sku, category, image_url, notes, price, stock, "location", is_available, created_by, created_at, updated_at, deleted_at
 			FROM public.products where id = ANY($1) AND deleted_at IS NULL
@@ -264,10 +264,11 @@ func (r *productRepository) ProductCheckout(payload ProductCheckoutRepositoryPay
 	checkoutItem := make([]entity.ProductCheckoutItem, len(payload.ProductDetails))
 	var cleanProducts []entity.Product
 	// TODO: implement product checking
-	var productIds []uuid.UUID
+	var productIds []string
 
 	for _, productDetail := range payload.ProductDetails {
-		productIds = append(productIds, uuid.MustParse(productDetail.ProductID))
+		id := uuid.MustParse(productDetail.ProductID)
+		productIds = append(productIds, id.String())
 	}
 
 	products, err := r.GetByIds(productIds)
@@ -308,12 +309,19 @@ func (r *productRepository) ProductCheckout(payload ProductCheckoutRepositoryPay
 	}
 
 	// TODO: implement product calculation
-	customerMoney := payload.Paid * 100
-	totalCost = totalCost * 100
+	customerMoney := payload.Paid
 	if customerMoney < totalCost {
 		return commons.CustomError{Message: "customer money not enough", Code: 400}
 	}
+
 	customerChange := customerMoney - totalCost
+	fmt.Println(payload.Paid, "PAID")
+	fmt.Println(payload.Change, "CHANGE FROM KARYAWAN")
+	fmt.Println(totalCost, "TOTAL COST")
+	fmt.Println(customerChange, "CHANGE BASED ON CALCULATION")
+	if customerChange != payload.Change {
+		return commons.CustomError{Message: "change is not valid", Code: 400}
+	}
 
 	// TODO: implement product checkout inserting data
 	tx, err := r.db.Begin()
