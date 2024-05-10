@@ -26,10 +26,10 @@ type CreateProductRequest struct {
 	Category    string `json:"category"`
 	ImageUrl    string `json:"imageUrl"`
 	Notes       string `json:"notes"`
-	Price       int    `json:"price"`
-	Stock       int    `json:"stock"`
+	Price       *int   `json:"price"`
+	Stock       *int   `json:"stock"`
 	Location    string `json:"location"`
-	IsAvailable bool   `json:"isAvailable"`
+	IsAvailable *bool  `json:"isAvailable"`
 	CreatedBy   string `json:"-"`
 }
 
@@ -53,7 +53,29 @@ type UpdateProductRequest struct {
 
 func (s *ProductService) CreateProduct(req CreateProductRequest) (CreateProductResponse, error) {
 	var resp CreateProductResponse
-	product, err := entity.NewProduct(req.Name, req.SKU, req.Category, req.ImageUrl, req.Notes, req.Price, req.Stock, req.Location, req.IsAvailable, req.CreatedBy)
+
+	if req.Price == nil {
+		return resp, commons.CustomError{
+			Message: "price cannot be empty",
+			Code:    400,
+		}
+	}
+
+	if req.Stock == nil {
+		return resp, commons.CustomError{
+			Message: "stock cannot be empty and must be a number",
+			Code:    400,
+		}
+	}
+
+	if req.IsAvailable == nil {
+		return resp, commons.CustomError{
+			Message: "isAvailable cannot be empty and must be a boolean",
+			Code:    400,
+		}
+	}
+
+	product, err := entity.NewProduct(req.Name, req.SKU, req.Category, req.ImageUrl, req.Notes, *req.Price, *req.Stock, req.Location, *req.IsAvailable, req.CreatedBy)
 	if err != nil {
 		return resp, err
 	}
