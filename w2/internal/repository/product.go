@@ -155,12 +155,12 @@ func (r *productRepository) Find(opts ...entity.FindProductOptionBuilder) ([]ent
 
 	sorting := map[string]entity.SortType{} // key: column, val: desc | asc
 
-	if options.SortPrice.String() != "" {
-		sorting["p.price"] = options.SortPrice
-	}
-
 	if options.SortCreatedAt.String() != "" {
 		sorting["p.created_at"] = options.SortCreatedAt
+	}
+
+	if options.SortPrice.String() != "" {
+		sorting["p.price"] = options.SortPrice
 	}
 
 	if len(sorting) != 0 {
@@ -176,6 +176,8 @@ func (r *productRepository) Find(opts ...entity.FindProductOptionBuilder) ([]ent
 				sortQuery += fmt.Sprintf(" %s %s,", key, val)
 			}
 		}
+
+		fmt.Println(sortQuery)
 
 		query = fmt.Sprintf("%s\n%s", query, sortQuery)
 	}

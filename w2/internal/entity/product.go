@@ -7,6 +7,24 @@ import (
 	"time"
 )
 
+type ProductCategoryEnum string
+
+const (
+	Clothing    ProductCategoryEnum = "Clothing"
+	Accessories ProductCategoryEnum = "Accessories"
+	Footwear    ProductCategoryEnum = "Footwear"
+	Beverages   ProductCategoryEnum = "Beverages"
+)
+
+func IsValidProductCategory(category ProductCategoryEnum) bool {
+	switch category {
+	case Clothing, Accessories, Footwear, Beverages:
+		return true
+	default:
+		return false
+	}
+}
+
 type Product struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`
@@ -86,6 +104,13 @@ func ValidateProductCategory(category string) error {
 	if category == "" {
 		return commons.CustomError{
 			Message: "category cannot be empty",
+			Code:    400,
+		}
+	}
+
+	if !IsValidProductCategory(ProductCategoryEnum(category)) {
+		return commons.CustomError{
+			Message: "category must be either 'Clothing' | 'Accessories' | 'Footwear' | 'Beverages'",
 			Code:    400,
 		}
 	}
