@@ -1,7 +1,6 @@
 package httpserver
 
 import (
-	"eniqlostore/commons"
 	"eniqlostore/internal/service"
 	"fmt"
 	"net/http"
@@ -10,7 +9,26 @@ import (
 )
 
 func (s *HttpServer) handleProductBrowse(w http.ResponseWriter, r *http.Request) {
-	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "success"})
+	query := r.URL.Query()
+	products, err := s.productService.GetProducts(service.GetProductsRequest{
+		Limit:         query.Get("limit"),
+		Offset:        query.Get("offset"),
+		ID:            query.Get("id"),
+		Name:          query.Get("name"),
+		IsAvailable:   query.Get("isAvailable"),
+		Category:      query.Get("category"),
+		SKU:           query.Get("sku"),
+		SortPrice:     query.Get("price"),
+		InStock:       query.Get("inStock"),
+		SortCreatedAt: query.Get("createdAt"),
+	})
+
+	if err != nil {
+		s.handleError(w, r, err)
+		return
+	}
+
+	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "success", "data": products})
 }
 
 func (s *HttpServer) handleProductCreate(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +62,7 @@ func (s *HttpServer) handleProductEdit(w http.ResponseWriter, r *http.Request) {
 
 	payload.ID = chi.URLParam(r, "productId")
 	_, err := s.productService.UpdateProduct(payload, userID)
-	if err != (commons.CustomError{}) {
+	if err != nil {
 		s.handleError(w, r, err)
 		return
 	}
