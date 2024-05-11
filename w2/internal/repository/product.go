@@ -262,8 +262,6 @@ type ProductCheckoutDetails struct {
 
 func (r *productRepository) ProductCheckout(payload ProductCheckoutRepositoryPayload) error {
 	checkoutItem := make([]entity.ProductCheckoutItem, len(payload.ProductDetails))
-	var cleanProducts []entity.Product
-	// TODO: implement product checking
 	var productIds []string
 
 	for _, productDetail := range payload.ProductDetails {
@@ -276,108 +274,162 @@ func (r *productRepository) ProductCheckout(payload ProductCheckoutRepositoryPay
 		return err
 	}
 
-	// TODO: implement product checking
-	// TODO: Must improve this algorithm
-
 	if len(productIds) != len(products) {
 		return commons.CustomError{Message: "product not found", Code: 404}
 	}
+
+	productsById := make(map[string]entity.Product, len(products))
+
+	for _, p := range products {
+		productsById[p.ID] = p
+	}
+
 	totalCost := 0
 	for index, payloaditem := range payload.ProductDetails {
 		itemCost := 0
-		for _, product := range products {
-			if product.ID != payloaditem.ProductID {
-				continue
-			} else {
-				if payloaditem.Quantity > product.Stock {
-					return commons.CustomError{Message: "product quantity not enough", Code: 400}
-				}
-				if !product.IsAvailable {
-					return commons.CustomError{Message: "product quantity is not available", Code: 400}
 
-				}
-				product.Stock = product.Stock - payloaditem.Quantity
-				itemCost = payloaditem.Quantity * product.Price
-				checkoutItem[index].Quantity = payloaditem.Quantity
-				checkoutItem[index].Amount = payloaditem.Quantity * product.Price
-				checkoutItem[index].ProductID = uuid.MustParse(payloaditem.ProductID)
-				cleanProducts = append(cleanProducts, product)
-
+		product, ok := productsById[payloaditem.ProductID]
+		if !ok {
+			return commons.CustomError{
+				Message: "product not found",
+				Code:    404,
 			}
 		}
+
+		if payloaditem.Quantity > product.Stock {
+			return commons.CustomError{Message: "product quantity not enough", Code: 400}
+		}
+
+		if !product.IsAvailable {
+			return commons.CustomError{Message: "product is not available yet", Code: 400}
+		}
+
+		product.Stock = product.Stock - payloaditem.Quantity
+		itemCost = payloaditem.Quantity * product.Price
+		checkoutItem[index].Quantity = payloaditem.Quantity
+		checkoutItem[index].Amount = payloaditem.Quantity * product.Price
+		checkoutItem[index].ProductID = uuid.MustParse(payloaditem.ProductID)
+
 		totalCost += itemCost
 	}
 
-	// TODO: implement product calculation
 	customerMoney := payload.Paid
 	if customerMoney < totalCost {
 		return commons.CustomError{Message: "customer money not enough", Code: 400}
 	}
 
 	customerChange := customerMoney - totalCost
-	fmt.Println(payload.Paid, "PAID")
-	fmt.Println(payload.Change, "CHANGE FROM KARYAWAN")
-	fmt.Println(totalCost, "TOTAL COST")
-	fmt.Println(customerChange, "CHANGE BASED ON CALCULATION")
 	if customerChange != payload.Change {
 		return commons.CustomError{Message: "change is not valid", Code: 400}
 	}
 
-	// TODO: implement product checkout inserting data
-	tx, err := r.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	log.Println("masuk sini ")
-	query :=
-		`
+	err = r.transaction(func(tx *sql.Tx) error {
+		query :=
+			`
 		INSERT INTO checkouts
-		( customer_id, paid, "change", created_by)
+		(customer_id, paid, "change", created_by)
 		VALUES($1, $2, $3, $4)
 		RETURNING id, created_at;
 	`
-	var checkoutID uuid.UUID
-	var checkoutCreatedAt time.Time
+		var checkoutID uuid.UUID
+		var checkoutCreatedAt time.Time
 
-	err = tx.QueryRow(query, payload.Customer.ID, customerMoney, customerChange, payload.User.UserID).Scan(&checkoutID, &checkoutCreatedAt)
-	if err != nil {
-		return err
-	}
-
-	for i := range checkoutItem {
-		checkoutItem[i].CheckoutID = checkoutID
-	}
-	log.Println("masuk sini 2")
-	// TODO: Prepare the bulk insert query
-	valueStrings := make([]string, 0, len(checkoutItem))
-	valueArgs := make([]interface{}, 0, len(checkoutItem)*4)
-	for i, item := range checkoutItem {
-		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d)", i*4+1, i*4+2, i*4+3, i*4+4))
-		valueArgs = append(valueArgs, item.CheckoutID, item.ProductID, item.Quantity, item.Amount)
-	}
-	log.Println("masuk sini 3")
-	stmt := fmt.Sprintf("INSERT INTO checkout_items (checkout_id, product_id, quantity, amount) VALUES %s", strings.Join(valueStrings, ","))
-	_, err = tx.Exec(stmt, valueArgs...)
-	if err != nil {
-		return err
-	}
-	query3 := `
-		UPDATE products
-			SET stock= $1, updated_at=CURRENT_TIMESTAMP
-			WHERE id=$2
-	`
-	for _, cle := range cleanProducts {
-		_, err := tx.Exec(query3, cle.Stock, cle.ID)
+		err = tx.QueryRow(query, payload.Customer.ID, customerMoney, customerChange, payload.User.UserID).Scan(&checkoutID, &checkoutCreatedAt)
 		if err != nil {
+			log.Printf("transaction insert checkouts: %v", err)
 			return err
 		}
-	}
 
-	err = tx.Commit()
+		for i := range checkoutItem {
+			checkoutItem[i].CheckoutID = checkoutID
+		}
+
+		// TODO: Prepare the bulk insert query
+		var insertCheckoutItemValues strings.Builder
+		var queryValuesForUpdateStock strings.Builder
+		insertCheckoutItemArguments := make([]interface{}, 0, len(checkoutItem)*4)
+		updateProductsStockArgs := make([]interface{}, 0, len(checkoutItem)*4)
+
+		for i, item := range checkoutItem {
+			if i < len(checkoutItem)-1 {
+				insertCheckoutItemValues.WriteString(
+					fmt.Sprintf("($%d, $%d, $%d, $%d),", i*4+1, i*4+2, i*4+3, i*4+4),
+				)
+
+				queryValuesForUpdateStock.WriteString(
+					fmt.Sprintf("($%d, $%d), ", i*2+1, i*2+2),
+				)
+			} else {
+				// Last element doesn't need comma at the end
+				insertCheckoutItemValues.WriteString(
+					fmt.Sprintf("($%d, $%d, $%d, $%d)", i*4+1, i*4+2, i*4+3, i*4+4),
+				)
+
+				queryValuesForUpdateStock.WriteString(
+					fmt.Sprintf("($%d, $%d)", i*2+1, i*2+2),
+				)
+
+			}
+			insertCheckoutItemArguments = append(insertCheckoutItemArguments, item.CheckoutID, item.ProductID, item.Quantity, item.Amount)
+			updateProductsStockArgs = append(updateProductsStockArgs, item.ProductID, item.Quantity)
+		}
+
+		insertCheckoutItemsStmt := fmt.Sprintf("INSERT INTO checkout_items (checkout_id, product_id, quantity, amount) VALUES %s", insertCheckoutItemValues.String())
+		_, err = tx.Exec(insertCheckoutItemsStmt, insertCheckoutItemArguments...)
+
+		if err != nil {
+			log.Printf("transaction insert checkout_items: %v", err)
+			return err
+		}
+
+		updateProductsStokStmt := fmt.Sprintf(`
+		UPDATE products p
+		SET
+			stock = p.stock - checkout_items.quantity::smallint
+		FROM (VALUES %s) AS checkout_items(product_id, quantity)
+		WHERE p.id = checkout_items.product_id::uuid
+		`, queryValuesForUpdateStock.String())
+
+		_, err = tx.Exec(updateProductsStokStmt, updateProductsStockArgs...)
+
+		if err != nil {
+			log.Printf("transaction update products: %v", err)
+			log.Printf("transaction update products query: %s", updateProductsStokStmt)
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+type fn func(tx *sql.Tx) error
+
+func (r *productRepository) transaction(cb fn) error {
+	tx, err := r.db.Begin()
+
+	if err != nil {
+		return err
+	}
+
+	err = cb(tx)
+
+	if err != nil {
+		if rbbErr := tx.Rollback(); rbbErr != nil {
+			return fmt.Errorf("tx transaction err: %v, rollback err: %v", err, rbbErr)
+		}
+
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
 	return nil
 }
