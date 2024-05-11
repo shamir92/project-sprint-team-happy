@@ -80,3 +80,31 @@ func WithSortCreatedAt(sort SortType) FindProductOptionBuilder {
 		fpo.SortCreatedAt = sort
 	}
 }
+
+type FindCheckoutHistoryBuilder func(*FindCheckoutHistory)
+
+type FindCheckoutHistory struct {
+	CustomerID    string
+	Limit         int
+	Offset        int
+	SortCreatedAt SortType
+}
+
+func FindCheckoutWithLimitAndOffset(offset, limit int) FindCheckoutHistoryBuilder {
+	return func(fch *FindCheckoutHistory) {
+		fch.Offset = offset
+		fch.Limit = limit
+	}
+}
+
+func FindCheckoutWithCustomerId(customerId string) FindCheckoutHistoryBuilder {
+	return func(fch *FindCheckoutHistory) {
+		fch.CustomerID = customerId
+	}
+}
+
+func FindCheckoutWithSortByCreatedAt(sort SortType) FindCheckoutHistoryBuilder {
+	return func(fch *FindCheckoutHistory) {
+		fch.SortCreatedAt = sort
+	}
+}

@@ -145,3 +145,21 @@ func (s *HttpServer) handleProductCheckout(w http.ResponseWriter, r *http.Reques
 
 	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "success", "data": "data"})
 }
+
+func (s *HttpServer) handleGetProductCheckoutHistories(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	histories, err := s.checkoutService.GetHistory(service.FindCheckoutHistoryRequest{
+		Limit:         query.Get("limit"),
+		Offset:        query.Get("offset"),
+		CustomerID:    query.Get("customerId"),
+		SortCreatedAt: query.Get("createdAt"),
+	})
+
+	if err != nil {
+		s.handleError(w, r, err)
+		return
+	}
+
+	s.writeJSON(w, r, http.StatusOK, map[string]any{"message": "success", "data": histories})
+}
