@@ -25,6 +25,7 @@ type HttpServer struct {
 	userService     *service.UserService
 	productService  *service.ProductService
 	customerService *service.CustomerService
+	checkoutService *service.ProductCheckoutService
 	tokenManager    auth.AuthJwtTokenManager
 }
 
@@ -47,12 +48,16 @@ func New(opts ServerOpts) *HttpServer {
 		UserRepository:     userRepo,
 	})
 
+	checkoutRepo := repository.NewProductCheckoutRepository(opts.DB)
+	checkoutService := service.NewProductCheckoutService(checkoutRepo)
+
 	return &HttpServer{
 		addr:            opts.Addr,
 		userService:     userService,
 		productService:  productService,
 		customerService: custService,
 		tokenManager:    jwtTokenManager,
+		checkoutService: checkoutService,
 	}
 }
 
@@ -87,6 +92,7 @@ func (s *HttpServer) Server() *http.Server {
 			productRouter.Put("/{productId}", s.handleProductEdit)
 			productRouter.Delete("/{productId}", s.handleProductDelete)
 			productRouter.Post("/checkout", s.handleProductCheckout)
+			productRouter.Get("/checkout/history", s.handleGetProductCheckoutHistories)
 		})
 
 		v1.Route("/customer", func(custRouter chi.Router) {
