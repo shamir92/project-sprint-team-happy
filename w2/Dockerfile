@@ -14,14 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/server cmd/api/main.go
 FROM alpine:3.13
 WORKDIR /app
 
-ENV DB_NAME=
-ENV DB_PORT=
-ENV DB_HOST=
-ENV DB_USERNAME=
-ENV DB_PASSWORD=
-ENV DB_PARAMS=
-ENV JWT_SECRET=
-ENV BCRYPT_SALT=
+# COPY ./ap-southeast-1-bundle.pem .
 
 COPY --from=build-stage /app/bin/server .
 
