@@ -1,0 +1,5 @@
+docker-compose.yaml
+./tools
+Makefile
+.env
+*.env
