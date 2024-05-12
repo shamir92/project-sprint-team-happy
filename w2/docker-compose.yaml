@@ -2,13 +2,24 @@
 version: '3'
 services:
   database:
-    image: 'postgres' # use latest official postgres version
+    image: 'w2:latest' # use latest official postgres version
     deploy:
-    env_file:
-      - database.env # configure postgres
-    volumes:
-      - database-data:/var/lib/postgresql/data/ # persist data even if container shuts down
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1000M
+          # pids: 1
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+    environment:
+      - DB_NAME=postgres
+      - DB_PORT=5432
+      - DB_HOST=projectsprint-db.cavsdeuj9ixh.ap-southeast-1.rds.amazonaws.com
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=iatuyachie1Hae4Maih5izee1vie6Ooxu
+      - DB_PARAMS="sslrootcert=ap-southeast-1-bundle.pem&sslmode=verify-full"
+      - JWT_SECRET=shamir
+      - BCRYPT_SALT=8 
     ports:
-      - '5432:5432'
-volumes:
-  database-data: # named volumes can be managed easier using docker-compose
+      - '8080:8080'
