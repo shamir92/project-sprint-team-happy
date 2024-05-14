@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"halosuster/configuration"
 	"strings"
+
+	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
 type postgresWriter struct {
@@ -12,6 +14,7 @@ type postgresWriter struct {
 }
 
 type IPostgresWriter interface {
+	GetDB() *sql.DB
 	Close() error
 }
 

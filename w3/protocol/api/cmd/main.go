@@ -2,6 +2,7 @@ package main
 
 import (
 	"halosuster/configuration"
+	"halosuster/internal/database"
 	"halosuster/protocol/api/route"
 	"log"
 
@@ -22,14 +23,18 @@ func main() {
 	app := fiber.New()
 
 	// For External Interfaces
-	// var postgresWriter postgres.IPostgresWriter = database.NewPostgresWriter(dbConfiguration)
+	postgresWriter, err := database.NewPostgresWriter(dbConfiguration)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Routes
 	publicRouteParam := route.PublicRouteParams{
-		App:                   app,
-		AppConfiguration:      appConfiguration,
-		DatabaseConfiguration: dbConfiguration,
-		JwtConfiguration:      jwtConfiguration,
+		App:              app,
+		AppConfiguration: appConfiguration,
+		PostgresWriter:   postgresWriter,
+		JwtConfiguration: jwtConfiguration,
 	}
 	route.PublicRoutes(publicRouteParam)
 	//nolint:errcheck

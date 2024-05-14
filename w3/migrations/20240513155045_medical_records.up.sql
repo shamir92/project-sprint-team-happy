@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS public.medical_records(
     patient_id character(16) NOT NULL,
     symtomps character varying(2000) NOT NULL,
     medications character varying(2000) NOT NULL,
-    created_by uuid NOT NULL,
+    created_by character(13) NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT medical_records_pkey PRIMARY KEY (id),
@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS public.medical_records(
         ON DELETE CASCADE,
     CONSTRAINT medical_records_created_by_fk 
         FOREIGN KEY (created_by) 
-        REFERENCES public.users(id)
+        REFERENCES public.users(nip)
         ON DELETE CASCADE
-)
+);
 
-CREATE INDEX medical_records_patient_id_idx ON medical_records (patient_id)
-CREATE INDEX medical_records_created_by_idx ON medical_records (created_by)
+CREATE INDEX medical_records_patient_id_idx ON medical_records (patient_id);
+CREATE INDEX medical_records_created_by_idx ON medical_records (created_by);

@@ -1,4 +1,4 @@
-package commons
+package helper
 
 type CustomError struct {
 	Message string

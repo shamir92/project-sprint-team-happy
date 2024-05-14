@@ -1,6 +1,9 @@
 package configuration
 
-import "os"
+import (
+	"database/sql"
+	"os"
+)
 
 type databaseWriter struct {
 	user     string
@@ -53,4 +56,18 @@ func (dw *databaseWriter) GetPort() string {
 
 func (dw *databaseWriter) GetName() string {
 	return dw.name
+}
+
+func (dw *databaseWriter) NewDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", dsn)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
