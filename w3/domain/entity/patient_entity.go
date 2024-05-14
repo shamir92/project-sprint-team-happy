@@ -1,9 +1,13 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Patient struct {
-	ID                  string    `json:"id"`
+	ID                  uuid.UUID `json:"id"`
 	Name                string    `json:"name"`
 	PhoneNumber         string    `json:"phone_number"`
 	BirthDate           time.Time `json:"birth_date"`

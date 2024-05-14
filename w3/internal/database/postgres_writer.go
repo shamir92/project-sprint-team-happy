@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"halosuster/configuration"
-	"log"
 	"strings"
 )
 
@@ -16,7 +15,7 @@ type IPostgresWriter interface {
 	Close() error
 }
 
-func NewPostgresWriter(configDB configuration.IDatabaseWriter) *postgresWriter {
+func NewPostgresWriter(configDB configuration.IDatabaseWriter) (*postgresWriter, error) {
 	dsn := fmt.Sprintf("%s:%s@%s:%s/%s?%s",
 		strings.TrimSpace(configDB.GetUser()),
 		strings.TrimSpace(configDB.GetPassword()),
@@ -28,10 +27,10 @@ func NewPostgresWriter(configDB configuration.IDatabaseWriter) *postgresWriter {
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal(err) // TODO: handle this properly!
-		return nil
+		// log.Fatal(err) // TODO: handle this properly!
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-	return &postgresWriter{db: db}
+	return &postgresWriter{db: db}, nil
 }
 
 func (mw *postgresWriter) GetDB() *sql.DB {

@@ -15,7 +15,7 @@ type jwtConfiguration struct {
 type IJWTConfiguration interface {
 	GetSigningKey() string
 	GetIssuer() string
-	getExpirationTIme() time.Time
+	GetExpirationTIme() (time.Time, error)
 }
 
 func NewJWTConfiguration() *jwtConfiguration {
@@ -34,8 +34,10 @@ func (c *jwtConfiguration) GetIssuer() string {
 	return c.issuer
 }
 
-func (c *jwtConfiguration) getExpirationTIme() time.Time {
-	expiresInMinute, _ := strconv.ParseInt(c.expiresInMinute, 10, 64)
-
-	return time.Now().Add(time.Minute * time.Duration(expiresInMinute))
+func (c *jwtConfiguration) GetExpirationTIme() (time.Time, error) {
+	expiresInMinute, err := strconv.ParseInt(c.expiresInMinute, 10, 64)
+	if err != nil {
+		return time.Time{}, err // Return the error to be handled by the caller
+	}
+	return time.Now().Add(time.Minute * time.Duration(expiresInMinute)), nil
 }
