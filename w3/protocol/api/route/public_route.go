@@ -1,20 +1,37 @@
 package route
 
 import (
+	"halosuster/configuration"
+	"halosuster/protocol/api/controller"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func PublicRoutes(a *fiber.App) {
+type PublicRouteParams struct {
+	App                   *fiber.App
+	AppConfiguration      configuration.IAppConfiguration
+	DatabaseConfiguration configuration.IDatabaseWriter
+	JwtConfiguration      configuration.IJWTConfiguration
+}
+
+// TODO : add routes to here.
+func PublicRoutes(params PublicRouteParams) {
+	log.Println(params.AppConfiguration)
+	log.Println(params.DatabaseConfiguration)
+	log.Println(params.JwtConfiguration)
+	// TODO: initiation of repository
+
+	// TODO: initiation of usecase/ service
+
+	// TODO: initiation of controller/ handler
+	var pingController controller.IPingController = controller.NewPingController()
+
 	// Create routes group.
-	route := a.Group("/api/v1")
+	route := params.App.Group("/api/v1")
+	route.Get("/ping", pingController.GetPingController)
+
+	//
 	log.Println(route)
-	// Routes for GET method:
-	// route.Get("/short-url/:shortUrl", controllers.GetShortUrl) // get list of all books
 
-	// Routes for POST method:
-	// route.Post("/short-url", controllers.CreateShortUrl) // get list of all books
-
-	// route.Post("/user/sign/in", controllers.UserSignIn) // auth, return Access & Refresh tokens
 }

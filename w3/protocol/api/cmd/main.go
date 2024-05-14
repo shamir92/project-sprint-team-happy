@@ -6,15 +6,16 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-
+	godotenv.Load()
 	// For configuration
 	var appConfiguration configuration.IAppConfiguration = configuration.NewAppConfiguration()
 
-	// var dbConfiguration configuration.IDatabaseWriter = configuration.NewDatabaseWriter()
-	// var jwtConfiguration configuration.IJWTConfiguration = configuration.NewJWTConfiguration()
+	var dbConfiguration configuration.IDatabaseWriter = configuration.NewDatabaseWriter()
+	var jwtConfiguration configuration.IJWTConfiguration = configuration.NewJWTConfiguration()
 
 	app := fiber.New()
 
@@ -22,7 +23,13 @@ func main() {
 	// var postgresWriter postgres.IPostgresWriter = database.NewPostgresWriter(dbConfiguration)
 
 	// Routes
-	route.PublicRoutes(app)
+	publicRouteParam := route.PublicRouteParams{
+		App:                   app,
+		AppConfiguration:      appConfiguration,
+		DatabaseConfiguration: dbConfiguration,
+		JwtConfiguration:      jwtConfiguration,
+	}
+	route.PublicRoutes(publicRouteParam)
 	//nolint:errcheck
 	log.Fatal(app.Listen(appConfiguration.GetPort()))
 }
