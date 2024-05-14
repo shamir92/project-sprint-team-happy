@@ -2,6 +2,7 @@ package route
 
 import (
 	"halosuster/configuration"
+	"halosuster/domain/usecase"
 	"halosuster/protocol/api/controller"
 	"log"
 
@@ -23,12 +24,12 @@ func PublicRoutes(params PublicRouteParams) {
 	// TODO: initiation of repository
 
 	// TODO: initiation of usecase/ service
-
+	var pingUsecase usecase.IPingUsecase = usecase.NewPingUsecase()
 	// TODO: initiation of controller/ handler
-	var pingController controller.IPingController = controller.NewPingController()
+	var pingController controller.IPingController = controller.NewPingController(pingUsecase)
 
 	// Create routes group.
-	route := params.App.Group("/api/v1")
+	route := params.App.Group("/v1")
 	route.Get("/ping", pingController.GetPingController)
 
 	//

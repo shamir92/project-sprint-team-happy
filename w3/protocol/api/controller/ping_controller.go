@@ -1,13 +1,14 @@
 package controller
 
 import (
+	"halosuster/domain/usecase"
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
-	// "github.com/gin-gonic/gin"
-	// usecase "simple-invitation/domain/usecase"
-	// "github.com/gin-gonic/gin"
 )
 
 type pingController struct {
+	pingUsecase usecase.IPingUsecase
 }
 
 // TODO: add all function under ping controller to inferface. this will make it easier to test
@@ -15,10 +16,16 @@ type IPingController interface {
 	GetPingController(c *fiber.Ctx) error
 }
 
-func NewPingController() *pingController {
-	return &pingController{}
+func NewPingController(pingUsecase usecase.IPingUsecase) *pingController {
+	return &pingController{
+		pingUsecase: pingUsecase,
+	}
 }
 
-func (ac *pingController) GetPingController(c *fiber.Ctx) error {
-	return c.JSON("pong")
+func (pc *pingController) GetPingController(c *fiber.Ctx) error {
+	value, _ := pc.pingUsecase.GetPing()
+	if !value {
+		return c.Status(http.StatusServiceUnavailable).JSON("pong")
+	}
+	return c.Status(http.StatusOK).JSON("pong")
 }
