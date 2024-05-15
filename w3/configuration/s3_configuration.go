@@ -28,11 +28,11 @@ type IS3Configuration interface {
 }
 
 func (c *s3Configuration) GetS3ID() string {
-	return c.s3SecretKey
+	return c.s3ID
 }
 
 func (c *s3Configuration) GetS3SecretKey() string {
-	return c.s3ID
+	return c.s3SecretKey
 }
 
 func (c *s3Configuration) GetS3BucketName() string {

@@ -56,16 +56,13 @@ func (w *s3Writer) UploadImage(fileHeader *multipart.FileHeader) (string, error)
 		Bucket:      aws.String(bucket),
 		Key:         aws.String(fileName),
 		Body:        file,
-		ACL:         types.ObjectCannedACLPublicRead, // Adjust permissions as needed
-		ContentType: aws.String("image/jpeg"),        // Set content type
+		ACL:         types.ObjectCannedACLPublicRead,                   // Adjust permissions as needed
+		ContentType: aws.String(fileHeader.Header.Get("Content-Type")), // Set content type
 	})
 
 	if err != nil {
-		log.Fatalf("failed to upload file, %v", err)
-		return "", helper.CustomError{
-			Message: err.Error(),
-			Code:    500,
-		}
+		return "", fmt.Errorf("failed to upload file: %w", err)
+
 	}
 	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucket, w.s3Config.GetS3Region(), fileName)
 	return url, nil

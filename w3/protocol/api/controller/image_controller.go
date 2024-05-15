@@ -44,7 +44,7 @@ func (ic *imageController) UploadImage(c *fiber.Ctx) error {
 
 	// TODO: return response
 	return c.Status(http.StatusCreated).JSON(dto.UserITRegisterControllerResponse{
-		Message: "user registered successfully",
+		Message: "image uploaded successfully",
 		Data:    UploadImageResponse{URL: url},
 	})
 
