@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"log"
 	"os"
 	"strconv"
 )
@@ -22,9 +21,8 @@ type IBcryptConfiguration interface {
 
 func (c *bcryptConfiguration) GetBcryptSalt() int {
 	saltCost, err := strconv.Atoi(c.bcryptSalt)
-
 	if err != nil {
-		log.Fatalf("bcrypt: salt is not a number")
+		return 16
 	}
 
 	return saltCost

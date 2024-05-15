@@ -25,12 +25,12 @@ func main() {
 
 	// For External Interfaces
 	postgresWriter, err := database.NewPostgresWriter(dbConfiguration)
-	bcrypt := helper.NewBcryptPasswordHash(bcryptConfiguration)
-	jwtManager := helper.NewJwt(jwtConfiguration)
-
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	bcrypt := helper.NewBcryptPasswordHash(bcryptConfiguration)
+	jwtManager := helper.NewJwt(jwtConfiguration)
 
 	// Routes
 	publicRouteParam := route.PublicRouteParams{
