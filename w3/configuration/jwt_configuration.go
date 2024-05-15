@@ -3,7 +3,6 @@ package configuration
 import (
 	"os"
 	"strconv"
-	"time"
 )
 
 type jwtConfiguration struct {
@@ -15,7 +14,7 @@ type jwtConfiguration struct {
 type IJWTConfiguration interface {
 	GetSigningKey() string
 	GetIssuer() string
-	GetExpirationTIme() (time.Time, error)
+	GetExpireInMinute() int
 }
 
 func NewJWTConfiguration() *jwtConfiguration {
@@ -31,13 +30,25 @@ func (c *jwtConfiguration) GetSigningKey() string {
 }
 
 func (c *jwtConfiguration) GetIssuer() string {
+	if c.issuer == "" {
+		return "app"
+	}
 	return c.issuer
 }
 
-func (c *jwtConfiguration) GetExpirationTIme() (time.Time, error) {
+func (c *jwtConfiguration) GetExpireInMinute() int {
 	expiresInMinute, err := strconv.ParseInt(c.expiresInMinute, 10, 64)
 	if err != nil {
-		return time.Time{}, err // Return the error to be handled by the caller
+		return 600 // Return the error to be handled by the caller
 	}
-	return time.Now().Add(time.Minute * time.Duration(expiresInMinute)), nil
+
+	return int(expiresInMinute)
 }
+
+// func (c *jwtConfiguration) GetExpirationTIme() (time.Time, error) {
+// 	expiresInMinute, err := strconv.ParseInt(c.expiresInMinute, 10, 64)
+// 	if err != nil {
+// 		return time.Time{}, err // Return the error to be handled by the caller
+// 	}
+// 	return time.Now().Add(time.Minute * time.Duration(expiresInMinute)), nil
+// }

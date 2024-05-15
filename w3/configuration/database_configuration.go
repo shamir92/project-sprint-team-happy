@@ -1,36 +1,35 @@
 package configuration
 
 import (
-	"database/sql"
 	"os"
 )
 
 type databaseWriter struct {
 	user     string
 	password string
-	protocol string
 	host     string
 	port     string
 	name     string
+	param    string
 }
 
 type IDatabaseWriter interface {
 	GetUser() string
 	GetPassword() string
-	GetProtocol() string
 	GetHost() string
 	GetPort() string
 	GetName() string
+	GetDBParam() string
 }
 
 func NewDatabaseWriter() *databaseWriter {
 	return &databaseWriter{
-		user:     os.Getenv("DB_USER_WRITER"),
-		password: os.Getenv("DB_PASSWORD_WRITER"),
-		protocol: os.Getenv("DB_PROTOCOL_WRITER"),
-		host:     os.Getenv("DB_HOST_WRITER"),
-		port:     os.Getenv("DB_PORT_WRITER"),
-		name:     os.Getenv("DB_NAME_WRITER"),
+		user:     os.Getenv("DB_USERNAME"),
+		password: os.Getenv("DB_PASSWORD"),
+		host:     os.Getenv("DB_HOST"),
+		port:     os.Getenv("DB_PORT"),
+		name:     os.Getenv("DB_NAME"),
+		param:    os.Getenv("DB_PARAMS"),
 	}
 }
 
@@ -40,10 +39,6 @@ func (dw *databaseWriter) GetUser() string {
 
 func (dw *databaseWriter) GetPassword() string {
 	return dw.password
-}
-
-func (dw *databaseWriter) GetProtocol() string {
-	return dw.protocol
 }
 
 func (dw *databaseWriter) GetHost() string {
@@ -58,16 +53,6 @@ func (dw *databaseWriter) GetName() string {
 	return dw.name
 }
 
-func (dw *databaseWriter) NewDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", dsn)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
+func (dw *databaseWriter) GetDBParam() string {
+	return dw.param
 }

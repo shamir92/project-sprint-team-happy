@@ -18,6 +18,7 @@ type PublicRouteParams struct {
 	PostgresWriter   database.IPostgresWriter
 	JwtConfiguration configuration.IJWTConfiguration
 	HelperBcrypt     helper.IBcryptPasswordHash
+	JWTManager       helper.IJWTManager
 }
 
 // TODO : add routes to here.
@@ -30,7 +31,7 @@ func PublicRoutes(params PublicRouteParams) {
 
 	// TODO: initiation of usecase/ service
 	var pingUsecase usecase.IPingUsecase = usecase.NewPingUsecase()
-	var userITUsecase usecase.IUserITUsecase = usecase.NewUserITUsecase(params.HelperBcrypt, userRepository)
+	var userITUsecase usecase.IUserITUsecase = usecase.NewUserITUsecase(params.HelperBcrypt, userRepository, params.JWTManager)
 	// TODO: initiation of controller/ handler
 	var pingController controller.IPingController = controller.NewPingController(pingUsecase)
 	var userITController controller.IUserITController = controller.NewUserITController(userITUsecase)

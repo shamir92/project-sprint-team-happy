@@ -19,5 +19,8 @@ type IAppConfiguration interface {
 }
 
 func (ac *appConfiguration) GetPort() string {
+	if ac.port == "" {
+		ac.port = ":8080"
+	}
 	return ac.port
 }

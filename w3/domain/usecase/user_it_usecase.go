@@ -4,50 +4,75 @@ import (
 	"halosuster/domain/entity"
 	"halosuster/domain/repository"
 	"halosuster/internal/helper"
+	"strconv"
 )
 
 type userITUsecase struct {
 	bcryptHelper   helper.IBcryptPasswordHash
 	userRepository repository.IUserRepository
+	jwtManager     helper.IJWTManager
 }
 
 type IUserITUsecase interface {
-	RegisterUserIT(userITRequest UserITRegisterRequest) error
+	RegisterUserIT(userITRequest UserITRegisterRequest) (UserITRegisterResponse, error)
 }
 
-func NewUserITUsecase(bcryptHelper helper.IBcryptPasswordHash, userRepository repository.IUserRepository) *userITUsecase {
+func NewUserITUsecase(bcryptHelper helper.IBcryptPasswordHash, userRepository repository.IUserRepository, jwtManager helper.IJWTManager) *userITUsecase {
 	return &userITUsecase{
 		bcryptHelper:   bcryptHelper,
 		userRepository: userRepository,
+		jwtManager:     jwtManager,
 	}
 }
 
 type UserITRegisterRequest struct {
-	NIP      string `json:"nip" validate:"required, numeric, min=6150000000000, max=6159999999999"`
-	Name     string `json:"name" validate:"required, min=5, max=50"`
-	Password string `json:"password" validate:"required, min=5, max=33"`
+	NIP      int    `json:"nip" validate:"required,numeric,min=6150000000000,max=6159999999999"`
+	Name     string `json:"name" validate:"required,min=5,max=50"`
+	Password string `json:"password" validate:"required,min=5,max=33"`
 }
 
-func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) error {
+type UserITRegisterResponse struct {
+	Token string `json:"access_token"`
+	ID    string `json:"user_id"`
+	Name  string `json:"name"`
+	NIP   string `json:"nip"`
+}
+
+func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (UserITRegisterResponse, error) {
 	var user entity.User
-	if !user.ValidateNIP(userITRequest.NIP) {
-		return helper.CustomError{
+
+	userNip := strconv.FormatInt(int64(userITRequest.NIP), 10)
+	if !user.ValidateNIP(userNip) {
+		return UserITRegisterResponse{}, helper.CustomError{
 			Message: "NIP is not valid",
 			Code:    400,
 		}
 	}
 	hashedPassword, err := u.bcryptHelper.Hash(userITRequest.Password)
 	if err != nil {
-		return helper.CustomError{
+		return UserITRegisterResponse{}, helper.CustomError{
 			Message: err.Error(),
 			Code:    500,
 		}
 	}
 	user.Name = userITRequest.Name
-	user.NIP = userITRequest.NIP
+	user.NIP = userNip
 	user.Password = hashedPassword
-	if err := u.userRepository.InsertUserIT(user); err != nil {
-		return err
+
+	user, err = u.userRepository.InsertUserIT(user)
+
+	if err != nil {
+		return UserITRegisterResponse{}, err
 	}
-	return nil
+
+	token, err := u.jwtManager.CreateToken(user)
+	if err != nil {
+		return UserITRegisterResponse{}, err
+	}
+	return UserITRegisterResponse{
+		Token: token,
+		ID:    user.ID.String(),
+		Name:  user.Name,
+		NIP:   user.NIP,
+	}, nil
 }

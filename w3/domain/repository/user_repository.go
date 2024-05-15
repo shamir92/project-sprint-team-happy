@@ -22,7 +22,7 @@ func NewUserRepository(db *sql.DB) *userRepository {
 
 type IUserRepository interface {
 	GetByNIP(nip string) (entity.User, error)
-	InsertUserIT(user entity.User) error
+	InsertUserIT(user entity.User) (entity.User, error)
 }
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
@@ -44,16 +44,25 @@ func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
 	return user, nil
 }
 
-func (r *userRepository) InsertUserIT(user entity.User) error {
+func (r *userRepository) InsertUserIT(user entity.User) (entity.User, error) {
 	query := `
-		INSERT INTO users(nip, name, password) 
-		VALUES($1, $2, $3) 
-		RETURNING nip`
+		INSERT INTO users(nip, name, password, role) 
+		VALUES($1, $2, $3, $4) 
+		ON CONFLICT DO NOTHING
+		RETURNING id, nip
+	`
 
-	err := r.db.QueryRow(query, user.NIP, user.Name, user.Password).Scan(&user.NIP)
+	err := r.db.QueryRow(query, user.NIP, user.Name, user.Password, "IT").Scan(&user.ID, &user.NIP)
 	if err != nil {
-		return err
+		// err is not nil if the user is already registered
+		if !errors.Is(err, sql.ErrNoRows) {
+			return entity.User{}, helper.CustomError{
+				Message: "Duplicate User",
+				Code:    400,
+			}
+		}
+		return entity.User{}, err
 	}
 
-	return nil
+	return user, nil
 }

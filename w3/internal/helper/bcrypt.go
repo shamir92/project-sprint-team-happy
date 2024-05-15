@@ -1,9 +1,7 @@
 package helper
 
 import (
-	"log"
-	"os"
-	"strconv"
+	"halosuster/configuration"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -18,17 +16,10 @@ type IBcryptPasswordHash interface {
 	GetSaltCost() int
 }
 
-func NewBcryptPasswordHash() *bcryptPasswordHash {
-	salt := os.Getenv("BCRYPT_SALT")
-
-	saltCost, err := strconv.Atoi(salt)
-
-	if err != nil {
-		log.Fatalf("bcrypt: salt is not a number")
-	}
-
+func NewBcryptPasswordHash(bcrypt configuration.IBcryptConfiguration) *bcryptPasswordHash {
+	bcryptSalt := bcrypt.GetBcryptSalt()
 	return &bcryptPasswordHash{
-		saltCost: saltCost,
+		saltCost: bcryptSalt,
 	}
 }
 

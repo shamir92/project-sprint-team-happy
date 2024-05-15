@@ -25,6 +25,11 @@ func NewUserITController(userITUsecase usecase.IUserITUsecase) *userITController
 	}
 }
 
+type UserITRegisterControllerResponse struct {
+	Message string `json:"message"`
+	Data    any    `json:"data"`
+}
+
 func (pc *userITController) RegisterUserIT(c *fiber.Ctx) error {
 	//TODO: initization variable
 	var request usecase.UserITRegisterRequest
@@ -44,11 +49,16 @@ func (pc *userITController) RegisterUserIT(c *fiber.Ctx) error {
 	}
 
 	// TODO: add logic
-	if err := pc.userITUsecase.RegisterUserIT(request); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+	data, err := pc.userITUsecase.RegisterUserIT(request)
+	if err != nil {
+		// tar ganti
+		// dirty dulu.
+		return c.Status(http.StatusInternalServerError).JSON(err)
 	}
+	// TODO: return response
 
-	return c.Status(http.StatusCreated).JSON("pong")
+	return c.Status(http.StatusCreated).JSON(UserITRegisterControllerResponse{
+		Message: "user registered successfully",
+		Data:    data,
+	})
 }
