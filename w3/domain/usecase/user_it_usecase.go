@@ -43,7 +43,7 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 	var user entity.User
 
 	userNip := strconv.FormatInt(int64(userITRequest.NIP), 10)
-	if !user.ValidateNIP(userNip, entity.IT) {
+	if !entity.ValidateUserNIP(userNip, entity.IT) {
 		return UserITRegisterResponse{}, helper.CustomError{
 			Message: "NIP is not valid",
 			Code:    400,
@@ -95,7 +95,7 @@ func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResp
 	var user entity.User
 
 	userNip := strconv.FormatInt(int64(request.NIP), 10)
-	if !user.ValidateNIP(userNip, entity.IT) {
+	if !entity.ValidateUserNIP(userNip, entity.IT) {
 		return UserITLoginResponse{}, helper.CustomError{
 			Message: "NIP is not valid",
 			Code:    400,

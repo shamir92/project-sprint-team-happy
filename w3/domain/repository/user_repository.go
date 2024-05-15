@@ -23,6 +23,7 @@ func NewUserRepository(db *sql.DB) *userRepository {
 type IUserRepository interface {
 	GetByNIP(nip string) (entity.User, error)
 	InsertUser(user entity.User) (entity.User, error)
+	CheckNIPExist(nip string) (bool, error)
 }
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
@@ -65,4 +66,15 @@ func (r *userRepository) InsertUser(user entity.User) (entity.User, error) {
 	}
 
 	return user, nil
+}
+
+func (r *userRepository) CheckNIPExist(nip string) (bool, error) {
+	query := `
+		SELECT count(nip) password FROM users WHERE nip = $1
+	`
+
+	var count int
+	err := r.db.QueryRow(query, nip).Scan(&count)
+
+	return count > 0, err
 }

@@ -42,6 +42,12 @@ func main() {
 		JWTManager:       jwtManager,
 	}
 	route.PublicRoutes(publicRouteParam)
+	route.PrivateRoutes(route.PrivateRoutesParam{
+		App:              app,
+		AppConfiguration: appConfiguration,
+		PostgresWriter:   postgresWriter,
+		JwtManager:       jwtManager,
+	})
 	//nolint:errcheck
 	log.Fatal(app.Listen(appConfiguration.GetPort()))
 }
