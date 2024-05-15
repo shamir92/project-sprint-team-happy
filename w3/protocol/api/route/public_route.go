@@ -40,6 +40,7 @@ func PublicRoutes(params PublicRouteParams) {
 	route := params.App.Group("/v1")
 	route.Get("/ping", pingController.GetPingController)
 	route.Post("/user/it/register", userITController.RegisterUserIT)
+	route.Post("/user/it/login", userITController.LoginUserIT)
 
 	//
 	log.Println(route)

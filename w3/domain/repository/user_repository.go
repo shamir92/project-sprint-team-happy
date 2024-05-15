@@ -27,11 +27,11 @@ type IUserRepository interface {
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
 	query := `
-		SELECT nip, name, password FROM users WHERE nip = $1
+		SELECT id,  nip, name, password FROM users WHERE nip = $1
 	`
 
 	var user entity.User
-	err := r.db.QueryRow(query, nip).Scan(&user.NIP, &user.Name, &user.Password)
+	err := r.db.QueryRow(query, nip).Scan(&user.ID, &user.NIP, &user.Name, &user.Password)
 
 	// User is not registered in db
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
