@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS public.medical_records(
         FOREIGN KEY (created_by) 
         REFERENCES public.users(id)
         ON DELETE CASCADE
-)
+);
 
-CREATE INDEX medical_records_patient_id_idx ON medical_records (patient_id)
-CREATE INDEX medical_records_created_by_idx ON medical_records (created_by)
+CREATE INDEX medical_records_patient_id_idx ON medical_records (patient_id);
+CREATE INDEX medical_records_created_by_idx ON medical_records (created_by);
