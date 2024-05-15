@@ -22,7 +22,7 @@ func NewUserRepository(db *sql.DB) *userRepository {
 
 type IUserRepository interface {
 	GetByNIP(nip string) (entity.User, error)
-	InsertUserIT(user entity.User) (entity.User, error)
+	InsertUser(user entity.User) (entity.User, error)
 }
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
@@ -44,7 +44,7 @@ func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
 	return user, nil
 }
 
-func (r *userRepository) InsertUserIT(user entity.User) (entity.User, error) {
+func (r *userRepository) InsertUser(user entity.User) (entity.User, error) {
 	query := `
 		INSERT INTO users(nip, name, password, role) 
 		VALUES($1, $2, $3, $4) 
@@ -52,7 +52,7 @@ func (r *userRepository) InsertUserIT(user entity.User) (entity.User, error) {
 		RETURNING id, nip
 	`
 
-	err := r.db.QueryRow(query, user.NIP, user.Name, user.Password, "IT").Scan(&user.ID, &user.NIP)
+	err := r.db.QueryRow(query, user.NIP, user.Name, user.Password, user.Role).Scan(&user.ID, &user.NIP)
 	if err != nil {
 		// err is not nil if the user is already registered
 		if !errors.Is(err, sql.ErrNoRows) {

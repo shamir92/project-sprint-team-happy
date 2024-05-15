@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"halosuster/configuration"
-	"log"
 	"strings"
 
 	_ "github.com/lib/pq" // PostgreSQL driver
@@ -26,9 +25,7 @@ func NewPostgresWriter(configDB configuration.IDatabaseWriter) (*postgresWriter,
 		strings.TrimSpace(configDB.GetHost()),
 		strings.TrimSpace(configDB.GetPort()),
 		strings.TrimSpace(configDB.GetName()),
-		strings.TrimSpace(configDB.GetDBParam()),
-	)
-	log.Println(dsn)
+		strings.TrimSpace(configDB.GetDBParam()))
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {

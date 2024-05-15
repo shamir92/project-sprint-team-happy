@@ -8,6 +8,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type UserRole string
+
+const (
+	IT    UserRole = "IT"
+	NURSE UserRole = "NURSE"
+)
+
 type User struct {
 	ID                  uuid.UUID    `json:"id"`
 	NIP                 string       `json:"nip"`
@@ -20,14 +27,18 @@ type User struct {
 	DeletedAt           sql.NullTime `json:"deleted_at"`
 }
 
-func (e *User) ValidateNIP(nip string) bool {
+func (e *User) ValidateNIP(nip string, role UserRole) bool {
 	// Check length
 	if len(nip) != 13 {
 		return false
 	}
 
-	// Check prefix
-	if nip[:3] != "615" {
+	// Check role
+	if role == IT && nip[:3] != "615" {
+		return false
+	}
+
+	if role == NURSE && nip[:3] != "303" {
 		return false
 	}
 
