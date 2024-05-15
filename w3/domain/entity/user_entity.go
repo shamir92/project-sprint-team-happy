@@ -2,7 +2,11 @@ package entity
 
 import (
 	"database/sql"
+	"log"
+	"net/url"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,18 +20,19 @@ const (
 )
 
 type User struct {
-	ID                  uuid.UUID    `json:"id"`
-	NIP                 string       `json:"nip"`
-	Name                string       `json:"name"`
-	Password            string       `json:"password"`
-	Role                string       `json:"role"`
-	IdentityCardScanImg string       `json:"identity_card_scan_img"`
-	CreatedAt           time.Time    `json:"created_at"`
-	UpdatedAt           time.Time    `json:"updated_at"`
-	DeletedAt           sql.NullTime `json:"deleted_at"`
+	ID                  uuid.UUID      `json:"id"`
+	NIP                 string         `json:"nip"`
+	Name                string         `json:"name"`
+	Password            sql.NullString `json:"password"`
+	Role                string         `json:"role"`
+	IdentityCardScanImg string         `json:"identity_card_scan_img"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
+	DeletedAt           sql.NullTime   `json:"deleted_at"`
 }
 
-func (e *User) ValidateNIP(nip string, role UserRole) bool {
+// true when the NIP is valid
+func ValidateUserNIP(nip string, role UserRole) bool {
 	// Check length
 	if len(nip) != 13 {
 		return false
@@ -72,4 +77,32 @@ func (e *User) ValidateNIP(nip string, role UserRole) bool {
 	}
 
 	return true
+}
+
+func ValidateIdentityCardScanImageURL(rawUrl string) bool {
+	if !strings.HasPrefix(rawUrl, "http://") && !strings.HasPrefix(rawUrl, "https://") {
+		return false
+	}
+
+	u, err := url.ParseRequestURI(rawUrl)
+
+	if err != nil {
+		log.Printf("identity card scan image url: %v", err)
+		return false
+	}
+
+	ext := strings.ToLower(filepath.Ext(u.Path))
+
+	validExtensions := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+		".gif":  true,
+		".bmp":  true,
+		".webp": true,
+	}
+
+	_, ok := validExtensions[ext]
+
+	return ok
 }

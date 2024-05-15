@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"database/sql"
 	"halosuster/domain/entity"
 	"halosuster/domain/repository"
 	"halosuster/internal/helper"
@@ -43,7 +44,7 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 	var user entity.User
 
 	userNip := strconv.FormatInt(int64(userITRequest.NIP), 10)
-	if !user.ValidateNIP(userNip, entity.IT) {
+	if !entity.ValidateUserNIP(userNip, entity.IT) {
 		return UserITRegisterResponse{}, helper.CustomError{
 			Message: "NIP is not valid",
 			Code:    400,
@@ -58,7 +59,10 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 	}
 	user.Name = userITRequest.Name
 	user.NIP = userNip
-	user.Password = hashedPassword
+	user.Password = sql.NullString{
+		String: hashedPassword,
+		Valid:  true,
+	}
 	user.Role = string(entity.IT)
 
 	user, err = u.userRepository.InsertUser(user)
@@ -95,7 +99,7 @@ func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResp
 	var user entity.User
 
 	userNip := strconv.FormatInt(int64(request.NIP), 10)
-	if !user.ValidateNIP(userNip, entity.IT) {
+	if !entity.ValidateUserNIP(userNip, entity.IT) {
 		return UserITLoginResponse{}, helper.CustomError{
 			Message: "NIP is not valid",
 			Code:    400,
@@ -105,7 +109,7 @@ func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResp
 	if err != nil {
 		return UserITLoginResponse{}, err
 	}
-	if !u.bcryptHelper.Compare(user.Password, request.Password) {
+	if !u.bcryptHelper.Compare(user.Password.String, request.Password) {
 		return UserITLoginResponse{}, helper.CustomError{
 			Message: "password is not valid",
 			Code:    400,
