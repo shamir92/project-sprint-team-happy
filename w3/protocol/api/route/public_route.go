@@ -23,9 +23,6 @@ type PublicRouteParams struct {
 
 // TODO : add routes to here.
 func PublicRoutes(params PublicRouteParams) {
-	log.Println(params.AppConfiguration)
-	log.Println(params.PostgresWriter)
-	log.Println(params.JwtConfiguration)
 	// TODO: initiation of repository
 	var userRepository repository.IUserRepository = repository.NewUserRepository(params.PostgresWriter.GetDB())
 
