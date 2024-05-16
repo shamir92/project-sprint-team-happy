@@ -87,3 +87,24 @@ func (pc *userNurseController) DeleteNurse(c *fiber.Ctx) error {
 		"message": "nurse deleted successfully",
 	})
 }
+
+func (pc *userNurseController) SetAccessNurse(c *fiber.Ctx) error {
+	var req usecase.SetAccessNurseRequest
+
+	if err := c.BodyParser(&req); err != nil {
+		return fiber.ErrBadGateway
+	}
+
+	if err := helper.ValidateStruct(req); err != nil {
+		return err
+	}
+
+	req.UserID = c.Params("userNurseId")
+	if err := pc.nurseUsecase.SetAccess(req); err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "success set access to nurse user",
+	})
+}

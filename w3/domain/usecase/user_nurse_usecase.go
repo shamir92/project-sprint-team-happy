@@ -5,6 +5,7 @@ import (
 	"halosuster/domain/entity"
 	"halosuster/domain/repository"
 	"halosuster/internal/helper"
+	"log"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -20,16 +21,18 @@ type IUserNurseUsecase interface {
 	Create(in CreateNurseRequest, createdBy string) (entity.User, error)
 	Update(in UpdateNurseRequest, nurseUserId string) error
 	Delete(nurseId string) error
-	SetAccess(nurseId string) error
+	SetAccess(SetAccessNurseRequest) error
 }
 
 type userNurseUseCase struct {
 	userRepository repository.IUserRepository
+	bcryptHelper   helper.IBcryptPasswordHash
 }
 
-func NewUserNurseUseCase(userRepo repository.IUserRepository) *userNurseUseCase {
+func NewUserNurseUseCase(userRepo repository.IUserRepository, bcryptHelper helper.IBcryptPasswordHash) *userNurseUseCase {
 	return &userNurseUseCase{
 		userRepository: userRepo,
+		bcryptHelper:   bcryptHelper,
 	}
 }
 
@@ -42,6 +45,11 @@ type CreateNurseRequest struct {
 type UpdateNurseRequest struct {
 	NIP  int    `json:"nip" validate:"required,numeric,min=3030000000000,max=3039999999999"`
 	Name string `json:"name" validate:"required,min=5,max=50"`
+}
+
+type SetAccessNurseRequest struct {
+	UserID   string
+	Password string `json:"password" validate:"required,min=5,max=33"`
 }
 
 func (u *userNurseUseCase) Create(in CreateNurseRequest, createdBy string) (entity.User, error) {
@@ -158,7 +166,28 @@ func (u *userNurseUseCase) Delete(nurseId string) error {
 	return nil
 }
 
-func (u *userNurseUseCase) SetAccess(nurseId string) error {
+func (u *userNurseUseCase) SetAccess(in SetAccessNurseRequest) error {
+	nurse, err := u.getUserNurseByID(in.UserID)
+
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := u.bcryptHelper.Hash(in.Password)
+
+	if err != nil {
+		log.Printf("SetAccess: %v", err)
+		return err
+	}
+
+	nurse.Password = hashedPassword
+
+	err = u.userRepository.UpdatePassword(nurse.ID.String(), nurse.Password)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -166,4 +195,15 @@ func isValidUUID(userId string) bool {
 	err := uuid.Validate(userId)
 
 	return err == nil
+}
+
+func (u *userNurseUseCase) getUserNurseByID(userID string) (entity.User, error) {
+	if !isValidUUID(userID) {
+		return entity.User{}, helper.CustomError{
+			Code:    404,
+			Message: errNurseNotFound.Error(),
+		}
+	}
+
+	return u.userRepository.GetUserNurseByID(userID)
 }
