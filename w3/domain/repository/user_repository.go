@@ -138,7 +138,7 @@ func (r *userRepository) Update(user entity.User) error {
 }
 
 func (r *userRepository) Delete(userId string) error {
-	query := `UPDATE users SET deleted_at = $1 WHERE id = $2`
+	query := `UPDATE users SET nip = NULL, deleted_at = $1 WHERE id = $2`
 
 	res, err := r.db.Exec(query, time.Now(), userId)
 
