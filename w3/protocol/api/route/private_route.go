@@ -8,7 +8,6 @@ import (
 	"halosuster/internal/helper"
 	"halosuster/protocol/api/controller"
 	"halosuster/protocol/api/middleware"
-	"log"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -48,16 +47,14 @@ func PrivateRoutes(params PrivateRouteParams) {
 	route := params.App.Group("/v1")
 	route.Get("/ping", pingController.GetPingController)
 	route.Post("/image", imageController.UploadImage)
+
 	route.Use(middleware.AuthMiddleware(params.JWTManager))
 	route.Route("/user/nurse", func(router fiber.Router) {
 		router.Post("/register", nurseController.CreateNurse)
+		router.Put("/:userNurseId", nurseController.UpdateNurse)
+		router.Delete("/:userNurseId", nurseController.DeleteNurse)
 	})
-	// route.Post("/user/it/login", userITController.LoginUserIT)
 
 	medical := route.Group("/medical")
 	medical.Post("/patient", medicalRecordPatientController.Create)
-
-	//
-	log.Println(route)
-
 }
