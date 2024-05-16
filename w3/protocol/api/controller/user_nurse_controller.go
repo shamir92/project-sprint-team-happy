@@ -31,15 +31,11 @@ func (pc *userNurseController) CreateNurse(c *fiber.Ctx) error {
 	var request usecase.CreateNurseRequest
 
 	if err := c.BodyParser(&request); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
-		})
+		return fiber.ErrBadRequest
 	}
 
 	if err := helper.ValidateStruct(&request); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return err
 	}
 
 	data, err := pc.nurseUsecase.Create(request, user.ID)

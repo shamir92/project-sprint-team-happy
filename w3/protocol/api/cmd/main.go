@@ -4,6 +4,7 @@ import (
 	"halosuster/configuration"
 	"halosuster/internal/database"
 	"halosuster/internal/helper"
+	"halosuster/protocol/api/controller"
 	"halosuster/protocol/api/route"
 	"log"
 
@@ -22,7 +23,9 @@ func main() {
 	var bcryptConfiguration configuration.IBcryptConfiguration = configuration.NewBcryptConfiguration()
 	var s3Configuration configuration.IS3Configuration = configuration.NewS3Configuration()
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: controller.ErrorHandler,
+	})
 
 	// For External Interfaces
 	postgresWriter, err := database.NewPostgresWriter(dbConfiguration)
