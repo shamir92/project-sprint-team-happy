@@ -7,7 +7,6 @@ import (
 	"halosuster/internal/database"
 	"halosuster/internal/helper"
 	"halosuster/protocol/api/controller"
-	"log"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -34,13 +33,13 @@ func PublicRoutes(params PublicRouteParams) {
 	var pingController controller.IPingController = controller.NewPingController(pingUsecase)
 	var userITController controller.IUserITController = controller.NewUserITController(userITUsecase)
 
+	var userNurseUseCase = usecase.NewUserNurseUseCase(userRepository, params.HelperBcrypt, params.JWTManager)
+	var userNurseController = controller.NewUserNurseController(userNurseUseCase)
+
 	// Create routes group.
 	route := params.App.Group("/v1")
 	route.Get("/ping", pingController.GetPingController)
 	route.Post("/user/it/register", userITController.RegisterUserIT)
 	route.Post("/user/it/login", userITController.LoginUserIT)
-
-	//
-	log.Println(route)
-
+	route.Post("/user/nurse/login", userNurseController.LoginNurse)
 }

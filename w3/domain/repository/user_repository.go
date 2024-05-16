@@ -31,15 +31,16 @@ type IUserRepository interface {
 	GetUserNurseByID(userId string) (entity.User, error)
 	Update(entity.User) error
 	Delete(userId string) error
+	UpdatePassword(userId string, newHashedPassword string) error
 }
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
 	query := `
-		SELECT id,  nip, name, password FROM users WHERE nip = $1
+		SELECT id,  nip, name, password, role FROM users WHERE nip = $1
 	`
 
 	var user entity.User
-	err := r.db.QueryRow(query, nip).Scan(&user.ID, &user.NIP, &user.Name, &user.Password)
+	err := r.db.QueryRow(query, nip).Scan(&user.ID, &user.NIP, &user.Name, &user.Password, &user.Role)
 
 	// User is not registered in db
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
@@ -158,6 +159,32 @@ func (r *userRepository) Delete(userId string) error {
 	if rowsAffected != 1 {
 		log.Printf("failed to delete user: rows affected greater than 1 - error: %v", err)
 		return fmt.Errorf("failed to delete user %s", userId)
+	}
+
+	return nil
+}
+
+func (r *userRepository) UpdatePassword(userId string, newHashedPassword string) error {
+	query := `UPDATE users SET password = $1 WHERE id = $2`
+
+	res, err := r.db.Exec(query, newHashedPassword, userId)
+
+	if err != nil {
+		log.Printf("failed to update user's password: %v => user: %s", err, userId)
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+
+	if err != nil {
+		log.Printf("failed to update user's password: %v", err)
+		return err
+	}
+
+	// Rows affected should be one
+	if rowsAffected != 1 {
+		log.Printf("failed to update user's password: rows affected greater than 1 - error: %v", err)
+		return errUpdateUser
 	}
 
 	return nil
