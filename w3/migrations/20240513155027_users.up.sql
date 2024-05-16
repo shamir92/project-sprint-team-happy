@@ -2,7 +2,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS public.users(
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
-    nip character(13) NOT NULL,
+    nip character(13) NULL,
     name character varying(50) NOT NULL,
     password character(72) DEFAULT NULL,
     role character varying(20) NOT NULL,
