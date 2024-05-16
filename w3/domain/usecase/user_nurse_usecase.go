@@ -15,6 +15,8 @@ var (
 	errInvalidNIP    = errors.New("NIP is invalid")
 	errConflictNIP   = errors.New("NIP is already registered")
 	errNurseNotFound = errors.New("nurse not found")
+	errNurseAccess   = errors.New("nurse doesn't have access yet")
+	errNurseAuth     = errors.New("password is wrong")
 )
 
 type IUserNurseUsecase interface {
@@ -22,17 +24,20 @@ type IUserNurseUsecase interface {
 	Update(in UpdateNurseRequest, nurseUserId string) error
 	Delete(nurseId string) error
 	SetAccess(SetAccessNurseRequest) error
+	Login(in LoginNurseRequest) (LoginNurseResponse, error)
 }
 
 type userNurseUseCase struct {
 	userRepository repository.IUserRepository
 	bcryptHelper   helper.IBcryptPasswordHash
+	jwtManager     helper.IJWTManager
 }
 
-func NewUserNurseUseCase(userRepo repository.IUserRepository, bcryptHelper helper.IBcryptPasswordHash) *userNurseUseCase {
+func NewUserNurseUseCase(userRepo repository.IUserRepository, bcryptHelper helper.IBcryptPasswordHash, jwtManager helper.IJWTManager) *userNurseUseCase {
 	return &userNurseUseCase{
 		userRepository: userRepo,
 		bcryptHelper:   bcryptHelper,
+		jwtManager:     jwtManager,
 	}
 }
 
@@ -50,6 +55,16 @@ type UpdateNurseRequest struct {
 type SetAccessNurseRequest struct {
 	UserID   string
 	Password string `json:"password" validate:"required,min=5,max=33"`
+}
+
+type LoginNurseRequest struct {
+	NIP      int    `json:"nip"`
+	Password string `json:"password" validate:"required,min=5,max=33"`
+}
+
+type LoginNurseResponse struct {
+	entity.User
+	AccessToken string
 }
 
 func (u *userNurseUseCase) Create(in CreateNurseRequest, createdBy string) (entity.User, error) {
@@ -189,6 +204,49 @@ func (u *userNurseUseCase) SetAccess(in SetAccessNurseRequest) error {
 	}
 
 	return nil
+}
+
+func (u *userNurseUseCase) Login(in LoginNurseRequest) (LoginNurseResponse, error) {
+	var empty LoginNurseResponse
+	nip := strconv.FormatInt(int64(in.NIP), 10)
+
+	user, err := u.userRepository.GetByNIP(nip)
+
+	if err != nil {
+		return empty, err
+	}
+
+	if !user.IsNurse() {
+		return empty, helper.CustomError{
+			Code:    404,
+			Message: errNurseNotFound.Error(),
+		}
+	}
+
+	if !user.HasAccess() {
+		return empty, helper.CustomError{
+			Code:    400,
+			Message: errNurseAccess.Error(),
+		}
+	}
+
+	if !u.bcryptHelper.Compare(user.Password, in.Password) {
+		return empty, helper.CustomError{
+			Code:    400,
+			Message: errNurseAuth.Error(),
+		}
+	}
+
+	token, err := u.jwtManager.CreateToken(user)
+
+	if err != nil {
+		return empty, err
+	}
+
+	return LoginNurseResponse{
+		User:        user,
+		AccessToken: token,
+	}, nil
 }
 
 func isValidUUID(userId string) bool {

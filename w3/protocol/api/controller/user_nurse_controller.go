@@ -57,7 +57,6 @@ func (pc *userNurseController) CreateNurse(c *fiber.Ctx) error {
 }
 
 func (pc *userNurseController) UpdateNurse(c *fiber.Ctx) error {
-
 	var request usecase.UpdateNurseRequest
 	if err := c.BodyParser(&request); err != nil {
 		return fiber.ErrBadRequest
@@ -106,5 +105,32 @@ func (pc *userNurseController) SetAccessNurse(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "success set access to nurse user",
+	})
+}
+
+func (pc *userNurseController) LoginNurse(c *fiber.Ctx) error {
+	var request usecase.LoginNurseRequest
+	if err := c.BodyParser(&request); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if err := helper.ValidateStruct(request); err != nil {
+		return err
+	}
+
+	data, err := pc.nurseUsecase.Login(request)
+
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "nurse loged in successfully",
+		"data": dto.NurseLoginDtoResponse{
+			UserID:      data.User.ID.String(),
+			NIP:         data.User.NIP,
+			Name:        data.User.Name,
+			AccessToken: data.AccessToken,
+		},
 	})
 }

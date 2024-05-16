@@ -33,7 +33,7 @@ func PrivateRoutes(params PrivateRouteParams) {
 	var pingUsecase usecase.IPingUsecase = usecase.NewPingUsecase()
 	// var userITUsecase usecase.IUserITUsecase = usecase.NewUserITUsecase(params.HelperBcrypt, userRepository, params.JWTManager)
 	var s3Usecase usecase.IImageUsecase = usecase.NewImageUsecase(s3Repository)
-	var nurseUseCase = usecase.NewUserNurseUseCase(userRepository, params.HelperBcrypt)
+	var nurseUseCase = usecase.NewUserNurseUseCase(userRepository, params.HelperBcrypt, params.JWTManager)
 	var medicalRecordPatientUsecase usecase.IMedicalRecordPatientUsecase = usecase.NewMedicalRecordPatientUsecase(medicalRecordPatientRepository)
 
 	// TODO: initiation of controller/ handler

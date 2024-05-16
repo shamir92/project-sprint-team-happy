@@ -31,6 +31,14 @@ type User struct {
 	DeletedAt           sql.NullTime `json:"deleted_at"`
 }
 
+func (u User) IsNurse() bool {
+	return u.Role == string(NURSE)
+}
+
+func (u User) HasAccess() bool {
+	return u.Password != ""
+}
+
 // true when the NIP is valid
 func ValidateUserNIP(nip string, role UserRole) bool {
 	// Check length
