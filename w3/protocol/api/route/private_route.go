@@ -27,6 +27,7 @@ type PrivateRouteParams struct {
 func PrivateRoutes(params PrivateRouteParams) {
 	// TODO: initiation of repository
 	var userRepository repository.IUserRepository = repository.NewUserRepository(params.PostgresWriter.GetDB())
+	var medicalRecordPatientRepository repository.IMedicalRecordPatientRepository = repository.NewMedicalRecordPatientRepository(params.PostgresWriter.GetDB())
 	var s3Repository repository.IS3Repository = repository.NewS3Repository(params.S3Writer)
 
 	// TODO: initiation of usecase/ service
@@ -34,12 +35,14 @@ func PrivateRoutes(params PrivateRouteParams) {
 	// var userITUsecase usecase.IUserITUsecase = usecase.NewUserITUsecase(params.HelperBcrypt, userRepository, params.JWTManager)
 	var s3Usecase usecase.IImageUsecase = usecase.NewImageUsecase(s3Repository)
 	var nurseUseCase = usecase.NewUserNurseUseCase(userRepository)
+	var medicalRecordPatientUsecase usecase.IMedicalRecordPatientUsecase = usecase.NewMedicalRecordPatientUsecase(medicalRecordPatientRepository)
 
 	// TODO: initiation of controller/ handler
 	var pingController controller.IPingController = controller.NewPingController(pingUsecase)
 	// var userITController controller.IUserITController = controller.NewUserITController(userITUsecase)
 	var imageController controller.IImageController = controller.NewImageController(s3Usecase)
 	var nurseController = controller.NewUserNurseController(nurseUseCase)
+	var medicalRecordPatientController controller.IMedicalRecordPatientController = controller.NewMedicalRecordPatientController(medicalRecordPatientUsecase)
 
 	// Create routes group.
 	route := params.App.Group("/v1")
@@ -50,6 +53,9 @@ func PrivateRoutes(params PrivateRouteParams) {
 		router.Post("/register", nurseController.CreateNurse)
 	})
 	// route.Post("/user/it/login", userITController.LoginUserIT)
+
+	medical := route.Group("/medical")
+	medical.Post("/patient", medicalRecordPatientController.Create)
 
 	//
 	log.Println(route)

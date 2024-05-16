@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"fmt"
 	"halosuster/domain/entity"
 	"halosuster/internal/helper"
 	"time"
@@ -59,7 +58,6 @@ func (u *medicalRecordPatientUsecase) Create(req MedicalRecordPatientCreateReque
 	var patient entity.MedicalRecordPatient
 
 	if err := u.checkDuplicateIdentityNumber(req.IdentityNumber); err != nil {
-		fmt.Println(err)
 		return MedicalRecordPatientCreateResponse{}, err
 	}
 
@@ -74,7 +72,6 @@ func (u *medicalRecordPatientUsecase) Create(req MedicalRecordPatientCreateReque
 
 	patient, err := u.patientRepository.Create(patient)
 	if err != nil {
-		fmt.Println(err)
 		return MedicalRecordPatientCreateResponse{}, err
 	}
 

@@ -35,14 +35,12 @@ func (ctr *medicalRecordPatientController) Create(c *fiber.Ctx) error {
 	}
 
 	if err := helper.ValidateStruct(&request); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return err
 	}
 
 	data, err := ctr.patientUsecase.Create(request)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(err)
+		return err
 	}
 
 	return c.Status(http.StatusCreated).JSON(dto.PatientRegisterControllerResponse{
