@@ -17,6 +17,7 @@ type userNurseController struct {
 // TODO: add all function under ping controller to inferface. this will make it easier to test
 type IUserNurseController interface {
 	CreateNurse(c *fiber.Ctx) error
+	UpdateNurse(c *fiber.Ctx) error
 }
 
 func NewUserNurseController(nurseUsecase usecase.IUserNurseUsecase) *userNurseController {
@@ -52,5 +53,26 @@ func (pc *userNurseController) CreateNurse(c *fiber.Ctx) error {
 			NIP:    data.NIP,
 			UserID: data.ID.String(),
 		},
+	})
+}
+
+func (pc *userNurseController) UpdateNurse(c *fiber.Ctx) error {
+
+	var request usecase.UpdateNurseRequest
+	if err := c.BodyParser(&request); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if err := helper.ValidateStruct(request); err != nil {
+		return err
+	}
+
+	nurseUserId := c.Params("userNurseId")
+	if err := pc.nurseUsecase.Update(request, nurseUserId); err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "nurse updated successfully",
 	})
 }

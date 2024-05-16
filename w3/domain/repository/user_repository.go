@@ -5,6 +5,7 @@ import (
 	"errors"
 	"halosuster/domain/entity"
 	"halosuster/internal/helper"
+	"log"
 	"net/http"
 )
 
@@ -14,6 +15,7 @@ type userRepository struct {
 
 var (
 	errUserNotFound = errors.New("user not found")
+	errUpdateUser   = errors.New("update user failed")
 )
 
 func NewUserRepository(db *sql.DB) *userRepository {
@@ -24,6 +26,8 @@ type IUserRepository interface {
 	GetByNIP(nip string) (entity.User, error)
 	InsertUser(user entity.User) (entity.User, error)
 	CheckNIPExist(nip string) (bool, error)
+	GetUserNurseByID(userId string) (entity.User, error)
+	Update(entity.User) error
 }
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
@@ -70,11 +74,62 @@ func (r *userRepository) InsertUser(user entity.User) (entity.User, error) {
 
 func (r *userRepository) CheckNIPExist(nip string) (bool, error) {
 	query := `
-		SELECT count(nip) password FROM users WHERE nip = $1
+		SELECT count(nip) password FROM users WHERE nip = $1 AND deleted_at IS NULL
 	`
 
 	var count int
 	err := r.db.QueryRow(query, nip).Scan(&count)
 
 	return count > 0, err
+}
+
+func (r *userRepository) GetUserNurseByID(userId string) (entity.User, error) {
+	query := `
+		SELECT id,  nip, name, role FROM users WHERE id = $1 AND role = $2
+	`
+
+	var nurse entity.User
+
+	err := r.db.QueryRow(query, userId, entity.NURSE).Scan(&nurse.ID, &nurse.NIP, &nurse.Name, &nurse.Role)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.User{}, helper.CustomError{
+				Code:    404,
+				Message: errUserNotFound.Error(),
+			}
+		} else {
+			log.Printf("GetUserNurseByID: %v", err)
+			return entity.User{}, err
+		}
+
+	}
+
+	return nurse, nil
+}
+
+func (r *userRepository) Update(user entity.User) error {
+	query := `UPDATE users SET name = $1, nip = $2 WHERE id = $3`
+
+	res, err := r.db.Exec(query, user.Name, user.NIP, user.ID.String())
+
+	if err != nil {
+		log.Printf("failed to update user: %v => user: %v", err, user)
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+
+	if err != nil {
+		log.Printf("failed to update user: %v", err)
+		return err
+	}
+
+	// Rows affected should be one
+	if rowsAffected != 1 {
+		log.Printf("failed to update user: rows affected greater than 1 - error: %v", err)
+		return errUpdateUser
+	}
+
+	return nil
 }
