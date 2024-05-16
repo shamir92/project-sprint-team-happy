@@ -33,26 +33,18 @@ func (pc *userITController) RegisterUserIT(c *fiber.Ctx) error {
 
 	// parse json
 	if err := c.BodyParser(&request); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Cannot parse JSON",
-		})
+		return fiber.ErrBadRequest
 	}
 
 	// TODO: Validate Struct
 	if err := helper.ValidateStruct(&request); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return err
 	}
 
-	// TODO: add logic
 	data, err := pc.userITUsecase.RegisterUserIT(request)
 	if err != nil {
-		// tar ganti
-		// dirty dulu.
-		return c.Status(http.StatusInternalServerError).JSON(err)
+		return err
 	}
-	// TODO: return response
 
 	return c.Status(http.StatusCreated).JSON(dto.UserITRegisterControllerResponse{
 		Message: "user registered successfully",

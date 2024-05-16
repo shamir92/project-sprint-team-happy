@@ -33,8 +33,8 @@ type UserITRegisterRequest struct {
 }
 
 type UserITRegisterResponse struct {
-	Token string `json:"access_token"`
-	ID    string `json:"user_id"`
+	Token string `json:"accessToken"`
+	ID    string `json:"userId"`
 	Name  string `json:"name"`
 	NIP   string `json:"nip"`
 }
@@ -85,8 +85,8 @@ type UserITLoginRequest struct {
 }
 
 type UserITLoginResponse struct {
-	Token string `json:"access_token"`
-	ID    string `json:"user_id"`
+	Token string `json:"accessToken"`
+	ID    string `json:"userId"`
 	Name  string `json:"name"`
 	NIP   string `json:"nip"`
 }
