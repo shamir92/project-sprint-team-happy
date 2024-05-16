@@ -25,19 +25,26 @@ type PublicRouteParams struct {
 func PublicRoutes(params PublicRouteParams) {
 	// TODO: initiation of repository
 	var userRepository repository.IUserRepository = repository.NewUserRepository(params.PostgresWriter.GetDB())
+	var medicalRecordPatientRepository repository.IMedicalRecordPatientRepository = repository.NewMedicalRecordPatientRepository(params.PostgresWriter.GetDB())
 
 	// TODO: initiation of usecase/ service
 	var pingUsecase usecase.IPingUsecase = usecase.NewPingUsecase()
 	var userITUsecase usecase.IUserITUsecase = usecase.NewUserITUsecase(params.HelperBcrypt, userRepository, params.JWTManager)
+	var medicalRecordPatientUsecase usecase.IMedicalRecordPatientUsecase = usecase.NewMedicalRecordPatientUsecase(medicalRecordPatientRepository)
+
 	// TODO: initiation of controller/ handler
 	var pingController controller.IPingController = controller.NewPingController(pingUsecase)
 	var userITController controller.IUserITController = controller.NewUserITController(userITUsecase)
+	var medicalRecordPatientController controller.IMedicalRecordPatientController = controller.NewMedicalRecordPatientController(medicalRecordPatientUsecase)
 
 	// Create routes group.
 	route := params.App.Group("/v1")
 	route.Get("/ping", pingController.GetPingController)
 	route.Post("/user/it/register", userITController.RegisterUserIT)
 	route.Post("/user/it/login", userITController.LoginUserIT)
+
+	medical := route.Group("/medical")
+	medical.Post("/patient", medicalRecordPatientController.Create)
 
 	//
 	log.Println(route)
