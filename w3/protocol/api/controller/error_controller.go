@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -39,6 +40,10 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 		errResp.Code = fiber.StatusBadRequest
 		errResp.Message = fiber.ErrBadRequest.Message
 		errResp.Error = fmt.Sprintf("'%s' failed on %s validation", err.Field(), err.ActualTag())
+	}
+
+	if errResp.Code == fiber.StatusInternalServerError {
+		log.Printf("ERROR: %v\n", err)
 	}
 
 	return c.Status(errResp.Code).JSON(errResp)

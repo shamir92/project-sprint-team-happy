@@ -18,6 +18,7 @@ type userNurseController struct {
 type IUserNurseController interface {
 	CreateNurse(c *fiber.Ctx) error
 	UpdateNurse(c *fiber.Ctx) error
+	DeleteNurse(c *fiber.Ctx) error
 }
 
 func NewUserNurseController(nurseUsecase usecase.IUserNurseUsecase) *userNurseController {
@@ -41,9 +42,8 @@ func (pc *userNurseController) CreateNurse(c *fiber.Ctx) error {
 
 	data, err := pc.nurseUsecase.Create(request, user.ID)
 	if err != nil {
-		// tar ganti
-		// dirty dulu.
-		return c.Status(http.StatusInternalServerError).JSON(err)
+
+		return err
 	}
 
 	return c.Status(http.StatusCreated).JSON(fiber.Map{
@@ -74,5 +74,16 @@ func (pc *userNurseController) UpdateNurse(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "nurse updated successfully",
+	})
+}
+
+func (pc *userNurseController) DeleteNurse(c *fiber.Ctx) error {
+	nurseUserId := c.Params("userNurseId")
+	if err := pc.nurseUsecase.Delete(nurseUserId); err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "nurse deleted successfully",
 	})
 }

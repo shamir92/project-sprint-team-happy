@@ -3,10 +3,12 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"halosuster/domain/entity"
 	"halosuster/internal/helper"
 	"log"
 	"net/http"
+	"time"
 )
 
 type userRepository struct {
@@ -28,6 +30,7 @@ type IUserRepository interface {
 	CheckNIPExist(nip string) (bool, error)
 	GetUserNurseByID(userId string) (entity.User, error)
 	Update(entity.User) error
+	Delete(userId string) error
 }
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
@@ -129,6 +132,32 @@ func (r *userRepository) Update(user entity.User) error {
 	if rowsAffected != 1 {
 		log.Printf("failed to update user: rows affected greater than 1 - error: %v", err)
 		return errUpdateUser
+	}
+
+	return nil
+}
+
+func (r *userRepository) Delete(userId string) error {
+	query := `UPDATE users SET deleted_at = $1 WHERE id = $2`
+
+	res, err := r.db.Exec(query, time.Now(), userId)
+
+	if err != nil {
+		log.Printf("failed to delete user: %v => user: %s", err, userId)
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+
+	if err != nil {
+		log.Printf("failed to delete user: %v", err)
+		return err
+	}
+
+	// Rows affected should be one
+	if rowsAffected != 1 {
+		log.Printf("failed to delete user: rows affected greater than 1 - error: %v", err)
+		return fmt.Errorf("failed to delete user %s", userId)
 	}
 
 	return nil

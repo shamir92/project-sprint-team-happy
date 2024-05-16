@@ -52,6 +52,7 @@ func PrivateRoutes(params PrivateRouteParams) {
 	route.Route("/user/nurse", func(router fiber.Router) {
 		router.Post("/register", nurseController.CreateNurse)
 		router.Put("/:userNurseId", nurseController.UpdateNurse)
+		router.Delete("/:userNurseId", nurseController.DeleteNurse)
 	})
 
 	medical := route.Group("/medical")

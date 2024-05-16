@@ -138,6 +138,23 @@ func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) err
 }
 
 func (u *userNurseUseCase) Delete(nurseId string) error {
+	if !isValidUUID(nurseId) {
+		return helper.CustomError{
+			Code:    400,
+			Message: errNurseNotFound.Error(),
+		}
+	}
+
+	_, err := u.userRepository.GetUserNurseByID(nurseId)
+
+	if err != nil {
+		return err
+	}
+
+	if err := u.userRepository.Delete(nurseId); err != nil {
+		return err
+	}
+
 	return nil
 }
 
