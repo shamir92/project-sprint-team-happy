@@ -284,11 +284,3 @@ func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, er
 
 	return users, nil
 }
-
-func whereOrAnd(paramsNumber int) string {
-	if paramsNumber == 1 {
-		return " WHERE "
-	}
-
-	return " AND "
-}
