@@ -17,6 +17,7 @@ var (
 
 type IMedicalRecordUsecase interface {
 	Create(in AddMedicalRecordPayload, createdBy string) error
+	GetRecords(in entity.ListMedicalRecordPayload) ([]entity.MedicalRecord, error)
 }
 
 type medicalRecordUsecase struct {
@@ -66,4 +67,8 @@ func (mru *medicalRecordUsecase) Create(in AddMedicalRecordPayload, createdBy st
 	}
 
 	return mru.medicalRecordRepository.InsertOne(newMR)
+}
+
+func (mru *medicalRecordUsecase) GetRecords(in entity.ListMedicalRecordPayload) ([]entity.MedicalRecord, error) {
+	return mru.medicalRecordRepository.Find(in)
 }
