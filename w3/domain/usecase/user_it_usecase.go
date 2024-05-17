@@ -16,6 +16,7 @@ type userITUsecase struct {
 type IUserITUsecase interface {
 	RegisterUserIT(userITRequest UserITRegisterRequest) (UserITRegisterResponse, error)
 	LoginUserIT(request UserITLoginRequest) (UserITLoginResponse, error)
+	GetUsers(in entity.ListUserPayload) ([]entity.User, error)
 }
 
 func NewUserITUsecase(bcryptHelper helper.IBcryptPasswordHash, userRepository repository.IUserRepository, jwtManager helper.IJWTManager) *userITUsecase {
@@ -122,4 +123,8 @@ func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResp
 		Name:  user.Name,
 		NIP:   user.NIP,
 	}, nil
+}
+
+func (u *userITUsecase) GetUsers(in entity.ListUserPayload) ([]entity.User, error) {
+	return u.userRepository.List(in)
 }
