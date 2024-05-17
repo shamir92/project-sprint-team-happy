@@ -27,7 +27,7 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 	switch e := err.(type) {
 	case errHttpStatusCodeProvider:
 		errResp.Code = e.HTTPStatusCode()
-		errResp.Message = err.Error()
+		errResp.Message = fiber.NewError(e.HTTPStatusCode()).Message
 	case *fiber.Error:
 		errResp.Code = e.Code
 		errResp.Message = e.Message
