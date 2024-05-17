@@ -28,6 +28,7 @@ func PrivateRoutes(params PrivateRouteParams) {
 	var userRepository repository.IUserRepository = repository.NewUserRepository(params.PostgresWriter.GetDB())
 	var medicalRecordPatientRepository repository.IMedicalRecordPatientRepository = repository.NewMedicalRecordPatientRepository(params.PostgresWriter.GetDB())
 	var s3Repository repository.IS3Repository = repository.NewS3Repository(params.S3Writer)
+	var medicalRecordRepo repository.IMedicalRecordRepository = repository.NewMedicalRecordRepository(params.PostgresWriter.GetDB())
 
 	// TODO: initiation of usecase/ service
 	var pingUsecase usecase.IPingUsecase = usecase.NewPingUsecase()
@@ -35,6 +36,7 @@ func PrivateRoutes(params PrivateRouteParams) {
 	var s3Usecase usecase.IImageUsecase = usecase.NewImageUsecase(s3Repository)
 	var nurseUseCase = usecase.NewUserNurseUseCase(userRepository, params.HelperBcrypt, params.JWTManager)
 	var medicalRecordPatientUsecase usecase.IMedicalRecordPatientUsecase = usecase.NewMedicalRecordPatientUsecase(medicalRecordPatientRepository)
+	var medicalRecordUsecase usecase.IMedicalRecordUsecase = usecase.NewMedicalRecordUsecase(medicalRecordPatientRepository, medicalRecordRepo)
 
 	// TODO: initiation of controller/ handler
 	var pingController controller.IPingController = controller.NewPingController(pingUsecase)
@@ -42,6 +44,7 @@ func PrivateRoutes(params PrivateRouteParams) {
 	var imageController controller.IImageController = controller.NewImageController(s3Usecase)
 	var nurseController = controller.NewUserNurseController(nurseUseCase)
 	var medicalRecordPatientController controller.IMedicalRecordPatientController = controller.NewMedicalRecordPatientController(medicalRecordPatientUsecase)
+	var medicalRecordController controller.IMedicalRecordController = controller.NewMedicalRecordController(medicalRecordUsecase)
 
 	// Create routes group.
 	route := params.App.Group("/v1")
@@ -59,4 +62,5 @@ func PrivateRoutes(params PrivateRouteParams) {
 
 	medical := route.Group("/medical")
 	medical.Post("/patient", medicalRecordPatientController.Create)
+	medical.Post("/record", medicalRecordController.Create)
 }
