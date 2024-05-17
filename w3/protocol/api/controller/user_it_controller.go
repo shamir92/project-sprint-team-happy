@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
+	"halosuster/domain/entity"
 	"halosuster/domain/usecase"
 	"halosuster/internal/helper"
 	"halosuster/protocol/api/dto"
@@ -19,6 +21,7 @@ type userITController struct {
 type IUserITController interface {
 	RegisterUserIT(c *fiber.Ctx) error
 	LoginUserIT(c *fiber.Ctx) error
+	GetListUsers(c *fiber.Ctx) error
 }
 
 func NewUserITController(userITUsecase usecase.IUserITUsecase) *userITController {
@@ -82,5 +85,39 @@ func (pc *userITController) LoginUserIT(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(dto.UserITRegisterControllerResponse{
 		Message: "user login successfully",
 		Data:    data,
+	})
+}
+
+func (pc *userITController) GetListUsers(c *fiber.Ctx) error {
+	var req entity.ListUserPayload
+
+	err := c.QueryParser(&req)
+
+	if err != nil {
+		// TODO: Adjust based on k6 test cases
+		log.Printf("GetListUsers: %v\n", err)
+	}
+
+	users, err := pc.userITUsecase.GetUsers(req)
+
+	if err != nil {
+		log.Printf("gailed to get list users: %v\n", err)
+		return err
+	}
+
+	var listUsers []dto.ListUserItemDto
+
+	for _, u := range users {
+		listUsers = append(listUsers, dto.ListUserItemDto{
+			ID:        u.ID.String(),
+			Name:      u.Name,
+			NIP:       u.NIP,
+			CreatedAt: u.CreatedAt,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "success",
+		"data":    listUsers,
 	})
 }

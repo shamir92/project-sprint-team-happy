@@ -31,14 +31,14 @@ func PrivateRoutes(params PrivateRouteParams) {
 
 	// TODO: initiation of usecase/ service
 	var pingUsecase usecase.IPingUsecase = usecase.NewPingUsecase()
-	// var userITUsecase usecase.IUserITUsecase = usecase.NewUserITUsecase(params.HelperBcrypt, userRepository, params.JWTManager)
+	var userITUsecase usecase.IUserITUsecase = usecase.NewUserITUsecase(params.HelperBcrypt, userRepository, params.JWTManager)
 	var s3Usecase usecase.IImageUsecase = usecase.NewImageUsecase(s3Repository)
 	var nurseUseCase = usecase.NewUserNurseUseCase(userRepository, params.HelperBcrypt, params.JWTManager)
 	var medicalRecordPatientUsecase usecase.IMedicalRecordPatientUsecase = usecase.NewMedicalRecordPatientUsecase(medicalRecordPatientRepository)
 
 	// TODO: initiation of controller/ handler
 	var pingController controller.IPingController = controller.NewPingController(pingUsecase)
-	// var userITController controller.IUserITController = controller.NewUserITController(userITUsecase)
+	var userITController controller.IUserITController = controller.NewUserITController(userITUsecase)
 	var imageController controller.IImageController = controller.NewImageController(s3Usecase)
 	var nurseController = controller.NewUserNurseController(nurseUseCase)
 	var medicalRecordPatientController controller.IMedicalRecordPatientController = controller.NewMedicalRecordPatientController(medicalRecordPatientUsecase)
@@ -49,6 +49,7 @@ func PrivateRoutes(params PrivateRouteParams) {
 	route.Post("/image", imageController.UploadImage)
 
 	route.Use(middleware.AuthMiddleware(params.JWTManager))
+	route.Get("/user", userITController.GetListUsers)
 	route.Route("/user/nurse", func(router fiber.Router) {
 		router.Post("/register", nurseController.CreateNurse)
 		router.Put("/:userNurseId", nurseController.UpdateNurse)

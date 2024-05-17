@@ -25,10 +25,10 @@ type User struct {
 	Name                string       `json:"name"`
 	Password            string       `json:"password"`
 	Role                string       `json:"role"`
-	IdentityCardScanImg string       `json:"identity_card_scan_img"`
-	CreatedAt           time.Time    `json:"created_at"`
-	UpdatedAt           time.Time    `json:"updated_at"`
-	DeletedAt           sql.NullTime `json:"deleted_at"`
+	IdentityCardScanImg string       `json:"identityCardScanImg"`
+	CreatedAt           time.Time    `json:"createdAt"`
+	UpdatedAt           time.Time    `json:"updatedAt"`
+	DeletedAt           sql.NullTime `json:"deletedAt"`
 }
 
 func (u User) IsNurse() bool {
@@ -113,4 +113,19 @@ func ValidateIdentityCardScanImageURL(rawUrl string) bool {
 	_, ok := validExtensions[ext]
 
 	return ok
+}
+
+func IsValidUserRole(rawRole string) bool {
+	role := UserRole(strings.ToUpper(rawRole))
+	return NURSE == role || IT == role
+}
+
+type ListUserPayload struct {
+	UserID          string `query:"userId"`
+	Limit           string `query:"limit"`
+	Offset          string `query:"offset"`
+	Name            string `query:"name"`
+	NIP             int    `query:"nip"`
+	Role            string `query:"role"`
+	SortByCreatedAt string `query:"createdAt"`
 }
