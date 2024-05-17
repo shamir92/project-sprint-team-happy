@@ -113,13 +113,6 @@ func (u *userNurseUseCase) Create(in CreateNurseRequest, createdBy string) (enti
 }
 
 func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) error {
-	if !isValidUUID(nurseUserId) {
-		return helper.CustomError{
-			Code:    400,
-			Message: errNurseNotFound.Error(),
-		}
-	}
-
 	nip := strconv.FormatInt(int64(in.NIP), 10)
 
 	if !entity.ValidateUserNIP(nip, entity.NURSE) {
@@ -129,7 +122,11 @@ func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) err
 		}
 	}
 
-	nurse, err := u.userRepository.GetUserNurseByID(nurseUserId)
+	nurse, err := u.getUserNurseByID(nurseUserId)
+
+	if err != nil {
+		return err
+	}
 
 	if nip != nurse.NIP {
 		isExist, err := u.userRepository.CheckNIPExist(nip)
@@ -146,10 +143,6 @@ func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) err
 		}
 	}
 
-	if err != nil {
-		return err
-	}
-
 	nurse.NIP = nip
 	nurse.Name = in.Name
 
@@ -161,14 +154,7 @@ func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) err
 }
 
 func (u *userNurseUseCase) Delete(nurseId string) error {
-	if !isValidUUID(nurseId) {
-		return helper.CustomError{
-			Code:    400,
-			Message: errNurseNotFound.Error(),
-		}
-	}
-
-	_, err := u.userRepository.GetUserNurseByID(nurseId)
+	_, err := u.getUserNurseByID(nurseId)
 
 	if err != nil {
 		return err
