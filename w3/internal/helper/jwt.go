@@ -27,7 +27,7 @@ type jsonWebToken struct {
 type JsonWebTokenClaims struct {
 	UserID string `json:"userId"`
 	Role   string `json:"roleId"`
-	NIP    string `json:"nip"`
+	NIP    int    `json:"nip"`
 	jwt.RegisteredClaims
 }
 

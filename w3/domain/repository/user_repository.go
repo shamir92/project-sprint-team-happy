@@ -31,7 +31,7 @@ func NewUserRepository(db *sql.DB) *userRepository {
 type IUserRepository interface {
 	GetByNIP(nip string) (entity.User, error)
 	InsertUser(user entity.User) (entity.User, error)
-	CheckNIPExist(nip string) (bool, error)
+	CheckNIPExist(nip int) (bool, error)
 	GetUserNurseByID(userId string) (entity.User, error)
 	Update(entity.User) error
 	Delete(userId string) error
@@ -81,7 +81,7 @@ func (r *userRepository) InsertUser(user entity.User) (entity.User, error) {
 	return user, nil
 }
 
-func (r *userRepository) CheckNIPExist(nip string) (bool, error) {
+func (r *userRepository) CheckNIPExist(nip int) (bool, error) {
 	query := `
 		SELECT count(nip) password FROM users WHERE nip = $1 AND deleted_at IS NULL
 	`

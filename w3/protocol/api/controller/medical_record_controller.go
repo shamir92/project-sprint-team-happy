@@ -6,7 +6,6 @@ import (
 	"halosuster/internal/helper"
 	"halosuster/protocol/api/dto"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -69,7 +68,6 @@ func (mrc *medicalRecordController) GetMedicalRecords(c *fiber.Ctx) error {
 	for _, mc := range medicalRecords {
 		patient := mc.GetPatient()
 		user := mc.GetUserCreatedBy()
-		nip, _ := strconv.Atoi(user.NIP)
 
 		medicalRecordsResponseData = append(medicalRecordsResponseData, dto.MedicalRecordItemDto{
 			IdentityDetail: dto.IdentityDetailDto{
@@ -85,7 +83,7 @@ func (mrc *medicalRecordController) GetMedicalRecords(c *fiber.Ctx) error {
 			CreatedAt:   mc.CreatedAt.Format(time.RFC3339),
 			CreatedBy: dto.CreatedByDto{
 				Name:   user.Name,
-				Nip:    int64(nip),
+				Nip:    int64(user.NIP),
 				UserId: user.ID.String(),
 			},
 		})

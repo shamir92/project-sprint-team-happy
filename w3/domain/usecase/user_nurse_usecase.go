@@ -69,18 +69,19 @@ type LoginNurseResponse struct {
 
 func (u *userNurseUseCase) Create(in CreateNurseRequest, createdBy string) (entity.User, error) {
 	userNip := strconv.FormatInt(int64(in.NIP), 10)
-	newNurse := entity.User{
-		NIP:                 userNip,
-		Name:                in.Name,
-		IdentityCardScanImg: in.IndetityCardScanImg,
-		Role:                string(entity.NURSE),
-	}
 
 	if !entity.ValidateUserNIP(userNip, entity.NURSE) {
 		return entity.User{}, helper.CustomError{
 			Message: "nip is invalid",
 			Code:    400,
 		}
+	}
+
+	newNurse := entity.User{
+		NIP:                 in.NIP,
+		Name:                in.Name,
+		IdentityCardScanImg: in.IndetityCardScanImg,
+		Role:                string(entity.NURSE),
 	}
 
 	if !entity.ValidateIdentityCardScanImageURL(newNurse.IdentityCardScanImg) {
@@ -90,7 +91,7 @@ func (u *userNurseUseCase) Create(in CreateNurseRequest, createdBy string) (enti
 		}
 	}
 
-	isNIPExist, err := u.userRepository.CheckNIPExist(newNurse.NIP)
+	isNIPExist, err := u.userRepository.CheckNIPExist(in.NIP)
 
 	if err != nil {
 		return entity.User{}, err
@@ -121,8 +122,8 @@ func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) err
 		return err
 	}
 
-	if nip != nurse.NIP {
-		isExist, err := u.userRepository.CheckNIPExist(nip)
+	if in.NIP != nurse.NIP {
+		isExist, err := u.userRepository.CheckNIPExist(in.NIP)
 
 		if err != nil {
 			return err
@@ -143,7 +144,7 @@ func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) err
 		}
 	}
 
-	nurse.NIP = nip
+	nurse.NIP = in.NIP
 	nurse.Name = in.Name
 
 	if err := u.userRepository.Update(nurse); err != nil {

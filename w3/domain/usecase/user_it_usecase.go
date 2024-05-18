@@ -37,7 +37,7 @@ type UserITRegisterResponse struct {
 	Token string `json:"accessToken"`
 	ID    string `json:"userId"`
 	Name  string `json:"name"`
-	NIP   string `json:"nip"`
+	NIP   int    `json:"nip"`
 }
 
 func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (UserITRegisterResponse, error) {
@@ -51,7 +51,7 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 		}
 	}
 
-	userNipExists, err := u.userRepository.CheckNIPExist(userNip)
+	userNipExists, err := u.userRepository.CheckNIPExist(userITRequest.NIP)
 	if err != nil {
 		return UserITRegisterResponse{}, err
 	}
@@ -71,7 +71,7 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 		}
 	}
 	user.Name = userITRequest.Name
-	user.NIP = userNip
+	user.NIP = userITRequest.NIP
 	user.Password = hashedPassword
 	user.Role = string(entity.IT)
 
@@ -89,7 +89,7 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 		Token: token,
 		ID:    user.ID.String(),
 		Name:  user.Name,
-		NIP:   user.NIP,
+		NIP:   userITRequest.NIP,
 	}, nil
 }
 
@@ -102,7 +102,7 @@ type UserITLoginResponse struct {
 	Token string `json:"accessToken"`
 	ID    string `json:"userId"`
 	Name  string `json:"name"`
-	NIP   string `json:"nip"`
+	NIP   int    `json:"nip"`
 }
 
 func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResponse, error) {
@@ -133,11 +133,12 @@ func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResp
 	if err != nil {
 		return UserITLoginResponse{}, err
 	}
+
 	return UserITLoginResponse{
 		Token: token,
 		ID:    user.ID.String(),
 		Name:  user.Name,
-		NIP:   user.NIP,
+		NIP:   request.NIP,
 	}, nil
 }
 

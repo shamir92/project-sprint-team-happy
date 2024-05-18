@@ -21,7 +21,7 @@ const (
 
 type User struct {
 	ID                  uuid.UUID    `json:"id"`
-	NIP                 string       `json:"nip"`
+	NIP                 int          `json:"nip"`
 	Name                string       `json:"name"`
 	Password            string       `json:"password"`
 	Role                string       `json:"role"`
