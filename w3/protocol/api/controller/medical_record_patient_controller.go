@@ -11,10 +11,12 @@ import (
 
 type iMedicalRecordPatientUsecase interface {
 	Create(req usecase.MedicalRecordPatientCreateRequest) (usecase.MedicalRecordPatientCreateResponse, error)
+	Browse(query usecase.MedicalRecordPatientBrowseQuery) ([]usecase.MedicalRecordPatientBrowseResponse, error)
 }
 
 type IMedicalRecordPatientController interface {
 	Create(c *fiber.Ctx) error
+	Browse(c *fiber.Ctx) error
 }
 
 type medicalRecordPatientController struct {
@@ -45,6 +47,21 @@ func (ctr *medicalRecordPatientController) Create(c *fiber.Ctx) error {
 
 	return c.Status(http.StatusCreated).JSON(dto.PatientRegisterControllerResponse{
 		Message: "patient registered successfully",
+		Data:    data,
+	})
+}
+
+func (ctr *medicalRecordPatientController) Browse(c *fiber.Ctx) error {
+	var query usecase.MedicalRecordPatientBrowseQuery
+	c.QueryParser(&query)
+
+	data, err := ctr.patientUsecase.Browse(query)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(http.StatusOK).JSON(dto.PatientRegisterControllerResponse{
+		Message: "success",
 		Data:    data,
 	})
 }

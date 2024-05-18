@@ -59,4 +59,5 @@ func PrivateRoutes(params PrivateRouteParams) {
 
 	medical := route.Group("/medical")
 	medical.Post("/patient", medicalRecordPatientController.Create)
+	medical.Get("/patient", medicalRecordPatientController.Browse)
 }
