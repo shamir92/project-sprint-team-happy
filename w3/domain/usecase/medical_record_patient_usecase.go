@@ -26,12 +26,12 @@ func NewMedicalRecordPatientUsecase(patientRepository iMedicalRecordPatientRepos
 }
 
 type MedicalRecordPatientCreateRequest struct {
-	IdentityNumber      int    `json:"identityNumber" validate:"required,numeric"`
-	PhoneNumber         string `json:"phoneNumber" validate:"required,startswith=+62,min=10,max=15"`
-	Name                string `json:"name" validate:"required,min=3,max=30"`
-	BirthDate           string `json:"birthDate" validate:"required,date"`
-	Gender              string `json:"gender" validate:"required,oneof=male female"`
-	IdentityCardScanImg string `json:"identityCardScanImg" validate:"required"`
+	IdentityNumber      int       `json:"identityNumber" validate:"required,numeric,numericlen=16"`
+	PhoneNumber         string    `json:"phoneNumber" validate:"required,startswith=+62,min=10,max=15"`
+	Name                string    `json:"name" validate:"required,min=3,max=30"`
+	BirthDate           time.Time `json:"birthDate" validate:"required"`
+	Gender              string    `json:"gender" validate:"required,oneof=male female"`
+	IdentityCardScanImg string    `json:"identityCardScanImg" validate:"required"`
 }
 
 type MedicalRecordPatientCreateResponse struct {
@@ -59,16 +59,18 @@ func (u *medicalRecordPatientUsecase) checkDuplicateIdentityNumber(identityNumbe
 func (u *medicalRecordPatientUsecase) Create(req MedicalRecordPatientCreateRequest) (MedicalRecordPatientCreateResponse, error) {
 	var patient entity.MedicalRecordPatient
 
+	if !entity.ValidateIdentityCardScanImageURL(req.IdentityCardScanImg) {
+		return MedicalRecordPatientCreateResponse{}, helper.CustomError{Message: "identityCardScanImg is not a valid url", Code: 400}
+	}
+
 	if err := u.checkDuplicateIdentityNumber(req.IdentityNumber); err != nil {
 		return MedicalRecordPatientCreateResponse{}, err
 	}
 
-	birthDate, _ := time.Parse("2006-01-02", req.BirthDate)
-
 	patient.ID = req.IdentityNumber
 	patient.PhoneNumber = req.PhoneNumber
 	patient.Name = req.Name
-	patient.BirthDate = birthDate
+	patient.BirthDate = req.BirthDate
 	patient.Gender = req.Gender
 	patient.IdentityCardScanImg = req.IdentityCardScanImg
 
@@ -146,7 +148,7 @@ func (u *medicalRecordPatientUsecase) Browse(query MedicalRecordPatientBrowseQue
 			ID:          patient.ID,
 			PhoneNumber: patient.PhoneNumber,
 			Name:        patient.Name,
-			BirthDate:   patient.BirthDate.Format("2006-01-02"),
+			BirthDate:   patient.BirthDate.Format(time.RFC3339),
 			Gender:      patient.Gender,
 			CreatedAt:   patient.CreatedAt.Format(time.RFC3339),
 		})

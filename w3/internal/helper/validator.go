@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -14,6 +15,7 @@ func init() {
 	validate = validator.New()
 	validate.RegisterValidation("date", validateDate)
 	validate.RegisterValidation("phone", validatePhoneNumber)
+	validate.RegisterValidation("numericlen", validateNumericLength)
 }
 
 // Validation function
@@ -37,4 +39,18 @@ func validatePhoneNumber(fl validator.FieldLevel) bool {
 	}
 
 	return true
+}
+
+func validateNumericLength(fl validator.FieldLevel) bool {
+	param, err := strconv.Atoi(fl.Param())
+	if err != nil {
+		return false
+	}
+
+	value := strconv.Itoa(int(fl.Field().Int()))
+	if value == "" {
+		return false
+	}
+
+	return len(value) == param
 }

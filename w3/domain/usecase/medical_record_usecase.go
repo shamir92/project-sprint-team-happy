@@ -47,7 +47,7 @@ func (mru *medicalRecordUsecase) Create(in AddMedicalRecordPayload, createdBy st
 
 	if !isExist {
 		return helper.CustomError{
-			Code:    400,
+			Code:    404,
 			Message: ErrIdentityNumberNotFound.Error(),
 		}
 	}

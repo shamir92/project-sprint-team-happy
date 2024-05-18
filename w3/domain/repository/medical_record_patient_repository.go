@@ -72,8 +72,8 @@ func (r *medicalRecordPatientRepository) Browse(builder ...entity.BrowseMedicalR
 	}
 
 	if options.PhoneNumber != nil {
-		values = append(values, fmt.Sprintf("'+%d%%'", *options.PhoneNumber))
-		conditions = append(conditions, fmt.Sprintf("phone_number ILIKE $%d", len(values)))
+		values = append(values, fmt.Sprintf("+%d%%", *options.PhoneNumber))
+		conditions = append(conditions, fmt.Sprintf("phone_number LIKE $%d", len(values)))
 	}
 
 	if options.Limit == 0 {
@@ -93,7 +93,6 @@ func (r *medicalRecordPatientRepository) Browse(builder ...entity.BrowseMedicalR
 		SELECT id, phone_number, name, birth_date, gender, created_at FROM public.patients
 		%s %s %s LIMIT %d OFFSET %d
 	`, WHERE, strings.Join(conditions, " AND "), sort, options.Limit, options.Offset)
-
 	fmt.Println(query, values)
 	res, err := r.db.Query(query, values...)
 	if err != nil {
