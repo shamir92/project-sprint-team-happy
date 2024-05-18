@@ -76,13 +76,11 @@ func (pc *userITController) LoginUserIT(c *fiber.Ctx) error {
 	// TODO: add logic
 	data, err := pc.userITUsecase.LoginUserIT(request)
 	if err != nil {
-		// tar ganti
-		// dirty dulu.
-		return c.Status(http.StatusInternalServerError).JSON(err)
+		return err
 	}
 	// TODO: return response
 
-	return c.Status(http.StatusCreated).JSON(dto.UserITRegisterControllerResponse{
+	return c.Status(http.StatusOK).JSON(dto.UserITRegisterControllerResponse{
 		Message: "user login successfully",
 		Data:    data,
 	})
