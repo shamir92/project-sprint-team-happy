@@ -28,7 +28,7 @@ func NewUserITUsecase(bcryptHelper helper.IBcryptPasswordHash, userRepository re
 }
 
 type UserITRegisterRequest struct {
-	NIP      int    `json:"nip" validate:"required,numeric,min=6150000000000,max=6159999999999"`
+	NIP      int    `json:"nip" validate:"required,numeric,min=6150000000000,max=615999999999999"`
 	Name     string `json:"name" validate:"required,min=5,max=50"`
 	Password string `json:"password" validate:"required,min=5,max=33"`
 }
@@ -50,6 +50,19 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 			Code:    400,
 		}
 	}
+
+	userNipExists, err := u.userRepository.CheckNIPExist(userNip)
+	if err != nil {
+		return UserITRegisterResponse{}, err
+	}
+
+	if userNipExists {
+		return UserITRegisterResponse{}, helper.CustomError{
+			Message: "NIP already exists",
+			Code:    409,
+		}
+	}
+
 	hashedPassword, err := u.bcryptHelper.Hash(userITRequest.Password)
 	if err != nil {
 		return UserITRegisterResponse{}, helper.CustomError{
@@ -81,7 +94,7 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 }
 
 type UserITLoginRequest struct {
-	NIP      int    `json:"nip" validate:"required,numeric,min=6150000000000,max=6159999999999"`
+	NIP      int    `json:"nip" validate:"required,numeric,min=6150000000000,max=615999999999999"`
 	Password string `json:"password" validate:"required,min=5,max=33"`
 }
 
@@ -104,11 +117,14 @@ func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResp
 	}
 	user, err := u.userRepository.GetByNIP(userNip)
 	if err != nil {
-		return UserITLoginResponse{}, err
+		return UserITLoginResponse{}, helper.CustomError{
+			Message: "nip or password doesn't match",
+			Code:    404,
+		}
 	}
 	if !u.bcryptHelper.Compare(user.Password, request.Password) {
 		return UserITLoginResponse{}, helper.CustomError{
-			Message: "password is not valid",
+			Message: "nip or password doesn't match",
 			Code:    400,
 		}
 	}
