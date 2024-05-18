@@ -41,7 +41,7 @@ type IUserRepository interface {
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
 	query := `
-		SELECT id,  nip, name, password, role FROM users WHERE nip = $1
+		SELECT id, nip::bigint, name, password, role FROM users WHERE nip = $1
 	`
 
 	var user entity.User
@@ -94,7 +94,7 @@ func (r *userRepository) CheckNIPExist(nip int) (bool, error) {
 
 func (r *userRepository) GetUserNurseByID(userId string) (entity.User, error) {
 	query := `
-		SELECT id,  nip, name, role FROM users WHERE id = $1 AND role = $2 AND deleted_at IS NULL
+		SELECT id, nip::bigint, name, role FROM users WHERE id = $1 AND role = $2 AND deleted_at IS NULL
 	`
 
 	var nurse entity.User
@@ -118,7 +118,7 @@ func (r *userRepository) GetUserNurseByID(userId string) (entity.User, error) {
 }
 
 func (r *userRepository) Update(user entity.User) error {
-	query := `UPDATE users SET name = $1, nip = $2WHERE id = $3`
+	query := `UPDATE users SET name = $1, nip = $2 WHERE id = $3`
 
 	res, err := r.db.Exec(query, user.Name, user.NIP, user.ID.String())
 
@@ -196,7 +196,7 @@ func (r *userRepository) UpdatePassword(userId string, newHashedPassword string)
 }
 
 func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, error) {
-	q := `SELECT id, nip, name, created_at, role 
+	q := `SELECT id, nip::bigint, name, created_at, role 
 		FROM users`
 
 	paramsCounter := 1

@@ -103,7 +103,7 @@ func (pc *userITController) GetListUsers(c *fiber.Ctx) error {
 		return err
 	}
 
-	var listUsers []dto.ListUserItemDto
+	var listUsers []dto.ListUserItemDto = make([]dto.ListUserItemDto, 0)
 
 	for _, u := range users {
 		listUsers = append(listUsers, dto.ListUserItemDto{
