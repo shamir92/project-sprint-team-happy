@@ -11,8 +11,7 @@ CREATE TABLE IF NOT EXISTS public.users(
     updated_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at timestamp with time zone DEFAULT NULL,
 
-    CONSTRAINT users_pkey PRIMARY KEY (id),
-    CONSTRAINT users_nip_unique UNIQUE (nip)
+    CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 
 CREATE INDEX users_nip_idx ON users (nip);

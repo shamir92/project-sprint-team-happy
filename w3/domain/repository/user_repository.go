@@ -94,7 +94,7 @@ func (r *userRepository) CheckNIPExist(nip string) (bool, error) {
 
 func (r *userRepository) GetUserNurseByID(userId string) (entity.User, error) {
 	query := `
-		SELECT id,  nip, name, role FROM users WHERE id = $1 AND role = $2
+		SELECT id,  nip, name, role FROM users WHERE id = $1 AND role = $2 AND deleted_at IS NULL
 	`
 
 	var nurse entity.User
@@ -118,7 +118,7 @@ func (r *userRepository) GetUserNurseByID(userId string) (entity.User, error) {
 }
 
 func (r *userRepository) Update(user entity.User) error {
-	query := `UPDATE users SET name = $1, nip = $2 WHERE id = $3`
+	query := `UPDATE users SET name = $1, nip = $2WHERE id = $3`
 
 	res, err := r.db.Exec(query, user.Name, user.NIP, user.ID.String())
 

@@ -42,13 +42,13 @@ func NewUserNurseUseCase(userRepo repository.IUserRepository, bcryptHelper helpe
 }
 
 type CreateNurseRequest struct {
-	NIP                 int    `json:"nip" validate:"required,numeric,min=3030000000000,max=3039999999999"`
+	NIP                 int    `json:"nip" validate:"required,numeric,min=3030000000000,max=615999999999999"`
 	Name                string `json:"name" validate:"required,min=5,max=50"`
 	IndetityCardScanImg string `json:"identityCardScanImg" validate:"required,url"`
 }
 
 type UpdateNurseRequest struct {
-	NIP  int    `json:"nip" validate:"required,numeric,min=3030000000000,max=3039999999999"`
+	NIP  int    `json:"nip" validate:"required,numeric,min=3030000000000,max=615999999999999"`
 	Name string `json:"name" validate:"required,min=5,max=50"`
 }
 
@@ -115,13 +115,6 @@ func (u *userNurseUseCase) Create(in CreateNurseRequest, createdBy string) (enti
 func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) error {
 	nip := strconv.FormatInt(int64(in.NIP), 10)
 
-	if !entity.ValidateUserNIP(nip, entity.NURSE) {
-		return helper.CustomError{
-			Code:    400,
-			Message: errInvalidNIP.Error(),
-		}
-	}
-
 	nurse, err := u.getUserNurseByID(nurseUserId)
 
 	if err != nil {
@@ -140,6 +133,13 @@ func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) err
 				Code:    409,
 				Message: errConflictNIP.Error(),
 			}
+		}
+	}
+
+	if !entity.ValidateUserNIP(nip, entity.NURSE) {
+		return helper.CustomError{
+			Code:    400,
+			Message: errInvalidNIP.Error(),
 		}
 	}
 

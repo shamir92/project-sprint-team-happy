@@ -47,7 +47,7 @@ func (pc *userNurseController) CreateNurse(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).JSON(fiber.Map{
-		"message": "user registered successfully",
+		"message": "nurse registered successfully",
 		"data": dto.CreateUserNurseDtoResponse{
 			Name:   data.Name,
 			NIP:    data.NIP,

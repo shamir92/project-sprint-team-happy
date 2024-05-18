@@ -22,6 +22,11 @@ PHONY: run-migrate-drop-force
 run-migrate-drop-force: 
 	migrate -database "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable" -path "./migrations" drop -f
 
+PHONY: run-migrate-reset
+run-migrate-reset:
+	make run-migrate-down-all && make run-migrate-up
+
+
 PHONY: server/start
 server/start:
 	go run ./protocol/api/cmd/main.go
