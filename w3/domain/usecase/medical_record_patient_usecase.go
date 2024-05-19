@@ -26,7 +26,7 @@ func NewMedicalRecordPatientUsecase(patientRepository iMedicalRecordPatientRepos
 }
 
 type MedicalRecordPatientCreateRequest struct {
-	IdentityNumber      int    `json:"identityNumber" validate:"required,numeric,identity_number"`
+	IdentityNumber      int    `json:"identityNumber" validate:"required,numeric,numericlen=16"`
 	PhoneNumber         string `json:"phoneNumber" validate:"required,startswith=+62,min=10,max=15"`
 	Name                string `json:"name" validate:"required,min=3,max=30"`
 	BirthDate           string `json:"birthDate" validate:"required,iso8601"`

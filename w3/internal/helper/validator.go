@@ -22,6 +22,7 @@ func init() {
 	validate.RegisterValidation("it_nip", validateITNIP)
 	validate.RegisterValidation("identity_number", validateIdentityNumber)
 	validate.RegisterValidation("urlformat", validateURLFormat)
+	validate.RegisterValidation("numericlen", validateNumericLength)
 
 }
 
@@ -183,4 +184,21 @@ func validateURLFormat(fl validator.FieldLevel) bool {
 	identityCardScanImg := fl.Field().String()
 	regex := regexp.MustCompile(URLRegex)
 	return regex.MatchString(identityCardScanImg)
+}
+
+func validateNumericLength(fl validator.FieldLevel) bool {
+	param, err := strconv.Atoi(fl.Param())
+	if err != nil {
+		return false
+	}
+
+	value := strconv.Itoa(int(fl.Field().Int()))
+	if value == "" {
+		return false
+	}
+
+	log.Println("masuk sini")
+	log.Println("param", param)
+	log.Println("value", len(value))
+	return len(value) == param
 }

@@ -237,7 +237,7 @@ func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, er
 		params = append(params, strings.ToUpper(payload.Role))
 	}
 
-	q += fmt.Sprintf("%s nip is not null and  deleted_at IS NULL", whereOrAnd(paramsCounter))
+	q += fmt.Sprintf("%s nip is not null and nip != '0' and  deleted_at IS NULL", whereOrAnd(paramsCounter))
 
 	// ORDER BY
 	if payload.SortByCreatedAt == "asc" || payload.SortByCreatedAt == "desc" {
