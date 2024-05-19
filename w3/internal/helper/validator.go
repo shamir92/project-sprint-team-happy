@@ -20,6 +20,9 @@ func init() {
 	validate.RegisterValidation("iso8601", validateIsISO8601)
 	validate.RegisterValidation("nurse_nip", validateNurseNIP)
 	validate.RegisterValidation("it_nip", validateITNIP)
+	validate.RegisterValidation("identity_number", validateIdentityNumber)
+	validate.RegisterValidation("urlformat", validateURLFormat)
+
 }
 
 // Validation function
@@ -101,10 +104,11 @@ func validateNurseNIP(fl validator.FieldLevel) bool {
 	randomDigits := nurseNip[10:]
 	log.Println(randomDigits)
 	match, _ := regexp.MatchString(`^\d{3,5}$`, randomDigits)
+	log.Println(match)
 	if !match {
 		return false
 	}
-
+	log.Println("masuk sini")
 	return true
 }
 
@@ -156,4 +160,27 @@ func validateITNIP(fl validator.FieldLevel) bool {
 	}
 
 	return true
+}
+
+func validateIdentityNumber(fl validator.FieldLevel) bool {
+	identityNumber := fl.Field().Int()
+	identityNumberStr := strconv.Itoa(int(identityNumber))
+	length := len(identityNumberStr)
+	return length == 16
+}
+
+const (
+	URLSchema    = `((ftp|tcp|udp|wss?|https?):\/\/)`
+	URLUsername  = `(\S+(:\S*)?@)`
+	URLPath      = `((\/|\?|#)[^\s]*)`
+	URLPort      = `(:(\d{1,5}))`
+	URLIP        = `([1-9]\d?|1\d\d|2[01]\d|22[0-3]|24\d|25[0-5])(\.([0-9]\d?|1\d\d|2[0-4]\d|25[0-5])){3}`
+	URLSubdomain = `((www\.)|([a-zA-Z0-9]+([-_\.]?[a-zA-Z0-9])*[a-zA-Z0-9]\.[a-zA-Z0-9]+))`
+	URLRegex     = `^` + URLSchema + `?` + URLUsername + `?` + `((` + URLIP + `|\[IPv6:(.*)\]|` + URLSubdomain + `))` + URLPort + `?` + URLPath + `?$`
+)
+
+func validateURLFormat(fl validator.FieldLevel) bool {
+	identityCardScanImg := fl.Field().String()
+	regex := regexp.MustCompile(URLRegex)
+	return regex.MatchString(identityCardScanImg)
 }

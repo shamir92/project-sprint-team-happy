@@ -41,7 +41,7 @@ type IUserRepository interface {
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
 	query := `
-		SELECT id,  nip, name, password, role FROM users WHERE nip = $1
+		SELECT id,  COALESCE(nip, ''), name, password, role FROM users WHERE nip = $1
 	`
 
 	var user entity.User
@@ -65,6 +65,9 @@ func (r *userRepository) InsertUser(user entity.User) (entity.User, error) {
 		ON CONFLICT DO NOTHING
 		RETURNING id, nip
 	`
+	if user.NIP == "0" {
+		user.NIP = ""
+	}
 
 	err := r.db.QueryRow(query, user.NIP, user.Name, user.Password, user.Role).Scan(&user.ID, &user.NIP)
 	if err != nil {
@@ -94,7 +97,7 @@ func (r *userRepository) CheckNIPExist(nip string) (bool, error) {
 
 func (r *userRepository) GetUserNurseByID(userId string) (entity.User, error) {
 	query := `
-		SELECT id,  nip, name, role FROM users WHERE id = $1 AND role = $2
+		SELECT id,  COALESCE(nip, ''), name, role FROM users WHERE id = $1 AND role = $2
 	`
 
 	var nurse entity.User
@@ -120,6 +123,9 @@ func (r *userRepository) GetUserNurseByID(userId string) (entity.User, error) {
 func (r *userRepository) Update(user entity.User) error {
 	query := `UPDATE users SET name = $1, nip = $2 WHERE id = $3`
 
+	if user.NIP == "0" {
+		user.NIP = ""
+	}
 	res, err := r.db.Exec(query, user.Name, user.NIP, user.ID.String())
 
 	if err != nil {
@@ -196,8 +202,8 @@ func (r *userRepository) UpdatePassword(userId string, newHashedPassword string)
 }
 
 func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, error) {
-	q := `SELECT id, nip, name, created_at, role 
-		FROM users`
+	q := `SELECT id, COALESCE(nip, ''), name, created_at, role 
+		FROM users `
 
 	paramsCounter := 1
 	params := make([]interface{}, 0)
@@ -231,7 +237,7 @@ func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, er
 		params = append(params, strings.ToUpper(payload.Role))
 	}
 
-	q += fmt.Sprintf("%s deleted_at IS NULL", whereOrAnd(paramsCounter))
+	q += fmt.Sprintf("%s nip is not null and  deleted_at IS NULL", whereOrAnd(paramsCounter))
 
 	// ORDER BY
 	if payload.SortByCreatedAt == "asc" || payload.SortByCreatedAt == "desc" {

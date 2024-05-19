@@ -48,7 +48,7 @@ func (mrr *medicalRecordRepository) Find(query entity.ListMedicalRecordPayload) 
 			mc.id, mc.symtomps, mc.medications, mc.created_at,
 			p.id as patient_id, p.name as patient_name, p.birth_date patient_birth_date,
 			p.gender as patient_gender, p.identity_card_scan_img AS patient_identity,
-			u.name as user_created_name, u.nip as user_created_nip, u.id as user_created_id
+			u.name as user_created_name, COALESCE(u.nip,'') as user_created_nip, u.id as user_created_id
 		FROM medical_records mc
 		INNER JOIN patients p ON p.id = mc.patient_id
 		INNER JOIN users u ON u.id = mc.created_by

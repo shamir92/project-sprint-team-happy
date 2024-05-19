@@ -72,7 +72,10 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 		}
 	}
 	user.Name = userITRequest.Name
-	user.NIP = userNip
+	if userNip != "" || userNip != "0" {
+		user.NIP = userNip
+	}
+
 	user.Password = hashedPassword
 	user.Role = string(entity.IT)
 

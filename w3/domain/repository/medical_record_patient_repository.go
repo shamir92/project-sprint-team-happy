@@ -99,7 +99,6 @@ func (r *medicalRecordPatientRepository) Browse(builder ...entity.BrowseMedicalR
 	if err != nil {
 		return patients, err
 	}
-
 	for res.Next() {
 		var patient entity.MedicalRecordPatient
 		err = res.Scan(&patient.ID, &patient.PhoneNumber, &patient.Name, &patient.BirthDate, &patient.Gender, &patient.CreatedAt)

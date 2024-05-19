@@ -13,10 +13,10 @@ type s3Configuration struct {
 
 func NewS3Configuration() *s3Configuration {
 	return &s3Configuration{
-		s3ID:         os.Getenv("S3_ID"),
-		s3SecretKey:  os.Getenv("S3_SECRET_KEY"),
-		s3BucketName: os.Getenv("S3_BUCKET_NAME"),
-		s3Region:     os.Getenv("S3_REGION"),
+		s3ID:         os.Getenv("AWS_ACCESS_KEY_ID"),
+		s3SecretKey:  os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		s3BucketName: os.Getenv("AWS_S3_BUCKET_NAME"),
+		s3Region:     os.Getenv("AWS_REGION"),
 	}
 }
 

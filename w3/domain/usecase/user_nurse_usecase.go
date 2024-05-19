@@ -77,12 +77,12 @@ func (u *userNurseUseCase) Create(in CreateNurseRequest, createdBy string) (enti
 		Role:                string(entity.NURSE),
 	}
 
-	if !entity.ValidateUserNIP(userNip, entity.NURSE) {
-		return entity.User{}, helper.CustomError{
-			Message: "nip is invalid",
-			Code:    400,
-		}
-	}
+	// if !entity.ValidateUserNIP(userNip, entity.NURSE) {
+	// 	return entity.User{}, helper.CustomError{
+	// 		Message: "nip is invalid",
+	// 		Code:    400,
+	// 	}
+	// }
 
 	if !entity.ValidateIdentityCardScanImageURL(newNurse.IdentityCardScanImg) {
 		return entity.User{}, helper.CustomError{
