@@ -42,13 +42,13 @@ func NewUserNurseUseCase(userRepo repository.IUserRepository, bcryptHelper helpe
 }
 
 type CreateNurseRequest struct {
-	NIP                 int    `json:"nip" validate:"required,numeric,min=3030000000000,max=3039999999999"`
+	NIP                 int    `json:"nip" validate:"required,numeric,nurse_nip"`
 	Name                string `json:"name" validate:"required,min=5,max=50"`
 	IndetityCardScanImg string `json:"identityCardScanImg" validate:"required,url"`
 }
 
 type UpdateNurseRequest struct {
-	NIP  int    `json:"nip" validate:"required,numeric,min=3030000000000,max=3039999999999"`
+	NIP  int    `json:"nip" validate:"required,numeric,nurse_nip"`
 	Name string `json:"name" validate:"required,min=5,max=50"`
 }
 
@@ -58,7 +58,7 @@ type SetAccessNurseRequest struct {
 }
 
 type LoginNurseRequest struct {
-	NIP      int    `json:"nip"`
+	NIP      int    `json:"nip" validate:"required,numeric,nurse_nip"`
 	Password string `json:"password" validate:"required,min=5,max=33"`
 }
 
@@ -69,6 +69,7 @@ type LoginNurseResponse struct {
 
 func (u *userNurseUseCase) Create(in CreateNurseRequest, createdBy string) (entity.User, error) {
 	userNip := strconv.FormatInt(int64(in.NIP), 10)
+	// userNip := in.NIP
 	newNurse := entity.User{
 		NIP:                 userNip,
 		Name:                in.Name,
@@ -115,12 +116,13 @@ func (u *userNurseUseCase) Create(in CreateNurseRequest, createdBy string) (enti
 func (u *userNurseUseCase) Update(in UpdateNurseRequest, nurseUserId string) error {
 	nip := strconv.FormatInt(int64(in.NIP), 10)
 
-	if !entity.ValidateUserNIP(nip, entity.NURSE) {
-		return helper.CustomError{
-			Code:    400,
-			Message: errInvalidNIP.Error(),
-		}
-	}
+	// if !entity.ValidateUserNIP(nip, entity.NURSE) {
+	// 	return helper.CustomError{
+	// 		Code:    400,
+	// 		Message: errInvalidNIP.Error(),
+	// 	}
+	// }
+	// nip := in.NIP
 
 	nurse, err := u.getUserNurseByID(nurseUserId)
 
@@ -195,7 +197,8 @@ func (u *userNurseUseCase) SetAccess(in SetAccessNurseRequest) error {
 func (u *userNurseUseCase) Login(in LoginNurseRequest) (LoginNurseResponse, error) {
 	var empty LoginNurseResponse
 	nip := strconv.FormatInt(int64(in.NIP), 10)
-
+	// log.Println(nip)
+	// nip := in.NIP
 	user, err := u.userRepository.GetByNIP(nip)
 
 	if err != nil {

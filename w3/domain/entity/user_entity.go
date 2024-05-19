@@ -2,10 +2,10 @@ package entity
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -83,8 +83,15 @@ func ValidateUserNIP(nip string, role UserRole) bool {
 
 	// Check random digits (11th to 13th digit)
 	// as per the latest requirement, nip length changed to 15 (from 13)
-	if _, err := strconv.Atoi(nip[10:15]); err != nil {
-		fmt.Println("disini?", err.Error())
+	// if _, err := strconv.Atoi(nip[10:15]); err != nil {
+	// 	fmt.Println("disini?", err.Error())
+
+	// 	return false
+	// }
+
+	randomDigits := nip[10:]
+	match, _ := regexp.MatchString(`^\d{3,5}$`, randomDigits)
+	if !match {
 		return false
 	}
 

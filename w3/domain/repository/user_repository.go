@@ -144,9 +144,9 @@ func (r *userRepository) Update(user entity.User) error {
 }
 
 func (r *userRepository) Delete(userId string) error {
-	query := `UPDATE users SET nip = '', deleted_at = $1 WHERE id = $2`
+	query := `UPDATE users SET nip = $3, deleted_at = $1 WHERE id = $2`
 
-	res, err := r.db.Exec(query, time.Now(), userId)
+	res, err := r.db.Exec(query, time.Now(), userId, nil)
 
 	if err != nil {
 		log.Printf("failed to delete user: %v => user: %s", err, userId)

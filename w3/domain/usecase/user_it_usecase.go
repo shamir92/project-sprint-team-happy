@@ -28,7 +28,7 @@ func NewUserITUsecase(bcryptHelper helper.IBcryptPasswordHash, userRepository re
 }
 
 type UserITRegisterRequest struct {
-	NIP      int    `json:"nip" validate:"required,numeric,min=6150000000000,max=615999999999999"`
+	NIP      int    `json:"nip" validate:"required,numeric,it_nip"`
 	Name     string `json:"name" validate:"required,min=5,max=50"`
 	Password string `json:"password" validate:"required,min=5,max=33"`
 }
@@ -37,19 +37,20 @@ type UserITRegisterResponse struct {
 	Token string `json:"accessToken"`
 	ID    string `json:"userId"`
 	Name  string `json:"name"`
-	NIP   string `json:"nip"`
+	NIP   int    `json:"nip"`
 }
 
 func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (UserITRegisterResponse, error) {
 	var user entity.User
 
 	userNip := strconv.FormatInt(int64(userITRequest.NIP), 10)
-	if !entity.ValidateUserNIP(userNip, entity.IT) {
-		return UserITRegisterResponse{}, helper.CustomError{
-			Message: "NIP is not valid",
-			Code:    400,
-		}
-	}
+	// if !entity.ValidateUserNIP(userNip, entity.IT) {
+	// 	return UserITRegisterResponse{}, helper.CustomError{
+	// 		Message: "NIP is not valid",
+	// 		Code:    400,
+	// 	}
+	// }
+	// userNip := userITRequest.NIP
 
 	userNipExists, err := u.userRepository.CheckNIPExist(userNip)
 	if err != nil {
@@ -85,16 +86,17 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 	if err != nil {
 		return UserITRegisterResponse{}, err
 	}
+	integer, _ := strconv.Atoi(user.NIP)
 	return UserITRegisterResponse{
 		Token: token,
 		ID:    user.ID.String(),
 		Name:  user.Name,
-		NIP:   user.NIP,
+		NIP:   integer,
 	}, nil
 }
 
 type UserITLoginRequest struct {
-	NIP      int    `json:"nip" validate:"required,numeric,min=6150000000000,max=615999999999999"`
+	NIP      int    `json:"nip" validate:"required,numeric,it_nip"`
 	Password string `json:"password" validate:"required,min=5,max=33"`
 }
 
@@ -102,19 +104,21 @@ type UserITLoginResponse struct {
 	Token string `json:"accessToken"`
 	ID    string `json:"userId"`
 	Name  string `json:"name"`
-	NIP   string `json:"nip"`
+	NIP   int    `json:"nip"`
 }
 
 func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResponse, error) {
 	var user entity.User
 
 	userNip := strconv.FormatInt(int64(request.NIP), 10)
-	if !entity.ValidateUserNIP(userNip, entity.IT) {
-		return UserITLoginResponse{}, helper.CustomError{
-			Message: "NIP is not valid",
-			Code:    400,
-		}
-	}
+	// if !entity.ValidateUserNIP(userNip, entity.IT) {
+	// 	return UserITLoginResponse{}, helper.CustomError{
+	// 		Message: "NIP is not valid",
+	// 		Code:    400,
+	// 	}
+	// }
+
+	// userNip := request.NIP
 	user, err := u.userRepository.GetByNIP(userNip)
 	if err != nil {
 		return UserITLoginResponse{}, helper.CustomError{
@@ -133,11 +137,13 @@ func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResp
 	if err != nil {
 		return UserITLoginResponse{}, err
 	}
+
+	integer, _ := strconv.Atoi(user.NIP)
 	return UserITLoginResponse{
 		Token: token,
 		ID:    user.ID.String(),
 		Name:  user.Name,
-		NIP:   user.NIP,
+		NIP:   integer,
 	}, nil
 }
 

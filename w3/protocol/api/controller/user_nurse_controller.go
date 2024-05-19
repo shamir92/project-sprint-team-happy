@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"log"
 	"net/http"
+	"strconv"
 
 	"halosuster/domain/usecase"
 	"halosuster/internal/helper"
@@ -33,6 +35,7 @@ func (pc *userNurseController) CreateNurse(c *fiber.Ctx) error {
 	var request usecase.CreateNurseRequest
 
 	if err := c.BodyParser(&request); err != nil {
+		log.Println(err)
 		return fiber.ErrBadRequest
 	}
 
@@ -46,11 +49,13 @@ func (pc *userNurseController) CreateNurse(c *fiber.Ctx) error {
 		return err
 	}
 
+	integer, _ := strconv.Atoi(data.NIP)
+
 	return c.Status(http.StatusCreated).JSON(fiber.Map{
 		"message": "user registered successfully",
 		"data": dto.CreateUserNurseDtoResponse{
 			Name:   data.Name,
-			NIP:    data.NIP,
+			NIP:    integer,
 			UserID: data.ID.String(),
 		},
 	})
@@ -84,6 +89,7 @@ func (pc *userNurseController) DeleteNurse(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "nurse deleted successfully",
+		"data":    []any{},
 	})
 }
 
@@ -91,7 +97,7 @@ func (pc *userNurseController) SetAccessNurse(c *fiber.Ctx) error {
 	var req usecase.SetAccessNurseRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		return fiber.ErrBadGateway
+		return fiber.ErrBadRequest
 	}
 
 	if err := helper.ValidateStruct(req); err != nil {
@@ -124,11 +130,13 @@ func (pc *userNurseController) LoginNurse(c *fiber.Ctx) error {
 		return err
 	}
 
+	integer, _ := strconv.Atoi(data.User.NIP)
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "nurse loged in successfully",
 		"data": dto.NurseLoginDtoResponse{
 			UserID:      data.User.ID.String(),
-			NIP:         data.User.NIP,
+			NIP:         integer,
 			Name:        data.User.Name,
 			AccessToken: data.AccessToken,
 		},
