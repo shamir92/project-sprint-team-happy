@@ -15,6 +15,6 @@ type UserITLoginControllerResponse struct {
 type ListUserItemDto struct {
 	ID        string    `json:"userId"`
 	Name      string    `json:"name"`
-	NIP       string    `json:"nip"`
+	NIP       int       `json:"nip"`
 	CreatedAt time.Time `json:"createdAt"`
 }

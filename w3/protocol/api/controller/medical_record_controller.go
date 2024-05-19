@@ -82,7 +82,7 @@ func (mrc *medicalRecordController) GetMedicalRecords(c *fiber.Ctx) error {
 			},
 			Symptoms:    mc.Symptoms,
 			Medications: mc.Medications,
-			CreatedAt:   mc.CreatedAt.Format(time.RFC3339),
+			CreatedAt:   mc.CreatedAt.Format(time.RFC3339Nano),
 			CreatedBy: dto.CreatedByDto{
 				Name:   user.Name,
 				Nip:    int64(nip),

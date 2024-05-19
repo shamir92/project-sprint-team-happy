@@ -3,6 +3,7 @@ package controller
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"halosuster/domain/entity"
 	"halosuster/domain/usecase"
@@ -106,14 +107,21 @@ func (pc *userITController) GetListUsers(c *fiber.Ctx) error {
 	var listUsers []dto.ListUserItemDto
 
 	for _, u := range users {
+		integer, _ := strconv.Atoi(u.NIP)
 		listUsers = append(listUsers, dto.ListUserItemDto{
 			ID:        u.ID.String(),
 			Name:      u.Name,
-			NIP:       u.NIP,
+			NIP:       integer,
 			CreatedAt: u.CreatedAt,
 		})
 	}
 
+	if listUsers == nil || len(listUsers) == 0 {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"message": "success",
+			"data":    []dto.ListUserItemDto{}, // Return an empty list
+		})
+	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "success",
 		"data":    listUsers,

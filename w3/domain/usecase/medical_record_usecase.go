@@ -33,7 +33,7 @@ func NewMedicalRecordUsecase(mrpr repository.IMedicalRecordPatientRepository, mr
 }
 
 type AddMedicalRecordPayload struct {
-	IdentityNumber int    `json:"identityNumber" validate:"required,numeric"`
+	IdentityNumber int    `json:"identityNumber" validate:"required,numeric,numericlen=16"`
 	Symptoms       string `json:"symptoms" validate:"required,min=1,max=2000"`
 	Medications    string `json:"medications" validate:"required,min=1,max=2000"`
 }
@@ -47,7 +47,7 @@ func (mru *medicalRecordUsecase) Create(in AddMedicalRecordPayload, createdBy st
 
 	if !isExist {
 		return helper.CustomError{
-			Code:    400,
+			Code:    404,
 			Message: ErrIdentityNumberNotFound.Error(),
 		}
 	}
