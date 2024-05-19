@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"halosuster/domain/entity"
 	"halosuster/domain/usecase"
@@ -107,7 +108,11 @@ func (pc *userITController) GetListUsers(c *fiber.Ctx) error {
 	var listUsers []dto.ListUserItemDto
 
 	for _, u := range users {
-		integer, _ := strconv.Atoi(u.NIP)
+		integer, err := strconv.Atoi(strings.TrimSpace(u.NIP))
+		if err != nil {
+			log.Println(err)
+		}
+
 		listUsers = append(listUsers, dto.ListUserItemDto{
 			ID:        u.ID.String(),
 			Name:      u.Name,

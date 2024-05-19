@@ -202,7 +202,7 @@ func (r *userRepository) UpdatePassword(userId string, newHashedPassword string)
 }
 
 func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, error) {
-	q := `SELECT id, COALESCE(nip, ''), name, created_at, role 
+	q := `SELECT id, COALESCE(nip, '') as nip, name, created_at, role 
 		FROM users `
 
 	paramsCounter := 1
@@ -237,7 +237,7 @@ func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, er
 		params = append(params, strings.ToUpper(payload.Role))
 	}
 
-	q += fmt.Sprintf("%s nip is not null and nip != '0' and  deleted_at IS NULL", whereOrAnd(paramsCounter))
+	q += fmt.Sprintf("%s nip != '' and  deleted_at IS NULL", whereOrAnd(paramsCounter))
 
 	// ORDER BY
 	if payload.SortByCreatedAt == "asc" || payload.SortByCreatedAt == "desc" {
@@ -257,12 +257,11 @@ func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, er
 	}
 
 	q += fmt.Sprintf(" LIMIT %d OFFSET %d ", limit, offset)
-
+	log.Println(q)
 	rows, err := r.db.Query(q, params...)
 
 	if err != nil {
 		log.Printf("ERROR: UserRepistory.List - %v\n", err)
-		log.Println(q)
 		return []entity.User{}, err
 	}
 
@@ -275,10 +274,9 @@ func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, er
 		//  id, nip, name, created_at, role
 		if err := rows.Scan(&u.ID, &u.NIP, &u.Name, &u.CreatedAt, &u.Role); err != nil {
 			log.Printf("ERROR: UserRepistory.List - %v\n", err)
-			log.Println(q)
+
 			return []entity.User{}, err
 		}
-
 		users = append(users, u)
 	}
 
