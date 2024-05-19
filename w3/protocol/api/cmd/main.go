@@ -14,7 +14,7 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("error loading .env file")
 	}
 	// For configuration
 	var appConfiguration configuration.IAppConfiguration = configuration.NewAppConfiguration()

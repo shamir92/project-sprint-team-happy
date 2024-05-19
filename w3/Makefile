@@ -8,7 +8,7 @@ run-migrate-create:
 
 PHONY: run-migrate-up
 run-migrate-up: 
-	migrate -database "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable" -path "./migrations" up
+	migrate -database "postgres://postgres:dohS6Xiuk1au7oHee1EXiechuo7ohng1o@47.129.29.170:5432/postgres?sslmode=disable" -path "./migrations" up
 
 PHONY: run-migrate-down-by-1
 run-migrate-down-by-1: 
