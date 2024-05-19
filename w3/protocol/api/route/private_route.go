@@ -48,10 +48,9 @@ func PrivateRoutes(params PrivateRouteParams) {
 
 	// Create routes group.
 	route := params.App.Group("/v1")
+	route.Use(middleware.AuthMiddleware(params.JWTManager))
 	route.Get("/ping", pingController.GetPingController)
 	route.Post("/image", imageController.UploadImage)
-
-	route.Use(middleware.AuthMiddleware(params.JWTManager))
 	route.Get("/user", userITController.GetListUsers)
 	route.Route("/user/nurse", func(router fiber.Router) {
 		router.Post("/register", nurseController.CreateNurse)

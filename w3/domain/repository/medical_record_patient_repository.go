@@ -72,8 +72,8 @@ func (r *medicalRecordPatientRepository) Browse(builder ...entity.BrowseMedicalR
 	}
 
 	if options.PhoneNumber != nil {
-		values = append(values, fmt.Sprintf("'+%d%%'", *options.PhoneNumber))
-		conditions = append(conditions, fmt.Sprintf("phone_number ILIKE $%d", len(values)))
+		values = append(values, fmt.Sprintf("+%d%%", *options.PhoneNumber))
+		conditions = append(conditions, fmt.Sprintf("phone_number LIKE $%d", len(values)))
 	}
 
 	if options.Limit == 0 {
