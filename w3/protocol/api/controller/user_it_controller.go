@@ -105,7 +105,7 @@ func (pc *userITController) GetListUsers(c *fiber.Ctx) error {
 		return err
 	}
 
-	var listUsers []dto.ListUserItemDto
+	var listUsers = []dto.ListUserItemDto{}
 
 	for _, u := range users {
 		integer, err := strconv.Atoi(strings.TrimSpace(u.NIP))
@@ -121,12 +121,6 @@ func (pc *userITController) GetListUsers(c *fiber.Ctx) error {
 		})
 	}
 
-	if listUsers == nil || len(listUsers) == 0 {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": "success",
-			"data":    []dto.ListUserItemDto{}, // Return an empty list
-		})
-	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "success",
 		"data":    listUsers,
