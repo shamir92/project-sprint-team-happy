@@ -44,13 +44,6 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 	var user entity.User
 
 	userNip := strconv.FormatInt(int64(userITRequest.NIP), 10)
-	// if !entity.ValidateUserNIP(userNip, entity.IT) {
-	// 	return UserITRegisterResponse{}, helper.CustomError{
-	// 		Message: "NIP is not valid",
-	// 		Code:    400,
-	// 	}
-	// }
-	// userNip := userITRequest.NIP
 
 	userNipExists, err := u.userRepository.CheckNIPExist(userNip)
 	if err != nil {
@@ -72,10 +65,8 @@ func (u *userITUsecase) RegisterUserIT(userITRequest UserITRegisterRequest) (Use
 		}
 	}
 	user.Name = userITRequest.Name
-	if userNip != "" || userNip != "0" {
-		user.NIP = userNip
-	}
 
+	user.NIP = userNip
 	user.Password = hashedPassword
 	user.Role = string(entity.IT)
 
@@ -114,14 +105,7 @@ func (u *userITUsecase) LoginUserIT(request UserITLoginRequest) (UserITLoginResp
 	var user entity.User
 
 	userNip := strconv.FormatInt(int64(request.NIP), 10)
-	// if !entity.ValidateUserNIP(userNip, entity.IT) {
-	// 	return UserITLoginResponse{}, helper.CustomError{
-	// 		Message: "NIP is not valid",
-	// 		Code:    400,
-	// 	}
-	// }
 
-	// userNip := request.NIP
 	user, err := u.userRepository.GetByNIP(userNip)
 	if err != nil {
 		return UserITLoginResponse{}, helper.CustomError{
