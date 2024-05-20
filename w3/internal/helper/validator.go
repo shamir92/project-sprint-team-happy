@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"log"
 	"regexp"
 	"strconv"
 	"time"
@@ -75,7 +74,6 @@ func validateNurseNIP(fl validator.FieldLevel) bool {
 	if nurseNip[:3] != "303" {
 		return false
 	}
-	log.Println("masuk sini")
 
 	// Rule 2: fourth digit should be '1' for male, '2' for female
 	if nurseNip[3] != '1' && nurseNip[3] != '2' {
@@ -103,14 +101,8 @@ func validateNurseNIP(fl validator.FieldLevel) bool {
 
 	// Rule 5: eleventh to thirteenth digits should be a valid number from "000" to "99999"
 	randomDigits := nurseNip[10:]
-	log.Println(randomDigits)
 	match, _ := regexp.MatchString(`^\d{3,5}$`, randomDigits)
-	log.Println(match)
-	if !match {
-		return false
-	}
-	log.Println("masuk sini")
-	return true
+	return match
 }
 
 func validateITNIP(fl validator.FieldLevel) bool {
@@ -156,11 +148,7 @@ func validateITNIP(fl validator.FieldLevel) bool {
 	// Rule 5: eleventh to thirteenth digits should be a valid number from "000" to "99999"
 	randomDigits := nip[10:]
 	match, _ := regexp.MatchString(`^\d{3,5}$`, randomDigits)
-	if !match {
-		return false
-	}
-
-	return true
+	return match
 }
 
 func validateIdentityNumber(fl validator.FieldLevel) bool {
@@ -197,8 +185,5 @@ func validateNumericLength(fl validator.FieldLevel) bool {
 		return false
 	}
 
-	log.Println("masuk sini")
-	log.Println("param", param)
-	log.Println("value", len(value))
 	return len(value) == param
 }

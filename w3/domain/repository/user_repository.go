@@ -41,7 +41,7 @@ type IUserRepository interface {
 
 func (r *userRepository) GetByNIP(nip string) (entity.User, error) {
 	query := `
-		SELECT id,  COALESCE(nip, ''), name, password, role FROM users WHERE nip = $1
+		SELECT id,  nip, name, password, role FROM users WHERE nip = $1
 	`
 
 	var user entity.User
@@ -62,22 +62,11 @@ func (r *userRepository) InsertUser(user entity.User) (entity.User, error) {
 	query := `
 		INSERT INTO users(nip, name, password, role) 
 		VALUES($1, $2, $3, $4) 
-		ON CONFLICT DO NOTHING
 		RETURNING id, nip
 	`
-	if user.NIP == "0" {
-		user.NIP = ""
-	}
 
 	err := r.db.QueryRow(query, user.NIP, user.Name, user.Password, user.Role).Scan(&user.ID, &user.NIP)
 	if err != nil {
-		// err is not nil if the user is already registered
-		if !errors.Is(err, sql.ErrNoRows) {
-			return entity.User{}, helper.CustomError{
-				Message: "Duplicate User",
-				Code:    400,
-			}
-		}
 		return entity.User{}, err
 	}
 
@@ -97,7 +86,7 @@ func (r *userRepository) CheckNIPExist(nip string) (bool, error) {
 
 func (r *userRepository) GetUserNurseByID(userId string) (entity.User, error) {
 	query := `
-		SELECT id,  COALESCE(nip, ''), name, role FROM users WHERE id = $1 AND role = $2
+		SELECT id,  nip, name, role FROM users WHERE id = $1 AND role = $2 AND deleted_at IS NULL
 	`
 
 	var nurse entity.User
@@ -123,9 +112,6 @@ func (r *userRepository) GetUserNurseByID(userId string) (entity.User, error) {
 func (r *userRepository) Update(user entity.User) error {
 	query := `UPDATE users SET name = $1, nip = $2 WHERE id = $3`
 
-	if user.NIP == "0" {
-		user.NIP = ""
-	}
 	res, err := r.db.Exec(query, user.Name, user.NIP, user.ID.String())
 
 	if err != nil {
@@ -150,9 +136,9 @@ func (r *userRepository) Update(user entity.User) error {
 }
 
 func (r *userRepository) Delete(userId string) error {
-	query := `UPDATE users SET nip = $3, deleted_at = $1 WHERE id = $2`
+	query := `UPDATE users SET deleted_at = $1 WHERE id = $2`
 
-	res, err := r.db.Exec(query, time.Now(), userId, nil)
+	res, err := r.db.Exec(query, time.Now(), userId)
 
 	if err != nil {
 		log.Printf("failed to delete user: %v => user: %s", err, userId)
@@ -202,7 +188,7 @@ func (r *userRepository) UpdatePassword(userId string, newHashedPassword string)
 }
 
 func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, error) {
-	q := `SELECT id, COALESCE(nip, '') as nip, name, created_at, role 
+	q := `SELECT id, nip, name, created_at, role 
 		FROM users `
 
 	paramsCounter := 1
@@ -237,7 +223,7 @@ func (r *userRepository) List(payload entity.ListUserPayload) ([]entity.User, er
 		params = append(params, strings.ToUpper(payload.Role))
 	}
 
-	q += fmt.Sprintf("%s nip != '' and  deleted_at IS NULL", whereOrAnd(paramsCounter))
+	q += fmt.Sprintf("%s deleted_at IS NULL", whereOrAnd(paramsCounter))
 
 	// ORDER BY
 	if payload.SortByCreatedAt == "asc" || payload.SortByCreatedAt == "desc" {
