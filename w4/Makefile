@@ -31,6 +31,10 @@ PHONY: docker/up
 docker/up:
 	docker compose -f ${DOCKER_COMPOSE_FILE} up -d
 
+PHONY: docker/down
+docker/down:
+	docker compose -f ${DOCKER_COMPOSE_FILE} down
+
 PHONY: server/start
 server/start:
 	go run ./protocol/api/cmd/main.go
