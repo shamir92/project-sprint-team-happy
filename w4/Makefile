@@ -1,5 +1,6 @@
 BIN_DIR := ./bin
 MIGRATIONS_DIR=./migrations
+DOCKER_COMPOSE_FILE=./tools/docker-compose.yaml
 
 PHONY: run-migrate-create
 run-migrate-create:
@@ -22,6 +23,13 @@ PHONY: run-migrate-drop-force
 run-migrate-drop-force: 
 	migrate -database "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable" -path "./migrations" drop -f
 
+PHONY: run-migrate
+run-migrate:
+	make run-migrate-down-all && make run-migrate-up
+
+PHONY: docker/up
+docker/up:
+	docker compose -f ${DOCKER_COMPOSE_FILE} up -d
 
 PHONY: server/start
 server/start:
