@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"belimang/domain/entity"
 	"regexp"
 	"time"
 
@@ -16,6 +17,7 @@ func init() {
 	validate.RegisterValidation("date", validateDate)
 	validate.RegisterValidation("iso8601", validateIsISO8601)
 	validate.RegisterValidation("urlformat", validateURLFormat)
+	validate.RegisterValidation("category", validateCategory)
 
 }
 
@@ -65,4 +67,20 @@ func validateURLFormat(fl validator.FieldLevel) bool {
 	identityCardScanImg := fl.Field().String()
 	regex := regexp.MustCompile(URLRegex)
 	return regex.MatchString(identityCardScanImg)
+}
+
+func validateCategory(fl validator.FieldLevel) bool {
+	var result bool
+	category := fl.Param()
+
+	switch category {
+	case "merchant":
+		result = entity.MerchantCategory(fl.Field().String()).Valid()
+	case "item":
+		result = entity.ItemCategory(fl.Field().String()).Valid()
+	default:
+		result = false
+	}
+
+	return result
 }

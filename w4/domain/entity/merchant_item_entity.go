@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,8 +17,14 @@ const (
 	Additions  ItemCategory = "Additions"
 )
 
+var itemCategories []ItemCategory = []ItemCategory{Beverage, Food, Snack, Condiments, Additions}
+
 func (pc ItemCategory) String() string {
 	return string(pc)
+}
+
+func (pc ItemCategory) Valid() bool {
+	return slices.Index(itemCategories, ItemCategory(pc)) == -1
 }
 
 type MerchantItem struct {
