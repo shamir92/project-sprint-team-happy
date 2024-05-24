@@ -28,10 +28,12 @@ func (pc ItemCategory) Valid() bool {
 }
 
 type MerchantItem struct {
-	ID        uuid.UUID
-	Name      string
-	Category  ItemCategory
-	ImageUrl  string
-	Price     int
-	CreatedAt time.Time
+	ID         uuid.UUID
+	Name       string
+	Category   ItemCategory
+	ImageUrl   string
+	Price      int
+	CreatedAt  time.Time
+	CreatedBy  string
+	MerchantID uuid.UUID
 }
