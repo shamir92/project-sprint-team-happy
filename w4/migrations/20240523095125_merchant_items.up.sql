@@ -6,13 +6,18 @@ CREATE TABLE IF NOT EXISTS public.merchant_items(
     price int not null,
     image_url text not null,
     created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by uuid NOT NULL,
 
     CONSTRAINT merchant_items_pkey PRIMARY KEY (id),
     CONSTRAINT merchant_items_price CHECK (price >= 1),
     CONSTRAINT merchant_items_merchant_id_fk
         FOREIGN KEY (merchant_id)
         REFERENCES public.merchants(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT merchant_items_created_by_fk
+        FOREIGN KEY (created_by)
+        REFERENCES public.users(id)
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX merchant_items_merchant_id_idx ON merchant_items(merchant_id);
