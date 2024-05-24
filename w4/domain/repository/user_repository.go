@@ -3,6 +3,11 @@ package repository
 import (
 	"belimang/domain/entity"
 	"database/sql"
+	"errors"
+)
+
+var (
+	ErrUserNotFound = errors.New("user not found")
 )
 
 type IUserRepository interface {
@@ -11,6 +16,9 @@ type IUserRepository interface {
 
 	// Return true when username is exist in database
 	CheckUsernameExist(username string) (bool, error)
+
+	// Find 1 user by its username
+	FindOneByUsername(username string) (entity.User, error)
 }
 
 type userRepository struct {
@@ -45,4 +53,20 @@ func (r *userRepository) CheckUsernameExist(username string) (bool, error) {
 	err := r.db.QueryRow(`SELECT count(username) FROM users WHERE username = $1`, username).Scan(&count)
 
 	return count > 0, err
+}
+
+func (r *userRepository) FindOneByUsername(username string) (entity.User, error) {
+	q := `SELECT id, username, role, password, email FROM users WHERE username = $1`
+	var user entity.User
+	err := r.db.QueryRow(q, username).Scan(&user.ID, &user.Username, &user.Role, &user.Password, &user.Email)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return user, ErrUserNotFound
+		} else {
+			return user, err
+		}
+	}
+
+	return user, nil
 }
