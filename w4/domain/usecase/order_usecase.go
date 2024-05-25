@@ -11,7 +11,7 @@ import (
 )
 
 type IOrderUsecase interface {
-	MakeOrderEstimate(payload MakeOrderEstimatePalyoad, userId string) (entity.Order, error)
+	MakeOrderEstimate(payload MakeOrderEstimatePayload, userId string) (entity.Order, error)
 }
 
 type orderUsecase struct {
@@ -37,12 +37,12 @@ type MakeOrderEstimateMerchant struct {
 	Items           []OrderEstimateItem `json:"items"`
 }
 
-type MakeOrderEstimatePalyoad struct {
+type MakeOrderEstimatePayload struct {
 	UserLocation entity.Location             `json:"userLocation" validate:"required"`
 	Orders       []MakeOrderEstimateMerchant `json:"orders" validate:"required"`
 }
 
-func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePalyoad, userId string) (entity.Order, error) {
+func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userId string) (entity.Order, error) {
 	var (
 		itemIds    = make([]string, 0)
 		emptyOrder entity.Order // negative return

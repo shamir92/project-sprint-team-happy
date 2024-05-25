@@ -17,7 +17,7 @@ func NewOrderController(orderUsecase usecase.IOrderUsecase) *orderController {
 }
 
 func (oc *orderController) PostOrderEstimate(ctx *fiber.Ctx) error {
-	var body usecase.MakeOrderEstimatePalyoad
+	var body usecase.MakeOrderEstimatePayload
 
 	if err := ctx.BodyParser(&body); err != nil {
 		return fiber.ErrBadRequest
