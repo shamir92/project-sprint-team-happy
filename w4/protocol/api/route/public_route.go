@@ -26,9 +26,17 @@ func PublicRoutes(params PublicRouteParams) {
 	var userUsecase usecase.IUserUsecase = usecase.NewUserUsecase(userRepository, params.JWTManager, params.HelperBcrypt)
 	var userController = controller.NewUserController(userUsecase)
 
+	// TODO: move to private routes
+	var merchantItemRepository repository.IMerchantItemRepository = repository.NewMerchanItemRepository(params.PostgresWriter.GetDB())
+	var merchantItemUsecase usecase.IMerchantItemUsecase = usecase.NewMerchanItemUsecase(merchantItemRepository)
+	var merchantItemController = controller.NewMerchantItemController(merchantItemUsecase)
+
 	v1 := params.App.Group("v1")
 
 	v1.Route("/users", func(router fiber.Router) {
 		router.Post("/register", userController.Register)
 	})
+
+	// TODO: move to private routes
+	v1.Get("/items/:merchantId", merchantItemController.GetItems)
 }
