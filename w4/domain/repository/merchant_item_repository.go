@@ -37,7 +37,7 @@ func NewMerchanItemRepository(db *sql.DB) *merchantItemRepository {
 func (mir *merchantItemRepository) Insert(i entity.MerchantItem) (entity.MerchantItem, error) {
 	q := `
 		INSERT INTO 
-			merchan_items(merchant_id, name, category, price, image_url, created_by)
+			merchant_items(merchant_id, name, category, price, image_url, created_by)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id				
 	`
@@ -98,8 +98,10 @@ func (mir *merchantItemRepository) FindAndCount(query dto.FindMerchantItemPayloa
 	}
 
 	if query.SortCreated == ASC || query.SortCreated == DESC {
-		q += fmt.Sprintf(" ORDER BY %s ASC LIMIT %s OFFSET %s", query.SortCreated, query.Limit, query.Offset)
+		q += fmt.Sprintf(" ORDER BY %s ASC", query.SortCreated)
 	}
+
+	q += fmt.Sprintf("\nLIMIT %s OFFSET %s", query.Limit, query.Offset)
 
 	rows, err := mir.db.Query(q, values...)
 
@@ -114,7 +116,7 @@ func (mir *merchantItemRepository) FindAndCount(query dto.FindMerchantItemPayloa
 		var item entity.MerchantItem
 
 		// id, name, category, price, image_url, created_at
-		err := rows.Scan(&item.ID, &item.Category, &item.Price, &item.ImageUrl, &item.CreatedAt)
+		err := rows.Scan(&item.ID, &item.Name, &item.Category, &item.Price, &item.ImageUrl, &item.CreatedAt)
 
 		if err != nil {
 			log.Printf("ERROR | FindAndCount() | %v", err)

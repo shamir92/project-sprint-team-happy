@@ -24,7 +24,7 @@ func (pc ItemCategory) String() string {
 }
 
 func (pc ItemCategory) Valid() bool {
-	return slices.Index(itemCategories, ItemCategory(pc)) == -1
+	return slices.Index(itemCategories, ItemCategory(pc)) != -1
 }
 
 func ValidMerchantItemCategory(category string) bool {

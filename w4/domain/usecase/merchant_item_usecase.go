@@ -29,7 +29,7 @@ type CreateMerchanItemPayload struct {
 	Price      int `json:"price" validate:"required,min=1"`
 	MerchantID string
 	Name       string `json:"name" validate:"required,min=2,max=30"`
-	Category   string `json:"productCategory" validate:"required,item_category"`
+	Category   string `json:"productCategory" validate:"required,category=item"`
 	ImageUrl   string `json:"imageUrl" validate:"required,urlformat"`
 }
 
@@ -79,28 +79,60 @@ func (miu *merchantItemUsecase) Create(payload CreateMerchanItemPayload, created
 }
 
 func (miu *merchantItemUsecase) FindItemsByMerchant(query dto.FindMerchantItemPayload) ([]entity.MerchantItem, PaginationMeta, error) {
+	var (
+		// Default meta
+		meta = PaginationMeta{
+			Limit:  5,
+			Offset: 0,
+			Total:  0,
+		}
+		q = query
+	)
 
-	var meta PaginationMeta
+	if err := miu.validateMerchantIsExist(query.MerchantID); err != nil {
+		return nil, meta, err
+	}
 
-	q := query
 	if l, err := strconv.Atoi(query.Limit); err == nil {
 		meta.Limit = l
 	} else {
-		// Default Limit
-		meta.Limit = 5
-		q.Limit = "5"
+		q.Limit = strconv.Itoa(meta.Limit)
 	}
 
 	if o, err := strconv.Atoi(query.Offset); err == nil {
 		meta.Offset = o
 	} else {
-		// Default Offset
-		meta.Offset = 0
-		q.Offset = "0"
+		q.Offset = strconv.Itoa(meta.Offset)
 	}
 
 	rows, count, err := miu.itemRepository.FindAndCount(q)
 	meta.Total = count
 
 	return rows, meta, err
+}
+
+func (miu *merchantItemUsecase) validateMerchantIsExist(id string) error {
+	var _, err = uuid.Parse(id)
+
+	if err != nil {
+		return helper.CustomError{
+			Message: "merchant not found",
+			Code:    404,
+		}
+	}
+
+	isExist, err := miu.itemRepository.CheckMerchantExist(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !isExist {
+		return helper.CustomError{
+			Message: "merchant not found",
+			Code:    404,
+		}
+	}
+
+	return nil
 }

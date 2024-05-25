@@ -7,6 +7,7 @@ import (
 	"belimang/internal/database"
 	"belimang/internal/helper"
 	"belimang/protocol/api/controller"
+	"belimang/protocol/api/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -29,12 +30,13 @@ func PrivateRoutes(params PrivateRouteParam) {
 	var merchantItemUsecase usecase.IMerchantItemUsecase = usecase.NewMerchanItemUsecase(merchantItemRepository)
 	var merchantItemController = controller.NewMerchantItemController(merchantItemUsecase)
 
-	route := params.App.Group("v1/admin")
-
-	merchant := route.Group("merchants")
-	merchant.Get("/", merchantController.Browse)
-	merchant.Post("/", merchantController.Create)
-	merchant.Post("/:merchantId/items", merchantItemController.CreateItem)
-	merchant.Get("/:merchantId/items", merchantItemController.CreateItem)
+	v1 := params.App.Group("v1")
+	v1.Use(middleware.AuthMiddleware(params.JWTManager))
+	v1.Route("/admin/merchants", func(merchant fiber.Router) {
+		merchant.Get("/", merchantController.Browse)
+		merchant.Post("/", merchantController.Create)
+		merchant.Post("/:merchantId/items", merchantItemController.CreateItem)
+		merchant.Get("/:merchantId/items", merchantItemController.GetItems)
+	})
 
 }
