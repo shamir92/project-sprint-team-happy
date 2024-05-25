@@ -30,6 +30,10 @@ func PrivateRoutes(params PrivateRouteParam) {
 	var merchantItemUsecase usecase.IMerchantItemUsecase = usecase.NewMerchanItemUsecase(merchantItemRepository)
 	var merchantItemController = controller.NewMerchantItemController(merchantItemUsecase)
 
+	var orderRepository repository.IOrderRepository = repository.NewOrderRepository(params.PostgresWriter.GetDB())
+	var orderUsecase usecase.IOrderUsecase = usecase.NewOrderUsecase(orderRepository, merchantItemRepository)
+	var orderController = controller.NewOrderController(orderUsecase)
+
 	v1 := params.App.Group("v1")
 	v1.Use(middleware.AuthMiddleware(params.JWTManager))
 	v1.Route("/admin/merchants", func(merchant fiber.Router) {
@@ -39,4 +43,7 @@ func PrivateRoutes(params PrivateRouteParam) {
 		merchant.Get("/:merchantId/items", merchantItemController.GetItems)
 	})
 
+	v1.Route("/users", func(router fiber.Router) {
+		router.Post("/estimate", orderController.PostOrderEstimate)
+	})
 }

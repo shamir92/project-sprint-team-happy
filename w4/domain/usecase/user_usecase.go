@@ -97,11 +97,12 @@ func (u *userUsecase) Login(payload UserLoginPayload) (UserLoginResp, error) {
 			}
 		}
 
-		log.Fatalf("LOGIN | FindOneByUsername | error: %v\n", err)
+		log.Printf("LOGIN | FindOneByUsername | error: %v\n", err)
 		return UserLoginResp{}, err
 	}
 
-	if user.IsUserRole() {
+	if !user.IsUserRole() {
+		log.Printf("LOGIN | IsUserRole | %s", user.Role)
 		return UserLoginResp{}, helper.CustomError{
 			Message: ErrLoginUserFailed.Error(),
 			Code:    400,

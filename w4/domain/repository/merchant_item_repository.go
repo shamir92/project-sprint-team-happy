@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const (
@@ -22,6 +23,8 @@ type IMerchantItemRepository interface {
 
 	// FindAndCount(query dto.FindMerchantItemPayload) (rows []entity.MerchantItem, count int, err error)
 	FindAndCount(query dto.FindMerchantItemPayload) (rows []entity.MerchantItem, count int, err error)
+
+	FindByItemIds(itemIds []string) ([]entity.MerchantItem, error)
 }
 
 type merchantItemRepository struct {
@@ -139,4 +142,51 @@ func (mir *merchantItemRepository) FindAndCount(query dto.FindMerchantItemPayloa
 	}
 
 	return entities, count, nil
+}
+
+func (mir *merchantItemRepository) FindByItemIds(itemIds []string) ([]entity.MerchantItem, error) {
+	q := `
+		SELECT 
+			mi.id AS item_id, mi.price AS item_price, mi.category AS item_category, mi.merchant_id AS item_merchant_id,
+			m.id AS merchant_id, m.lat AS merchant_lat, m.lon AS merchant_lon
+		FROM merchant_items mi
+		INNER JOIN merchants m ON mi.merchant_id = m.id
+		WHERE mi.id = ANY($1)
+	`
+
+	rows, err := mir.db.Query(q, pq.Array(itemIds))
+
+	if err != nil {
+		log.Printf("ERROR | FindByItemIds() | %v", err)
+		return []entity.MerchantItem{}, err
+	}
+
+	defer rows.Close()
+
+	var results []entity.MerchantItem
+
+	for rows.Next() {
+		/**
+		mi.id AS item_id, mi.price AS item_price, mi.category AS item_category, mi.merchant_id AS item_merchant_id,
+			m.id AS merchant_id, m.lat AS merchant_lat, m.lon AS merchant_lon
+		**/
+		var item entity.MerchantItem
+		var merchant entity.Merchant
+		err := rows.Scan(&item.ID, &item.Price, &item.Category, &item.MerchantID, &merchant.ID, &merchant.Lat, &merchant.Lon)
+
+		if err != nil {
+			log.Printf("ERROR | FindByItemIds() | %v", err)
+			return []entity.MerchantItem{}, err
+		}
+
+		item.SetMerchant(merchant)
+		results = append(results, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR | FindByItemIds() | %v", err)
+		return []entity.MerchantItem{}, err
+	}
+
+	return results, nil
 }
