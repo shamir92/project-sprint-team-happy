@@ -99,9 +99,12 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 		itemsByID[item.ID.String()] = item
 	}
 
-	var merchants []entity.Merchant
-	var merchantStartingPoint entity.Merchant
-	var totalPrice int = 0
+	var (
+		orderItems            []entity.OrderItem = make([]entity.OrderItem, 0)
+		merchants             []entity.Merchant
+		merchantStartingPoint entity.Merchant
+		totalPrice            int = 0
+	)
 	for _, order := range payload.Orders {
 		var merchant entity.Merchant
 		for _, item := range order.Items {
@@ -120,11 +123,16 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 				}
 			}
 
-			if merchant.ID.String() == "" {
-				merchant = merchantItem.Merchant()
-			}
+			merchant = merchantItem.Merchant()
 
 			totalPrice += merchantItem.Price * item.Quantity
+			orderItems = append(orderItems, entity.OrderItem{
+				Quantity:   item.Quantity,
+				ItemID:     merchantItem.ID,
+				MerchantID: merchantItem.MerchantID,
+				Price:      merchantItem.Price,
+				Amount:     merchantItem.Price * item.Quantity,
+			})
 		}
 
 		if order.IsStartingPoint {
@@ -134,8 +142,8 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 		}
 	}
 
-	fmt.Printf("Merchan Starting Point - lat: %f  lon: %f\n", merchantStartingPoint.Lat, merchantStartingPoint.Lon)
-
+	fmt.Printf("Merchant Starting Point - lat: %f  lon: %f\n", merchantStartingPoint.Lat, merchantStartingPoint.Lon)
+	fmt.Println(merchants)
 	newOrder := entity.Order{
 		UserLat:               payload.UserLocation.Lat,
 		UserLon:               payload.UserLocation.Lon,
@@ -145,7 +153,10 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 		UserID:                userID,
 	}
 
-	createdOrder, err := o.orderRepository.Insert(newOrder)
+	createdOrder, err := o.orderRepository.InsertEstimateOrder(repository.InsertEstimateOrderPayload{
+		Order:      newOrder,
+		OrderItems: orderItems,
+	})
 
 	if err != nil {
 		log.Printf("ERROR | MakeOrderEstimate() | %v", err)
