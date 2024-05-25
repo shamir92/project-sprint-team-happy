@@ -20,3 +20,11 @@ type User struct {
 	Password string    `json:"-"`
 	Role     UserRole  `json:"role"`
 }
+
+func (u User) IsAdmin() bool {
+	return u.Role == ROLE_ADMIN
+}
+
+func (u User) IsUserRole() bool {
+	return u.Role == ROLE_USER
+}

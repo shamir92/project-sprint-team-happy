@@ -3,24 +3,23 @@ package controller
 import (
 	"belimang/domain/usecase"
 	"belimang/internal/helper"
-	"belimang/protocol/api/dto"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type userController struct {
-	userUsecase usecase.IUserUsecase
+type adminController struct {
+	adminUsecase usecase.IAdminUsecase
 }
 
-func NewUserController(userUsecase usecase.IUserUsecase) *userController {
-	return &userController{
-		userUsecase: userUsecase,
+func NewAdminController(adminUsecase usecase.IAdminUsecase) *adminController {
+	return &adminController{
+		adminUsecase: adminUsecase,
 	}
 }
 
-func (c *userController) Register(ctx *fiber.Ctx) error {
-	var body usecase.UserRegisterPayload
+func (c *adminController) Register(ctx *fiber.Ctx) error {
+	var body usecase.AdminRegisterPayload
 
 	if err := ctx.BodyParser(&body); err != nil {
 		return fiber.ErrBadRequest
@@ -30,7 +29,7 @@ func (c *userController) Register(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	token, err := c.userUsecase.Register(body)
+	token, err := c.adminUsecase.Register(body)
 
 	if err != nil {
 		return err
@@ -38,14 +37,14 @@ func (c *userController) Register(ctx *fiber.Ctx) error {
 
 	return ctx.Status(http.StatusCreated).JSON(fiber.Map{
 		"message": "success",
-		"data": dto.UserRegisterDtoResponse{
-			Token: token,
+		"data": fiber.Map{
+			"token": token,
 		},
 	})
 }
 
-func (c *userController) Login(ctx *fiber.Ctx) error {
-	var body usecase.UserLoginPayload
+func (c *adminController) Login(ctx *fiber.Ctx) error {
+	var body usecase.AdminLoginPayload
 
 	if err := ctx.BodyParser(&body); err != nil {
 		return fiber.ErrBadRequest
@@ -55,7 +54,7 @@ func (c *userController) Login(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	resp, err := c.userUsecase.Login(body)
+	resp, err := c.adminUsecase.Login(body)
 
 	if err != nil {
 		return err

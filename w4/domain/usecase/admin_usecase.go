@@ -9,44 +9,45 @@ import (
 )
 
 var (
-	ErrLoginUserFailed = errors.New("username or password is wrong")
+	ErrLoginAdminFailed = errors.New("username or password is wrong")
 )
 
-type IUserUsecase interface {
-	Register(payload UserRegisterPayload) (string, error)
-	Login(payload UserLoginPayload) (UserLoginResp, error)
+type IAdminUsecase interface {
+	Register(payload AdminRegisterPayload) (string, error)
+	Login(payload AdminLoginPayload) (AdminLoginResp, error)
 }
 
-type userUsecase struct {
+type adminUsecase struct {
 	userRepository repository.IUserRepository
 	jwtManager     helper.IJWTManager
 	bcrypt         helper.IBcryptPasswordHash
 }
 
-func NewUserUsecase(userRepository repository.IUserRepository, jwtManager helper.IJWTManager, bcrypt helper.IBcryptPasswordHash) *userUsecase {
-	return &userUsecase{
+func NewAdminUsecase(userRepository repository.IUserRepository, jwtManager helper.IJWTManager, bcrypt helper.IBcryptPasswordHash) *adminUsecase {
+	return &adminUsecase{
 		userRepository: userRepository,
 		bcrypt:         bcrypt,
 		jwtManager:     jwtManager,
 	}
 }
 
-type UserRegisterPayload struct {
+type AdminRegisterPayload struct {
 	Username string `json:"username" validate:"required,min=5,max=30"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=5,max=30"`
 }
 
-type UserLoginPayload struct {
+type AdminLoginPayload struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Role     entity.UserRole
 }
 
-type UserLoginResp struct {
+type AdminLoginResp struct {
 	Token string
 }
 
-func (u *userUsecase) Register(payload UserRegisterPayload) (string, error) {
+func (u *adminUsecase) Register(payload AdminRegisterPayload) (string, error) {
 	var badTokenValue = ""
 
 	isExist, err := u.userRepository.CheckUsernameExist(payload.Username)
@@ -69,7 +70,7 @@ func (u *userUsecase) Register(payload UserRegisterPayload) (string, error) {
 	insertedUser, err := u.userRepository.Insert(entity.User{
 		Email:    payload.Email,
 		Username: payload.Username,
-		Role:     entity.ROLE_USER,
+		Role:     entity.ROLE_ADMIN,
 		Password: hashedPassword,
 	})
 
@@ -86,31 +87,31 @@ func (u *userUsecase) Register(payload UserRegisterPayload) (string, error) {
 	return token, nil
 }
 
-func (u *userUsecase) Login(payload UserLoginPayload) (UserLoginResp, error) {
+func (u *adminUsecase) Login(payload AdminLoginPayload) (AdminLoginResp, error) {
 	user, err := u.userRepository.FindOneByUsername(payload.Username)
 
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			return UserLoginResp{}, helper.CustomError{
-				Message: ErrLoginUserFailed.Error(),
+			return AdminLoginResp{}, helper.CustomError{
+				Message: ErrLoginAdminFailed.Error(),
 				Code:    400,
 			}
 		}
 
-		log.Fatalf("LOGIN | FindOneByUsername | error: %v\n", err)
-		return UserLoginResp{}, err
+		log.Fatalf("LOGIN_ADMIN | FindOneByUsername | error: %v\n", err)
+		return AdminLoginResp{}, err
 	}
 
-	if user.IsUserRole() {
-		return UserLoginResp{}, helper.CustomError{
-			Message: ErrLoginUserFailed.Error(),
+	if !user.IsAdmin() {
+		return AdminLoginResp{}, helper.CustomError{
+			Message: ErrLoginAdminFailed.Error(),
 			Code:    400,
 		}
 	}
 
 	if isMatch := u.bcrypt.Compare(user.Password, payload.Password); !isMatch {
-		return UserLoginResp{}, helper.CustomError{
-			Message: ErrLoginUserFailed.Error(),
+		return AdminLoginResp{}, helper.CustomError{
+			Message: ErrLoginAdminFailed.Error(),
 			Code:    400,
 		}
 	}
@@ -118,11 +119,11 @@ func (u *userUsecase) Login(payload UserLoginPayload) (UserLoginResp, error) {
 	token, err := u.jwtManager.CreateToken(user)
 
 	if err != nil {
-		log.Fatalf("LOGIN | fail when creating the token | error: %v\n", err)
-		return UserLoginResp{}, err
+		log.Fatalf("LOGIN_ADMIN | fail when creating the token | error: %v\n", err)
+		return AdminLoginResp{}, err
 	}
 
-	return UserLoginResp{
+	return AdminLoginResp{
 		Token: token,
 	}, err
 }
