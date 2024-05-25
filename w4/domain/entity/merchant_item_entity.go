@@ -50,4 +50,13 @@ type MerchantItem struct {
 	CreatedAt  time.Time
 	CreatedBy  string
 	MerchantID uuid.UUID
+	merchant   Merchant
+}
+
+func (m *MerchantItem) SetMerchant(merchant Merchant) {
+	m.merchant = merchant
+}
+
+func (m MerchantItem) Merchant() Merchant {
+	return m.merchant
 }
