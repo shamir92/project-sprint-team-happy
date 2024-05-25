@@ -25,9 +25,16 @@ func PrivateRoutes(params PrivateRouteParam) {
 	var merchantUsecase usecase.IMerchantUsecase = usecase.NewMerchantUsecase(merchantRepository)
 	var merchantController = controller.NewMerchantController(merchantUsecase)
 
+	var merchantItemRepository repository.IMerchantItemRepository = repository.NewMerchanItemRepository(params.PostgresWriter.GetDB())
+	var merchantItemUsecase usecase.IMerchantItemUsecase = usecase.NewMerchanItemUsecase(merchantItemRepository)
+	var merchantItemController = controller.NewMerchantItemController(merchantItemUsecase)
+
 	route := params.App.Group("v1/admin")
 
 	merchant := route.Group("merchants")
 	merchant.Get("/", merchantController.Browse)
 	merchant.Post("/", merchantController.Create)
+	merchant.Post("/:merchantId/items", merchantItemController.CreateItem)
+	merchant.Get("/:merchantId/items", merchantItemController.CreateItem)
+
 }

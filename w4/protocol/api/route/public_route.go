@@ -40,4 +40,5 @@ func PublicRoutes(params PublicRouteParams) {
 		router.Post("/register", adminController.Register)
 		router.Post("/login", adminController.Login)
 	})
+
 }
