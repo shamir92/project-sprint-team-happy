@@ -24,6 +24,6 @@ type Order struct {
 	UserLon               float64
 	TotalPrice            int
 	EstimatedDeliveryTime int
-	State                 string
+	State                 OrderState
 	CreatedAt             time.Time
 }
