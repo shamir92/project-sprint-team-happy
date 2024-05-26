@@ -4,8 +4,8 @@ import (
 	"belimang/domain/entity"
 	"belimang/domain/repository"
 	"belimang/internal/helper"
-	"fmt"
 	"log"
+	"math"
 
 	"github.com/google/uuid"
 )
@@ -60,13 +60,6 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 			startPointCounter += 1
 		}
 
-		if startPointCounter > 1 {
-			return emptyOrder, helper.CustomError{
-				Message: "only 1 starting point allowed",
-				Code:    400,
-			}
-		}
-
 		if err := uuid.Validate(order.MerchantID); err != nil {
 			return emptyOrder, helper.CustomError{
 				Message: "merchat not found",
@@ -86,6 +79,13 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 		}
 	}
 
+	if startPointCounter == 0 || startPointCounter > 1 {
+		return emptyOrder, helper.CustomError{
+			Message: "only 1 merchant starting point allowed",
+			Code:    400,
+		}
+	}
+
 	merchantItems, err := o.merchantItemRepository.FindByItemIds(itemIds)
 
 	if err != nil {
@@ -101,10 +101,11 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 
 	var (
 		orderItems            []entity.OrderItem = make([]entity.OrderItem, 0)
-		merchants             []entity.Merchant
-		merchantStartingPoint entity.Merchant
+		merchantLocations     []entity.Location
+		merchantStartingPoint entity.Location
 		totalPrice            int = 0
 	)
+
 	for _, order := range payload.Orders {
 		var merchant entity.Merchant
 		for _, item := range order.Items {
@@ -136,19 +137,28 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 		}
 
 		if order.IsStartingPoint {
-			merchantStartingPoint = merchant
+			merchantStartingPoint = merchant.Location()
 		} else {
-			merchants = append(merchants, merchant)
+			merchantLocations = append(merchantLocations, merchant.Location())
 		}
 	}
 
-	fmt.Printf("Merchant Starting Point - lat: %f  lon: %f\n", merchantStartingPoint.Lat, merchantStartingPoint.Lon)
-	fmt.Println(merchants)
+	userLocation := entity.Location{
+		Lat: payload.UserLocation.Lat,
+		Lon: payload.UserLocation.Lon,
+	}
+
+	estimatedDeliveryTime, err := calculateEstimateOrderDeliveryTime(append([]entity.Location{merchantStartingPoint}, merchantLocations...), userLocation)
+
+	if err != nil {
+		return emptyOrder, err
+	}
+
 	newOrder := entity.Order{
 		UserLat:               payload.UserLocation.Lat,
 		UserLon:               payload.UserLocation.Lon,
 		TotalPrice:            totalPrice,
-		EstimatedDeliveryTime: 0, // TODO: calculate estimated delivery time
+		EstimatedDeliveryTime: int(estimatedDeliveryTime), // TODO: calculate estimated delivery time
 		State:                 entity.Estimated,
 		UserID:                userID,
 	}
@@ -164,4 +174,38 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 	}
 
 	return createdOrder, nil
+}
+
+// The first element in merchant locations is assumed as starting point
+func calculateEstimateOrderDeliveryTime(merchantLocations []entity.Location, userLocation entity.Location) (float64, error) {
+	const SPEED_PER_HOUR = 40    // 40Km
+	const MAX_DISTANCE_IN_KM = 3 // 3Km
+
+	var currentLocation = merchantLocations[0]
+	var totalDistanceInKm float64
+
+	// Calculate distance start from first merchant til last merchant
+	var i = 1
+	for len(merchantLocations) > 0 && i < len(merchantLocations) {
+		loc := merchantLocations[i]
+		var distance float64 = currentLocation.Distance(loc)
+
+		// Check if the distance between the current merchant and the user exceeds the maximum allowed distance
+		if currentLocation.Distance(userLocation) > MAX_DISTANCE_IN_KM {
+			return 0, helper.CustomError{
+				Code:    400,
+				Message: "merchant's destination too far from user's location",
+			}
+		}
+
+		totalDistanceInKm += distance
+		currentLocation = loc
+		i += 1
+	}
+
+	// Calcuate distance from last merchant's location to user's location
+	totalDistanceInKm += currentLocation.Distance(userLocation)
+
+	var deliveryTimeInMinutes = (totalDistanceInKm / SPEED_PER_HOUR) * 60
+	return math.Round(deliveryTimeInMinutes), nil
 }

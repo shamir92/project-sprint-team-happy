@@ -53,3 +53,10 @@ type MerchantFetchFilter struct {
 	Limit            int              `json:"limit"`
 	Offset           int              `json:"offset"`
 }
+
+func (mc Merchant) Location() Location {
+	return Location{
+		Lat: mc.Lat,
+		Lon: mc.Lon,
+	}
+}
