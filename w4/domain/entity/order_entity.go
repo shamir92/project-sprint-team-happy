@@ -27,3 +27,7 @@ type Order struct {
 	State                 OrderState
 	CreatedAt             time.Time
 }
+
+func (o *Order) ChangeStateToOrdered() {
+	o.State = Ordered
+}
