@@ -43,3 +43,25 @@ func (oc *orderController) PostOrderEstimate(ctx *fiber.Ctx) error {
 		},
 	})
 }
+
+func (oc *orderController) PlaceOrder(ctx *fiber.Ctx) error {
+	var body dto.PlaceOrderRequestDto
+
+	if err := ctx.BodyParser(&body); err != nil {
+		return fiber.ErrBadGateway
+	}
+
+	user := ctx.Locals("user").(*helper.JsonWebTokenClaims)
+
+	order, err := oc.orderUsecase.PlaceOrder(body.OrderId, user.UserID)
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"data": dto.PlaceOrderResponseDto{
+			OrderId: order.ID.String(),
+		},
+	})
+}

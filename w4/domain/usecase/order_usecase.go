@@ -4,14 +4,20 @@ import (
 	"belimang/domain/entity"
 	"belimang/domain/repository"
 	"belimang/internal/helper"
+	"errors"
 	"log"
 	"math"
 
 	"github.com/google/uuid"
 )
 
+var (
+	errOrderNotFound = errors.New("order not found")
+)
+
 type IOrderUsecase interface {
 	MakeOrderEstimate(payload MakeOrderEstimatePayload, userId string) (entity.Order, error)
+	PlaceOrder(orderId string, userId string) (entity.Order, error)
 }
 
 type orderUsecase struct {
@@ -174,6 +180,37 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 	}
 
 	return createdOrder, nil
+}
+
+func (o *orderUsecase) PlaceOrder(orderId string, userId string) (entity.Order, error) {
+	if err := uuid.Validate(orderId); err != nil {
+		return entity.Order{}, helper.CustomError{
+			Message: errOrderNotFound.Error(),
+			Code:    404,
+		}
+	}
+
+	order, err := o.orderRepository.FindOrderByID(orderId)
+
+	if err != nil {
+		return entity.Order{}, err
+	}
+
+	if order.UserID.String() != userId {
+		log.Printf("hey")
+		return entity.Order{}, helper.CustomError{
+			Message: errOrderNotFound.Error(),
+			Code:    404,
+		}
+	}
+
+	order.ChangeStateToOrdered()
+
+	if err := o.orderRepository.Update(order); err != nil {
+		return order, err
+	}
+
+	return order, nil
 }
 
 // The first element in merchant locations is assumed as starting point

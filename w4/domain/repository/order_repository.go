@@ -2,8 +2,10 @@ package repository
 
 import (
 	"belimang/domain/entity"
+	"belimang/internal/helper"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -13,6 +15,8 @@ import (
 
 type IOrderRepository interface {
 	InsertEstimateOrder(in InsertEstimateOrderPayload) (entity.Order, error)
+	FindOrderByID(orderID string) (entity.Order, error)
+	Update(entity.Order) error
 }
 
 type orderRepository struct {
@@ -23,6 +27,59 @@ func NewOrderRepository(db *sql.DB) *orderRepository {
 	return &orderRepository{
 		db: db,
 	}
+}
+
+func (r *orderRepository) FindOrderByID(orderID string) (entity.Order, error) {
+	q := `
+		SELECT 
+			id, user_id, user_lon, user_lat, total_price, estimated_delivery_time
+		FROM orders
+		WHERE id = $1
+		`
+
+	var order entity.Order
+
+	err := r.db.QueryRow(q, orderID).Scan(&order.ID, &order.UserID, &order.UserLon, &order.UserLat, &order.TotalPrice, &order.EstimatedDeliveryTime)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return order, helper.CustomError{
+				Code:    404,
+				Message: "order not found",
+			}
+		}
+
+		log.Printf("ERROR | FindOrderByID() | %v\n", err)
+		return order, err
+	}
+
+	return order, nil
+}
+
+func (r *orderRepository) Update(order entity.Order) error {
+	updateQuery := `UPDATE orders SET state = $1 WHERE id = $2`
+
+	result, err := r.db.Exec(updateQuery, order.State, order.ID)
+
+	if err != nil {
+		log.Printf("ERROR | OrderRepository.Update() | %v\n", err)
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+
+	if err != nil {
+		log.Printf("ERROR | OrderRepository.Update() | %v\n", err)
+		return err
+	}
+
+	if affected != 1 {
+		errMsg := fmt.Sprintf("ERROR | OrderRepository.Update() | failed to update rows, expected 1 row to be affected, but %d rows were affected", affected)
+		log.Println(errMsg)
+		return errors.New(errMsg)
+	}
+
+	return nil
 }
 
 func (r *orderRepository) insertOrder(order entity.Order, tx *sql.Tx) (entity.Order, error) {
