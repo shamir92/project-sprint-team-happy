@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "entity/pb";
+
+message PostUsedAcc {
+    uint64 nip = 1;
+    string password = 2;
+}
+
+message GetNipResponse {
+    uint64 nip = 1;
+}
+
+service NIPService {
+    rpc GetItNip (google.protobuf.Empty) returns (GetNipResponse);
+    rpc GetNurseNip (google.protobuf.Empty) returns (GetNipResponse);
+    rpc PostUsedIT (PostUsedAcc) returns (google.protobuf.Empty);
+    rpc PostUsedNurse (PostUsedAcc) returns (google.protobuf.Empty);
+    rpc GetUsedIt (google.protobuf.Empty) returns (PostUsedAcc);
+    rpc GetUsedNurse (google.protobuf.Empty) returns (PostUsedAcc);
+    rpc ResetAll (google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
