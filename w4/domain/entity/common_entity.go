@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -41,11 +42,11 @@ func (l Location) Distance(to Location) float64 {
 
 	// Haversine formula:
 	// a = sin²(Δlat/2) + cos(lat1) * cos(lat2) * sin²(Δlon/2)
-	a := math.Pow(math.Sin(dLat/2), 2) + math.Pow(math.Sin(dLon/2), 2)*math.Cos(l.Lon)*math.Cos(to.Lon)
+	a := math.Pow(math.Sin(dLat/2), 2) + math.Pow(math.Sin(dLon/2), 2)*math.Cos(degreesToRadians(l.Lon))*math.Cos(degreesToRadians(to.Lon))
 
 	// d = 2R * sin^-1(sqrt(a))
 	c := 2 * math.Asin(math.Sqrt(a))
 	d := c * earthRadiusInKm
-
+	fmt.Println("Distance: ", d)
 	return d
 }

@@ -3,6 +3,7 @@ package repository
 import (
 	"belimang/domain/entity"
 	"belimang/internal/helper"
+	"belimang/protocol/api/dto"
 	"context"
 	"database/sql"
 	"errors"
@@ -17,6 +18,7 @@ type IOrderRepository interface {
 	InsertEstimateOrder(in InsertEstimateOrderPayload) (entity.Order, error)
 	FindOrderByID(orderID string) (entity.Order, error)
 	Update(entity.Order) error
+	FindByUser(params dto.GetOrderSearchParams, userID uuid.UUID) ([]entity.Order, error)
 }
 
 type orderRepository struct {
@@ -80,6 +82,81 @@ func (r *orderRepository) Update(order entity.Order) error {
 	}
 
 	return nil
+}
+
+func (r *orderRepository) FindByUser(params dto.GetOrderSearchParams, userID uuid.UUID) ([]entity.Order, error) {
+	q := `
+		SELECT 
+			o.id AS order_id,
+			m.id AS merchant_id, m.name AS merchant_name, m.category AS merchant_category,
+			m.lat AS merchant_lat, m.lon AS merchant_lot, m.created_at AS merchant_created_at,
+			oi.order_item_id AS item_id, oi.price AS item_price, oi.quantity AS item_quantity,
+			mi.name AS item_name, mi.category AS item_category, mi.image_url AS item_img_url,
+			mi.created_at AS item_created_at
+		FROM orders o
+		INNER JOIN order_items oi ON oi.order_id = o.id
+		INNER JOIN merchant_items mi ON oi.order_item_id = mi.id
+		INNER JOIN merchants m ON mi.merchant_id = m.id
+		WHERE o.user_id = $1 AND o.state = $2
+	`
+
+	rows, err := r.db.Query(q, userID, entity.Ordered)
+
+	if err != nil {
+		log.Printf("ERROR | OrderRepository.Find() | %v\n", err)
+		return []entity.Order{}, err
+	}
+
+	defer rows.Close()
+
+	var itemsByOrder = make(map[uuid.UUID][]entity.OrderItem, 0)
+	var ordersMap = make(map[uuid.UUID]entity.Order, 0)
+
+	for rows.Next() {
+		var order entity.Order
+		var orderItem entity.OrderItem
+		var orderItemMerchant entity.Merchant
+		var merchantItem entity.MerchantItem
+		if err := rows.Scan(
+			&order.ID,
+			&orderItemMerchant.ID,
+			&orderItemMerchant.Name,
+			&orderItemMerchant.Category,
+			&orderItemMerchant.Lat,
+			&orderItemMerchant.Lon,
+			&orderItemMerchant.CreatedAt,
+			&orderItem.ItemID,
+			&orderItem.Price,
+			&orderItem.Quantity,
+			&merchantItem.Name,
+			&merchantItem.Category,
+			&merchantItem.ImageUrl,
+			&merchantItem.CreatedAt,
+		); err != nil {
+			log.Printf("ERROR | OrderRepository.Find() | %v\n", err)
+			return []entity.Order{}, err
+		}
+
+		items := itemsByOrder[order.ID]
+		orderItem.SetItem(&merchantItem)
+		orderItem.Item.SetMerchant(orderItemMerchant)
+		itemsByOrder[order.ID] = append(items, orderItem)
+		ordersMap[order.ID] = order
+	}
+
+	var orders = make([]entity.Order, 0)
+
+	for _, order := range ordersMap {
+		order.Items = itemsByOrder[order.ID]
+		orders = append(orders, order)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("ERROR | OrderRepository.Find() | %v\n", err)
+		return []entity.Order{}, err
+	}
+
+	return orders, nil
 }
 
 func (r *orderRepository) insertOrder(order entity.Order, tx *sql.Tx) (entity.Order, error) {

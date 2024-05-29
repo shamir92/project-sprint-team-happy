@@ -4,7 +4,9 @@ import (
 	"belimang/domain/entity"
 	"belimang/domain/repository"
 	"belimang/internal/helper"
+	"belimang/protocol/api/dto"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 
@@ -18,6 +20,7 @@ var (
 type IOrderUsecase interface {
 	MakeOrderEstimate(payload MakeOrderEstimatePayload, userId string) (entity.Order, error)
 	PlaceOrder(orderId string, userId string) (entity.Order, error)
+	GetOrders(params dto.GetOrderSearchParams, userID string) ([]dto.GetOrderResponseDto, error)
 }
 
 type orderUsecase struct {
@@ -211,6 +214,65 @@ func (o *orderUsecase) PlaceOrder(orderId string, userId string) (entity.Order, 
 	}
 
 	return order, nil
+}
+
+func (o *orderUsecase) GetOrders(params dto.GetOrderSearchParams, userID string) ([]dto.GetOrderResponseDto, error) {
+	user, _ := uuid.Parse(userID)
+
+	orders, err := o.orderRepository.FindByUser(params, user)
+
+	if err != nil {
+		var errMsg = fmt.Errorf("ERROR | OrderUsecase.GetOrders() | error to find orders: %v", err)
+		log.Println(errMsg.Error())
+		return []dto.GetOrderResponseDto{}, errMsg
+	}
+
+	var ordersOut []dto.GetOrderResponseDto
+	for _, order := range orders {
+		var orderResp dto.GetOrderResponseDto
+		orderResp.OrderID = order.ID.String()
+		orderResp.Orders = make([]dto.OrderDetailDto, 0)
+		var orderItemsByMerchant = make(map[uuid.UUID]dto.OrderDetailDto, 0)
+
+		/**
+			{
+				[merchantId]: { merchant: Merchant, Items: []OrderItem }
+			}
+		**/
+		for _, orderItem := range order.Items {
+			orderDetail, ok := orderItemsByMerchant[orderItem.Item.MerchantID]
+			var merchant = orderItem.Item.Merchant()
+			if !ok {
+				orderDetail.Merchant = dto.MerchantFetchDtoResponse{
+					ID:        merchant.ID,
+					Name:      merchant.Name,
+					ImageUrl:  merchant.ImageUrl,
+					Location:  merchant.Location(),
+					Category:  merchant.Category,
+					CreatedAt: merchant.CreatedAt,
+				}
+			}
+
+			orderDetail.Items = append(orderDetail.Items, dto.OrderItemDto{
+				ItemId:          orderItem.ItemID,
+				Name:            orderItem.Item.Name,
+				ProductCategory: orderItem.Item.Category,
+				Price:           orderItem.Price,
+				Quantity:        orderItem.Quantity,
+				ImageUrl:        orderItem.Item.ImageUrl,
+				CreatedAt:       orderItem.Item.CreatedAt,
+			})
+
+			orderItemsByMerchant[orderItem.Item.MerchantID] = orderDetail
+		}
+
+		for _, orderDetail := range orderItemsByMerchant {
+			orderResp.Orders = append(orderResp.Orders, orderDetail)
+		}
+
+		ordersOut = append(ordersOut, orderResp)
+	}
+	return ordersOut, nil
 }
 
 // The first element in merchant locations is assumed as starting point
