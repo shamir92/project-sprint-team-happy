@@ -46,5 +46,6 @@ func PrivateRoutes(params PrivateRouteParam) {
 	v1.Route("/users", func(router fiber.Router) {
 		router.Post("/estimate", orderController.PostOrderEstimate)
 		router.Post("/orders", orderController.PlaceOrder)
+		router.Get("/orders", orderController.GetUserOrders)
 	})
 }
