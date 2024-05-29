@@ -3,6 +3,7 @@ package repository
 import (
 	"belimang/domain/entity"
 	"belimang/protocol/api/dto"
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -18,26 +21,30 @@ const (
 )
 
 type IMerchantItemRepository interface {
-	Insert(entity.MerchantItem) (entity.MerchantItem, error)
-	CheckMerchantExist(merchantID string) (bool, error)
+	Insert(ctx context.Context, i entity.MerchantItem) (entity.MerchantItem, error)
+	CheckMerchantExist(ctx context.Context, merchantID string) (bool, error)
 
 	// FindAndCount(query dto.FindMerchantItemPayload) (rows []entity.MerchantItem, count int, err error)
-	FindAndCount(query dto.FindMerchantItemPayload) (rows []entity.MerchantItem, count int, err error)
+	FindAndCount(ctx context.Context, query dto.FindMerchantItemPayload) ([]entity.MerchantItem, int, error)
 
-	FindByItemIds(itemIds []string) ([]entity.MerchantItem, error)
+	FindByItemIds(ctx context.Context, itemIds []string) ([]entity.MerchantItem, error)
 }
 
 type merchantItemRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	tracer trace.Tracer
 }
 
 func NewMerchanItemRepository(db *sql.DB) *merchantItemRepository {
 	return &merchantItemRepository{
-		db: db,
+		db:     db,
+		tracer: otel.Tracer("merchant-item-repository"),
 	}
 }
 
-func (mir *merchantItemRepository) Insert(i entity.MerchantItem) (entity.MerchantItem, error) {
+func (r *merchantItemRepository) Insert(ctx context.Context, i entity.MerchantItem) (entity.MerchantItem, error) {
+	_, span := r.tracer.Start(ctx, "Insert")
+	defer span.End()
 	q := `
 		INSERT INTO 
 			merchant_items(merchant_id, name, category, price, image_url, created_by)
@@ -45,7 +52,7 @@ func (mir *merchantItemRepository) Insert(i entity.MerchantItem) (entity.Merchan
 		RETURNING id				
 	`
 
-	row := mir.db.QueryRow(q, i.MerchantID, i.Name, i.Category.String(), i.Price, i.ImageUrl, i.CreatedBy)
+	row := r.db.QueryRow(q, i.MerchantID, i.Name, i.Category.String(), i.Price, i.ImageUrl, i.CreatedBy)
 
 	var createdItem = i
 	if err := row.Scan(&createdItem.ID); err != nil {
@@ -55,14 +62,19 @@ func (mir *merchantItemRepository) Insert(i entity.MerchantItem) (entity.Merchan
 	return createdItem, nil
 }
 
-func (mir *merchantItemRepository) CheckMerchantExist(merchantID string) (bool, error) {
+func (r *merchantItemRepository) CheckMerchantExist(ctx context.Context, merchantID string) (bool, error) {
+	_, span := r.tracer.Start(ctx, "CheckMerchantExist")
+	defer span.End()
+
 	var count int
-	err := mir.db.QueryRow(`SELECT count(id) FROM merchants WHERE id = $1`, merchantID).Scan(&count)
+	err := r.db.QueryRow(`SELECT count(id) FROM merchants WHERE id = $1`, merchantID).Scan(&count)
 
 	return count > 0, err
 }
 
-func (mir *merchantItemRepository) FindAndCount(query dto.FindMerchantItemPayload) ([]entity.MerchantItem, int, error) {
+func (r *merchantItemRepository) FindAndCount(ctx context.Context, query dto.FindMerchantItemPayload) ([]entity.MerchantItem, int, error) {
+	_, span := r.tracer.Start(ctx, "FindAndCount")
+	defer span.End()
 	var (
 		entities   []entity.MerchantItem = make([]entity.MerchantItem, 0)
 		conditions []string              = make([]string, 0)
@@ -106,7 +118,7 @@ func (mir *merchantItemRepository) FindAndCount(query dto.FindMerchantItemPayloa
 
 	q += fmt.Sprintf("\nLIMIT %s OFFSET %s", query.Limit, query.Offset)
 
-	rows, err := mir.db.Query(q, values...)
+	rows, err := r.db.Query(q, values...)
 
 	if err != nil {
 		log.Printf("ERROR | FindAndCount() | %v", err)
@@ -135,7 +147,7 @@ func (mir *merchantItemRepository) FindAndCount(query dto.FindMerchantItemPayloa
 	}
 
 	var count int
-	err = mir.db.QueryRow(countQuery, values...).Scan(&count)
+	err = r.db.QueryRow(countQuery, values...).Scan(&count)
 	if err != nil {
 		log.Printf("ERROR | FindAndCount() | %v", err)
 		return entities, 0, err
@@ -144,7 +156,9 @@ func (mir *merchantItemRepository) FindAndCount(query dto.FindMerchantItemPayloa
 	return entities, count, nil
 }
 
-func (mir *merchantItemRepository) FindByItemIds(itemIds []string) ([]entity.MerchantItem, error) {
+func (r *merchantItemRepository) FindByItemIds(ctx context.Context, itemIds []string) ([]entity.MerchantItem, error) {
+	_, span := r.tracer.Start(ctx, "FindByItemIds")
+	defer span.End()
 	q := `
 		SELECT 
 			mi.id AS item_id, mi.price AS item_price, mi.category AS item_category, mi.merchant_id AS item_merchant_id,
@@ -154,7 +168,7 @@ func (mir *merchantItemRepository) FindByItemIds(itemIds []string) ([]entity.Mer
 		WHERE mi.id = ANY($1)
 	`
 
-	rows, err := mir.db.Query(q, pq.Array(itemIds))
+	rows, err := r.db.Query(q, pq.Array(itemIds))
 
 	if err != nil {
 		log.Printf("ERROR | FindByItemIds() | %v", err)

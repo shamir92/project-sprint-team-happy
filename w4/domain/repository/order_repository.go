@@ -12,26 +12,32 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type IOrderRepository interface {
-	InsertEstimateOrder(in InsertEstimateOrderPayload) (entity.Order, error)
-	FindOrderByID(orderID string) (entity.Order, error)
-	Update(entity.Order) error
-	FindByUser(params dto.GetOrderSearchParams, userID uuid.UUID) ([]entity.Order, error)
+	InsertEstimateOrder(ctx context.Context, in InsertEstimateOrderPayload) (entity.Order, error)
+	FindOrderByID(ctx context.Context, orderID string) (entity.Order, error)
+	Update(ctx context.Context, order entity.Order) error
+	FindByUser(ctx context.Context, params dto.GetOrderSearchParams, userID uuid.UUID) ([]entity.Order, error)
 }
 
 type orderRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	tracer trace.Tracer
 }
 
 func NewOrderRepository(db *sql.DB) *orderRepository {
 	return &orderRepository{
-		db: db,
+		db:     db,
+		tracer: otel.Tracer("merchant-repository"),
 	}
 }
 
-func (r *orderRepository) FindOrderByID(orderID string) (entity.Order, error) {
+func (r *orderRepository) FindOrderByID(ctx context.Context, orderID string) (entity.Order, error) {
+	_, span := r.tracer.Start(ctx, "FindOrderByID")
+	defer span.End()
 	q := `
 		SELECT 
 			id, user_id, user_lon, user_lat, total_price, estimated_delivery_time
@@ -58,7 +64,10 @@ func (r *orderRepository) FindOrderByID(orderID string) (entity.Order, error) {
 	return order, nil
 }
 
-func (r *orderRepository) Update(order entity.Order) error {
+func (r *orderRepository) Update(ctx context.Context, order entity.Order) error {
+	_, span := r.tracer.Start(ctx, "Update")
+	defer span.End()
+
 	updateQuery := `UPDATE orders SET state = $1 WHERE id = $2`
 
 	result, err := r.db.Exec(updateQuery, order.State, order.ID)
@@ -84,7 +93,9 @@ func (r *orderRepository) Update(order entity.Order) error {
 	return nil
 }
 
-func (r *orderRepository) FindByUser(params dto.GetOrderSearchParams, userID uuid.UUID) ([]entity.Order, error) {
+func (r *orderRepository) FindByUser(ctx context.Context, params dto.GetOrderSearchParams, userID uuid.UUID) ([]entity.Order, error) {
+	_, span := r.tracer.Start(ctx, "FindByUser")
+	defer span.End()
 	q := `
 		SELECT 
 			o.id AS order_id,
@@ -159,7 +170,9 @@ func (r *orderRepository) FindByUser(params dto.GetOrderSearchParams, userID uui
 	return orders, nil
 }
 
-func (r *orderRepository) insertOrder(order entity.Order, tx *sql.Tx) (entity.Order, error) {
+func (r *orderRepository) insertOrder(ctx context.Context, order entity.Order, tx *sql.Tx) (entity.Order, error) {
+	_, span := r.tracer.Start(ctx, "insertOrder")
+	defer span.End()
 	q := `
 		INSERT INTO 
 			orders(user_id, user_lat, user_lon, total_price, estimated_delivery_time, state)
@@ -178,7 +191,9 @@ func (r *orderRepository) insertOrder(order entity.Order, tx *sql.Tx) (entity.Or
 	return newOrder, nil
 }
 
-func (r *orderRepository) insertOrderItems(orderID uuid.UUID, items []entity.OrderItem, tx *sql.Tx) error {
+func (r *orderRepository) insertOrderItems(ctx context.Context, orderID uuid.UUID, items []entity.OrderItem, tx *sql.Tx) error {
+	_, span := r.tracer.Start(ctx, "insertOrderItems")
+	defer span.End()
 	q := `
 		INSERT INTO order_items(order_id, order_item_id, price, quantity, amount)
 	`
@@ -208,17 +223,19 @@ type InsertEstimateOrderPayload struct {
 	OrderItems []entity.OrderItem
 }
 
-func (r *orderRepository) InsertEstimateOrder(in InsertEstimateOrderPayload) (entity.Order, error) {
+func (r *orderRepository) InsertEstimateOrder(ctx context.Context, in InsertEstimateOrderPayload) (entity.Order, error) {
+	_, span := r.tracer.Start(ctx, "InsertEstimateOrder")
+	defer span.End()
 	var newOrder entity.Order
 	err := r.startTrx(func(tx *sql.Tx) error {
-		createdOrder, err := r.insertOrder(in.Order, tx)
+		createdOrder, err := r.insertOrder(ctx, in.Order, tx)
 
 		if err != nil {
 			return err
 		}
 		newOrder = createdOrder
 
-		err = r.insertOrderItems(newOrder.ID, in.OrderItems, tx)
+		err = r.insertOrderItems(ctx, newOrder.ID, in.OrderItems, tx)
 
 		if err != nil {
 			return err

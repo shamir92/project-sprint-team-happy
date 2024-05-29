@@ -4,8 +4,12 @@ import (
 	"belimang/domain/entity"
 	"belimang/domain/repository"
 	"belimang/internal/helper"
+	"context"
 	"errors"
 	"log"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -13,14 +17,15 @@ var (
 )
 
 type IUserUsecase interface {
-	Register(payload UserRegisterPayload) (string, error)
-	Login(payload UserLoginPayload) (UserLoginResp, error)
+	Register(ctx context.Context, payload UserRegisterPayload) (string, error)
+	Login(ctx context.Context, payload UserLoginPayload) (UserLoginResp, error)
 }
 
 type userUsecase struct {
 	userRepository repository.IUserRepository
 	jwtManager     helper.IJWTManager
 	bcrypt         helper.IBcryptPasswordHash
+	tracer         trace.Tracer
 }
 
 func NewUserUsecase(userRepository repository.IUserRepository, jwtManager helper.IJWTManager, bcrypt helper.IBcryptPasswordHash) *userUsecase {
@@ -28,6 +33,7 @@ func NewUserUsecase(userRepository repository.IUserRepository, jwtManager helper
 		userRepository: userRepository,
 		bcrypt:         bcrypt,
 		jwtManager:     jwtManager,
+		tracer:         otel.Tracer("user-usecase"),
 	}
 }
 
@@ -46,10 +52,12 @@ type UserLoginResp struct {
 	Token string
 }
 
-func (u *userUsecase) Register(payload UserRegisterPayload) (string, error) {
+func (u *userUsecase) Register(ctx context.Context, payload UserRegisterPayload) (string, error) {
+	_, span := u.tracer.Start(ctx, "Register")
+	defer span.End()
 	var badTokenValue = ""
 
-	isExist, err := u.userRepository.CheckUsernameExist(payload.Username)
+	isExist, err := u.userRepository.CheckUsernameExist(ctx, payload.Username)
 	if err != nil {
 		return badTokenValue, err
 	}
@@ -66,7 +74,7 @@ func (u *userUsecase) Register(payload UserRegisterPayload) (string, error) {
 		return badTokenValue, err
 	}
 
-	insertedUser, err := u.userRepository.Insert(entity.User{
+	insertedUser, err := u.userRepository.Insert(ctx, entity.User{
 		Email:    payload.Email,
 		Username: payload.Username,
 		Role:     entity.ROLE_USER,
@@ -86,8 +94,10 @@ func (u *userUsecase) Register(payload UserRegisterPayload) (string, error) {
 	return token, nil
 }
 
-func (u *userUsecase) Login(payload UserLoginPayload) (UserLoginResp, error) {
-	user, err := u.userRepository.FindOneByUsername(payload.Username)
+func (u *userUsecase) Login(ctx context.Context, payload UserLoginPayload) (UserLoginResp, error) {
+	_, span := u.tracer.Start(ctx, "Login")
+	defer span.End()
+	user, err := u.userRepository.FindOneByUsername(ctx, payload.Username)
 
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {

@@ -4,8 +4,10 @@ import (
 	"belimang/domain/usecase"
 	"belimang/internal/helper"
 	"belimang/protocol/api/dto"
+	"context"
 
 	"github.com/gofiber/fiber/v2"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type orderController struct {
@@ -17,6 +19,11 @@ func NewOrderController(orderUsecase usecase.IOrderUsecase) *orderController {
 }
 
 func (oc *orderController) PostOrderEstimate(ctx *fiber.Ctx) error {
+	context := ctx.Locals("ctx").(context.Context)
+	tracer := ctx.Locals("tracer").(trace.Tracer)
+
+	_, span := tracer.Start(context, "PostOrderEstimate")
+	defer span.End()
 	var body usecase.MakeOrderEstimatePayload
 
 	if err := ctx.BodyParser(&body); err != nil {
@@ -29,7 +36,7 @@ func (oc *orderController) PostOrderEstimate(ctx *fiber.Ctx) error {
 
 	user := ctx.Locals("user").(*helper.JsonWebTokenClaims)
 
-	order, err := oc.orderUsecase.MakeOrderEstimate(body, user.UserID)
+	order, err := oc.orderUsecase.MakeOrderEstimate(context, body, user.UserID)
 
 	if err != nil {
 		return err
@@ -45,6 +52,11 @@ func (oc *orderController) PostOrderEstimate(ctx *fiber.Ctx) error {
 }
 
 func (oc *orderController) PlaceOrder(ctx *fiber.Ctx) error {
+	context := ctx.Locals("ctx").(context.Context)
+	tracer := ctx.Locals("tracer").(trace.Tracer)
+
+	_, span := tracer.Start(context, "PlaceOrder")
+	defer span.End()
 	var body dto.PlaceOrderRequestDto
 
 	if err := ctx.BodyParser(&body); err != nil {
@@ -53,7 +65,7 @@ func (oc *orderController) PlaceOrder(ctx *fiber.Ctx) error {
 
 	user := ctx.Locals("user").(*helper.JsonWebTokenClaims)
 
-	order, err := oc.orderUsecase.PlaceOrder(body.OrderId, user.UserID)
+	order, err := oc.orderUsecase.PlaceOrder(context, body.OrderId, user.UserID)
 
 	if err != nil {
 		return err
@@ -67,11 +79,16 @@ func (oc *orderController) PlaceOrder(ctx *fiber.Ctx) error {
 }
 
 func (oc *orderController) GetUserOrders(ctx *fiber.Ctx) error {
+	context := ctx.Locals("ctx").(context.Context)
+	tracer := ctx.Locals("tracer").(trace.Tracer)
+
+	_, span := tracer.Start(context, "GetUserOrders")
+	defer span.End()
 	var body dto.GetOrderSearchParams
 
 	user := ctx.Locals("user").(*helper.JsonWebTokenClaims)
 
-	orders, err := oc.orderUsecase.GetOrders(body, user.UserID)
+	orders, err := oc.orderUsecase.GetOrders(context, body, user.UserID)
 
 	if err != nil {
 		return err

@@ -4,9 +4,11 @@ import (
 	"belimang/domain/usecase"
 	"belimang/internal/helper"
 	"belimang/protocol/api/dto"
+	"context"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type userController struct {
@@ -20,6 +22,11 @@ func NewUserController(userUsecase usecase.IUserUsecase) *userController {
 }
 
 func (c *userController) Register(ctx *fiber.Ctx) error {
+	context := ctx.Locals("ctx").(context.Context)
+	tracer := ctx.Locals("tracer").(trace.Tracer)
+
+	_, span := tracer.Start(context, "Register")
+	defer span.End()
 	var body usecase.UserRegisterPayload
 
 	if err := ctx.BodyParser(&body); err != nil {
@@ -30,7 +37,7 @@ func (c *userController) Register(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	token, err := c.userUsecase.Register(body)
+	token, err := c.userUsecase.Register(context, body)
 
 	if err != nil {
 		return err
@@ -45,6 +52,11 @@ func (c *userController) Register(ctx *fiber.Ctx) error {
 }
 
 func (c *userController) Login(ctx *fiber.Ctx) error {
+	context := ctx.Locals("ctx").(context.Context)
+	tracer := ctx.Locals("tracer").(trace.Tracer)
+	_, span := tracer.Start(context, "Login")
+	defer span.End()
+
 	var body usecase.UserLoginPayload
 
 	if err := ctx.BodyParser(&body); err != nil {
@@ -55,7 +67,7 @@ func (c *userController) Login(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	resp, err := c.userUsecase.Login(body)
+	resp, err := c.userUsecase.Login(context, body)
 
 	if err != nil {
 		return err

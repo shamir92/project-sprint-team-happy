@@ -18,5 +18,13 @@ services:
       - database-data:/var/lib/postgresql/data/ # persist data even if container shuts down
     ports:
       - "5432:5432"
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+      - "14268:14268"
+    environment:
+      - LOG_LEVEL=debug
 volumes:
   database-data: # named volumes can be managed easier using docker-compose

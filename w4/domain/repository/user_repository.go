@@ -2,8 +2,12 @@ package repository
 
 import (
 	"belimang/domain/entity"
+	"context"
 	"database/sql"
 	"errors"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -12,26 +16,31 @@ var (
 
 type IUserRepository interface {
 	// Return created user's ID
-	Insert(newUser entity.User) (entity.User, error)
+	Insert(ctx context.Context, newUser entity.User) (entity.User, error)
 
 	// Return true when username is exist in database
-	CheckUsernameExist(username string) (bool, error)
+	CheckUsernameExist(ctx context.Context, username string) (bool, error)
 
 	// Find 1 user by its username
-	FindOneByUsername(username string) (entity.User, error)
+	FindOneByUsername(ctx context.Context, username string) (entity.User, error)
 }
 
 type userRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	tracer trace.Tracer
 }
 
 func NewUserRepository(db *sql.DB) *userRepository {
 	return &userRepository{
-		db: db,
+		db:     db,
+		tracer: otel.Tracer("user-repository"),
 	}
 }
 
-func (r *userRepository) Insert(newUser entity.User) (entity.User, error) {
+func (r *userRepository) Insert(ctx context.Context, newUser entity.User) (entity.User, error) {
+	_, span := r.tracer.Start(ctx, "Insert")
+	defer span.End()
+
 	q := `
 		INSERT INTO users(username, password, email, role)
 		VALUES ($1, $2, $3, $4)
@@ -48,14 +57,20 @@ func (r *userRepository) Insert(newUser entity.User) (entity.User, error) {
 	return createdUser, nil
 }
 
-func (r *userRepository) CheckUsernameExist(username string) (bool, error) {
+func (r *userRepository) CheckUsernameExist(ctx context.Context, username string) (bool, error) {
+	_, span := r.tracer.Start(ctx, "CheckUsernameExist")
+	defer span.End()
+
 	var count int
 	err := r.db.QueryRow(`SELECT count(username) FROM users WHERE username = $1`, username).Scan(&count)
 
 	return count > 0, err
 }
 
-func (r *userRepository) FindOneByUsername(username string) (entity.User, error) {
+func (r *userRepository) FindOneByUsername(ctx context.Context, username string) (entity.User, error) {
+	_, span := r.tracer.Start(ctx, "FindOneByUsername")
+	defer span.End()
+
 	q := `SELECT id, username, role, password, email FROM users WHERE username = $1`
 	var user entity.User
 	err := r.db.QueryRow(q, username).Scan(&user.ID, &user.Username, &user.Role, &user.Password, &user.Email)

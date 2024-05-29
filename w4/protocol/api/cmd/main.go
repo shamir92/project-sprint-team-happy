@@ -6,9 +6,11 @@ import (
 	"belimang/internal/helper"
 	"belimang/protocol/api/controller"
 	"belimang/protocol/api/route"
+	"context"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -16,7 +18,9 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("error loading .env file")
 	}
+
 	// For configuration
+	var jaegerConfiguration configuration.IJaegerConfiguration = configuration.NewJaegerConfiguration()
 	var appConfiguration configuration.IAppConfiguration = configuration.NewAppConfiguration()
 	var dbConfiguration configuration.IDatabaseWriter = configuration.NewDatabaseWriter()
 	var jwtConfiguration configuration.IJWTConfiguration = configuration.NewJWTConfiguration()
@@ -25,7 +29,18 @@ func main() {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: controller.ErrorHandler,
 	})
+	// app.Use(otelfiber.Middleware())
+	tracer := jaegerConfiguration.GetTracer()
+	app.Use(func(c *fiber.Ctx) error {
+		ctx, span := tracer.Start(context.Background(), c.Path())
+		defer span.End()
 
+		c.Locals("ctx", ctx)
+		c.Locals("tracer", tracer)
+		return c.Next()
+	})
+
+	app.Use(logger.New())
 	// For External Interfaces
 	postgresWriter, err := database.NewPostgresWriter(dbConfiguration)
 	if err != nil {
