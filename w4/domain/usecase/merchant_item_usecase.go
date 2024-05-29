@@ -5,23 +5,28 @@ import (
 	"belimang/domain/repository"
 	"belimang/internal/helper"
 	"belimang/protocol/api/dto"
+	"context"
 	"strconv"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type IMerchantItemUsecase interface {
-	Create(payload CreateMerchanItemPayload, createdBy string) (entity.MerchantItem, error)
-	FindItemsByMerchant(query dto.FindMerchantItemPayload) ([]entity.MerchantItem, PaginationMeta, error)
+	Create(ctx context.Context, payload CreateMerchanItemPayload, createdBy string) (entity.MerchantItem, error)
+	FindItemsByMerchant(ctx context.Context, query dto.FindMerchantItemPayload) ([]entity.MerchantItem, PaginationMeta, error)
 }
 
 type merchantItemUsecase struct {
 	itemRepository repository.IMerchantItemRepository
+	tracer         trace.Tracer
 }
 
 func NewMerchanItemUsecase(itemRepository repository.IMerchantItemRepository) *merchantItemUsecase {
 	return &merchantItemUsecase{
 		itemRepository: itemRepository,
+		tracer:         otel.Tracer("merchant-item-usecase"),
 	}
 }
 
@@ -39,7 +44,9 @@ type PaginationMeta struct {
 	Total  int `json:"total"`
 }
 
-func (miu *merchantItemUsecase) Create(payload CreateMerchanItemPayload, createdBy string) (entity.MerchantItem, error) {
+func (u *merchantItemUsecase) Create(ctx context.Context, payload CreateMerchanItemPayload, createdBy string) (entity.MerchantItem, error) {
+	_, span := u.tracer.Start(ctx, "Create")
+	defer span.End()
 	var merchantID, err = uuid.Parse(payload.MerchantID)
 
 	if err != nil {
@@ -49,7 +56,7 @@ func (miu *merchantItemUsecase) Create(payload CreateMerchanItemPayload, created
 		}
 	}
 
-	isExist, err := miu.itemRepository.CheckMerchantExist(payload.MerchantID)
+	isExist, err := u.itemRepository.CheckMerchantExist(ctx, payload.MerchantID)
 
 	if err != nil {
 		return entity.MerchantItem{}, err
@@ -62,7 +69,7 @@ func (miu *merchantItemUsecase) Create(payload CreateMerchanItemPayload, created
 		}
 	}
 
-	newItem, err := miu.itemRepository.Insert(entity.MerchantItem{
+	newItem, err := u.itemRepository.Insert(ctx, entity.MerchantItem{
 		Name:       payload.Name,
 		Category:   entity.ItemCategory(payload.Category),
 		ImageUrl:   payload.ImageUrl,
@@ -78,7 +85,9 @@ func (miu *merchantItemUsecase) Create(payload CreateMerchanItemPayload, created
 	return newItem, err
 }
 
-func (miu *merchantItemUsecase) FindItemsByMerchant(query dto.FindMerchantItemPayload) ([]entity.MerchantItem, PaginationMeta, error) {
+func (u *merchantItemUsecase) FindItemsByMerchant(ctx context.Context, query dto.FindMerchantItemPayload) ([]entity.MerchantItem, PaginationMeta, error) {
+	_, span := u.tracer.Start(ctx, "FindItemsByMerchant")
+	defer span.End()
 	var (
 		// Default meta
 		meta = PaginationMeta{
@@ -89,7 +98,7 @@ func (miu *merchantItemUsecase) FindItemsByMerchant(query dto.FindMerchantItemPa
 		q = query
 	)
 
-	if err := miu.validateMerchantIsExist(query.MerchantID); err != nil {
+	if err := u.validateMerchantIsExist(ctx, query.MerchantID); err != nil {
 		return nil, meta, err
 	}
 
@@ -105,13 +114,15 @@ func (miu *merchantItemUsecase) FindItemsByMerchant(query dto.FindMerchantItemPa
 		q.Offset = strconv.Itoa(meta.Offset)
 	}
 
-	rows, count, err := miu.itemRepository.FindAndCount(q)
+	rows, count, err := u.itemRepository.FindAndCount(ctx, q)
 	meta.Total = count
 
 	return rows, meta, err
 }
 
-func (miu *merchantItemUsecase) validateMerchantIsExist(id string) error {
+func (u *merchantItemUsecase) validateMerchantIsExist(ctx context.Context, id string) error {
+	_, span := u.tracer.Start(ctx, "validateMerchantIsExist")
+	defer span.End()
 	var _, err = uuid.Parse(id)
 
 	if err != nil {
@@ -121,7 +132,7 @@ func (miu *merchantItemUsecase) validateMerchantIsExist(id string) error {
 		}
 	}
 
-	isExist, err := miu.itemRepository.CheckMerchantExist(id)
+	isExist, err := u.itemRepository.CheckMerchantExist(ctx, id)
 
 	if err != nil {
 		return err

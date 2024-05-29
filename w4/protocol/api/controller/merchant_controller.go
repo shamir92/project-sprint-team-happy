@@ -3,9 +3,11 @@ package controller
 import (
 	"belimang/domain/usecase"
 	"belimang/internal/helper"
+	"context"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type merchantController struct {
@@ -17,13 +19,18 @@ func NewMerchantController(merchantUsecase usecase.IMerchantUsecase) *merchantCo
 }
 
 func (c *merchantController) Browse(ctx *fiber.Ctx) error {
+	context := ctx.Locals("ctx").(context.Context)
+	tracer := ctx.Locals("tracer").(trace.Tracer)
+
+	_, span := tracer.Start(context, "Browse")
+	defer span.End()
 	var query usecase.MerchantFetchQuery
 
 	if err := ctx.QueryParser(&query); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	response, err := c.merchantUsecase.Fetch(query)
+	response, err := c.merchantUsecase.Fetch(context, query)
 	if err != nil {
 		return err
 	}
@@ -35,6 +42,11 @@ func (c *merchantController) Browse(ctx *fiber.Ctx) error {
 }
 
 func (c *merchantController) Create(ctx *fiber.Ctx) error {
+	context := ctx.Locals("ctx").(context.Context)
+	tracer := ctx.Locals("tracer").(trace.Tracer)
+
+	_, span := tracer.Start(context, "Create")
+	defer span.End()
 	var payload usecase.MerchantCreatePayload
 
 	if err := ctx.BodyParser(&payload); err != nil {
@@ -45,7 +57,7 @@ func (c *merchantController) Create(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := c.merchantUsecase.Create(payload)
+	response, err := c.merchantUsecase.Create(context, payload)
 	if err != nil {
 		return err
 	}

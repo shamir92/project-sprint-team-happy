@@ -10,6 +10,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -39,6 +40,7 @@ func main() {
 		return c.Next()
 	})
 
+	app.Use(logger.New())
 	// For External Interfaces
 	postgresWriter, err := database.NewPostgresWriter(dbConfiguration)
 	if err != nil {

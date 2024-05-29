@@ -4,8 +4,12 @@ import (
 	"belimang/domain/entity"
 	"belimang/domain/repository"
 	"belimang/internal/helper"
+	"context"
 	"errors"
 	"log"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -13,14 +17,15 @@ var (
 )
 
 type IAdminUsecase interface {
-	Register(payload AdminRegisterPayload) (string, error)
-	Login(payload AdminLoginPayload) (AdminLoginResp, error)
+	Register(ctx context.Context, payload AdminRegisterPayload) (string, error)
+	Login(ctx context.Context, payload AdminLoginPayload) (AdminLoginResp, error)
 }
 
 type adminUsecase struct {
 	userRepository repository.IUserRepository
 	jwtManager     helper.IJWTManager
 	bcrypt         helper.IBcryptPasswordHash
+	tracer         trace.Tracer
 }
 
 func NewAdminUsecase(userRepository repository.IUserRepository, jwtManager helper.IJWTManager, bcrypt helper.IBcryptPasswordHash) *adminUsecase {
@@ -28,6 +33,7 @@ func NewAdminUsecase(userRepository repository.IUserRepository, jwtManager helpe
 		userRepository: userRepository,
 		bcrypt:         bcrypt,
 		jwtManager:     jwtManager,
+		tracer:         otel.Tracer("admin-usecase"),
 	}
 }
 
@@ -47,10 +53,12 @@ type AdminLoginResp struct {
 	Token string
 }
 
-func (u *adminUsecase) Register(payload AdminRegisterPayload) (string, error) {
+func (u *adminUsecase) Register(ctx context.Context, payload AdminRegisterPayload) (string, error) {
+	_, span := u.tracer.Start(ctx, "Register")
+	defer span.End()
 	var badTokenValue = ""
 
-	isExist, err := u.userRepository.CheckUsernameExist(payload.Username)
+	isExist, err := u.userRepository.CheckUsernameExist(ctx, payload.Username)
 	if err != nil {
 		return badTokenValue, err
 	}
@@ -67,7 +75,7 @@ func (u *adminUsecase) Register(payload AdminRegisterPayload) (string, error) {
 		return badTokenValue, err
 	}
 
-	insertedUser, err := u.userRepository.Insert(entity.User{
+	insertedUser, err := u.userRepository.Insert(ctx, entity.User{
 		Email:    payload.Email,
 		Username: payload.Username,
 		Role:     entity.ROLE_ADMIN,
@@ -87,8 +95,10 @@ func (u *adminUsecase) Register(payload AdminRegisterPayload) (string, error) {
 	return token, nil
 }
 
-func (u *adminUsecase) Login(payload AdminLoginPayload) (AdminLoginResp, error) {
-	user, err := u.userRepository.FindOneByUsername(payload.Username)
+func (u *adminUsecase) Login(ctx context.Context, payload AdminLoginPayload) (AdminLoginResp, error) {
+	_, span := u.tracer.Start(ctx, "Login")
+	defer span.End()
+	user, err := u.userRepository.FindOneByUsername(ctx, payload.Username)
 
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {

@@ -5,12 +5,15 @@ import (
 	"belimang/domain/repository"
 	"belimang/internal/helper"
 	"belimang/protocol/api/dto"
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"math"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -18,20 +21,22 @@ var (
 )
 
 type IOrderUsecase interface {
-	MakeOrderEstimate(payload MakeOrderEstimatePayload, userId string) (entity.Order, error)
-	PlaceOrder(orderId string, userId string) (entity.Order, error)
-	GetOrders(params dto.GetOrderSearchParams, userID string) ([]dto.GetOrderResponseDto, error)
+	MakeOrderEstimate(ctx context.Context, payload MakeOrderEstimatePayload, userId string) (entity.Order, error)
+	PlaceOrder(ctx context.Context, orderId string, userId string) (entity.Order, error)
+	GetOrders(ctx context.Context, params dto.GetOrderSearchParams, userID string) ([]dto.GetOrderResponseDto, error)
 }
 
 type orderUsecase struct {
 	orderRepository        repository.IOrderRepository
 	merchantItemRepository repository.IMerchantItemRepository
+	tracer                 trace.Tracer
 }
 
 func NewOrderUsecase(orderRepository repository.IOrderRepository, itemRepository repository.IMerchantItemRepository) *orderUsecase {
 	return &orderUsecase{
 		orderRepository:        orderRepository,
 		merchantItemRepository: itemRepository,
+		tracer:                 otel.Tracer("order-usecase"),
 	}
 }
 
@@ -51,7 +56,9 @@ type MakeOrderEstimatePayload struct {
 	Orders       []MakeOrderEstimateMerchant `json:"orders" validate:"required"`
 }
 
-func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userId string) (entity.Order, error) {
+func (u *orderUsecase) MakeOrderEstimate(ctx context.Context, payload MakeOrderEstimatePayload, userId string) (entity.Order, error) {
+	_, span := u.tracer.Start(ctx, "MakeOrderEstimate")
+	defer span.End()
 	var (
 		itemIds    = make([]string, 0)
 		emptyOrder entity.Order // negative return
@@ -95,7 +102,7 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 		}
 	}
 
-	merchantItems, err := o.merchantItemRepository.FindByItemIds(itemIds)
+	merchantItems, err := u.merchantItemRepository.FindByItemIds(ctx, itemIds)
 
 	if err != nil {
 		log.Printf("ERROR | MakeOrderEstimate() | %v", err)
@@ -157,7 +164,7 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 		Lon: payload.UserLocation.Lon,
 	}
 
-	estimatedDeliveryTime, err := calculateEstimateOrderDeliveryTime(append([]entity.Location{merchantStartingPoint}, merchantLocations...), userLocation)
+	estimatedDeliveryTime, err := u.calculateEstimateOrderDeliveryTime(ctx, append([]entity.Location{merchantStartingPoint}, merchantLocations...), userLocation)
 
 	if err != nil {
 		return emptyOrder, err
@@ -172,7 +179,7 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 		UserID:                userID,
 	}
 
-	createdOrder, err := o.orderRepository.InsertEstimateOrder(repository.InsertEstimateOrderPayload{
+	createdOrder, err := u.orderRepository.InsertEstimateOrder(ctx, repository.InsertEstimateOrderPayload{
 		Order:      newOrder,
 		OrderItems: orderItems,
 	})
@@ -185,7 +192,9 @@ func (o *orderUsecase) MakeOrderEstimate(payload MakeOrderEstimatePayload, userI
 	return createdOrder, nil
 }
 
-func (o *orderUsecase) PlaceOrder(orderId string, userId string) (entity.Order, error) {
+func (u *orderUsecase) PlaceOrder(ctx context.Context, orderId string, userId string) (entity.Order, error) {
+	_, span := u.tracer.Start(ctx, "PlaceOrder")
+	defer span.End()
 	if err := uuid.Validate(orderId); err != nil {
 		return entity.Order{}, helper.CustomError{
 			Message: errOrderNotFound.Error(),
@@ -193,7 +202,7 @@ func (o *orderUsecase) PlaceOrder(orderId string, userId string) (entity.Order, 
 		}
 	}
 
-	order, err := o.orderRepository.FindOrderByID(orderId)
+	order, err := u.orderRepository.FindOrderByID(ctx, orderId)
 
 	if err != nil {
 		return entity.Order{}, err
@@ -209,17 +218,19 @@ func (o *orderUsecase) PlaceOrder(orderId string, userId string) (entity.Order, 
 
 	order.ChangeStateToOrdered()
 
-	if err := o.orderRepository.Update(order); err != nil {
+	if err := u.orderRepository.Update(ctx, order); err != nil {
 		return order, err
 	}
 
 	return order, nil
 }
 
-func (o *orderUsecase) GetOrders(params dto.GetOrderSearchParams, userID string) ([]dto.GetOrderResponseDto, error) {
+func (u *orderUsecase) GetOrders(ctx context.Context, params dto.GetOrderSearchParams, userID string) ([]dto.GetOrderResponseDto, error) {
+	_, span := u.tracer.Start(ctx, "PlaceOrder")
+	defer span.End()
 	user, _ := uuid.Parse(userID)
 
-	orders, err := o.orderRepository.FindByUser(params, user)
+	orders, err := u.orderRepository.FindByUser(ctx, params, user)
 
 	if err != nil {
 		var errMsg = fmt.Errorf("ERROR | OrderUsecase.GetOrders() | error to find orders: %v", err)
@@ -276,7 +287,9 @@ func (o *orderUsecase) GetOrders(params dto.GetOrderSearchParams, userID string)
 }
 
 // The first element in merchant locations is assumed as starting point
-func calculateEstimateOrderDeliveryTime(merchantLocations []entity.Location, userLocation entity.Location) (float64, error) {
+func (u *orderUsecase) calculateEstimateOrderDeliveryTime(ctx context.Context, merchantLocations []entity.Location, userLocation entity.Location) (float64, error) {
+	_, span := u.tracer.Start(ctx, "MakeOrderEstimate")
+	defer span.End()
 	const SPEED_PER_HOUR = 40    // 40Km
 	const MAX_DISTANCE_IN_KM = 3 // 3Km
 

@@ -4,19 +4,27 @@ import (
 	"belimang/domain/entity"
 	"belimang/domain/repository"
 	"belimang/protocol/api/dto"
+	"context"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type IMerchantUsecase interface {
-	Create(payload MerchantCreatePayload) (dto.MerchantCreateDtoResponse, error)
-	Fetch(query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error)
+	Create(ctx context.Context, payload MerchantCreatePayload) (dto.MerchantCreateDtoResponse, error)
+	Fetch(ctx context.Context, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error)
 }
 
 type merchantUsecase struct {
 	merchantRepository repository.IMerchantRepository
+	tracer             trace.Tracer
 }
 
 func NewMerchantUsecase(merchantRepository repository.IMerchantRepository) *merchantUsecase {
-	return &merchantUsecase{merchantRepository}
+	return &merchantUsecase{
+		merchantRepository: merchantRepository,
+		tracer:             otel.Tracer("merchant-usecase"),
+	}
 }
 
 type MerchantCreatePayload struct {
@@ -26,7 +34,9 @@ type MerchantCreatePayload struct {
 	Location entity.Location         `json:"location" validate:"required"`
 }
 
-func (u *merchantUsecase) Create(payload MerchantCreatePayload) (dto.MerchantCreateDtoResponse, error) {
+func (u *merchantUsecase) Create(ctx context.Context, payload MerchantCreatePayload) (dto.MerchantCreateDtoResponse, error) {
+	_, span := u.tracer.Start(ctx, "Create")
+	defer span.End()
 	var entity entity.Merchant
 
 	entity.Name = payload.Name
@@ -34,7 +44,7 @@ func (u *merchantUsecase) Create(payload MerchantCreatePayload) (dto.MerchantCre
 	entity.ImageUrl = payload.ImageUrl
 	entity.Lat = payload.Location.Lat
 	entity.Lon = payload.Location.Lon
-	entity, err := u.merchantRepository.Create(entity)
+	entity, err := u.merchantRepository.Create(ctx, entity)
 	if err != nil {
 		return dto.MerchantCreateDtoResponse{}, err
 	}
@@ -53,7 +63,9 @@ type MerchantFetchQuery struct {
 	Offset        int                     `query:"offset"`
 }
 
-func (u *merchantUsecase) Fetch(query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error) {
+func (u *merchantUsecase) Fetch(ctx context.Context, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error) {
+	_, span := u.tracer.Start(ctx, "Fetch")
+	defer span.End()
 	var (
 		response []dto.MerchantFetchDtoResponse = make([]dto.MerchantFetchDtoResponse, 0)
 		filter   entity.MerchantFetchFilter
@@ -82,7 +94,7 @@ func (u *merchantUsecase) Fetch(query MerchantFetchQuery) ([]dto.MerchantFetchDt
 	filter.Limit = query.Limit
 	filter.Offset = query.Offset
 
-	merchants, err := u.merchantRepository.Fetch(filter)
+	merchants, err := u.merchantRepository.Fetch(ctx, filter)
 	if err != nil {
 		return response, err
 	}
