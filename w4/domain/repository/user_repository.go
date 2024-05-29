@@ -16,13 +16,13 @@ var (
 
 type IUserRepository interface {
 	// Return created user's ID
-	Insert(newUser entity.User) (entity.User, error)
+	Insert(ctx context.Context, newUser entity.User) (entity.User, error)
 
 	// Return true when username is exist in database
-	CheckUsernameExist(username string) (bool, error)
+	CheckUsernameExist(ctx context.Context, username string) (bool, error)
 
 	// Find 1 user by its username
-	FindOneByUsername(username string) (entity.User, error)
+	FindOneByUsername(ctx context.Context, username string) (entity.User, error)
 }
 
 type userRepository struct {

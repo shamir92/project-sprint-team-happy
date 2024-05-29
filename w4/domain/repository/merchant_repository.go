@@ -2,26 +2,36 @@ package repository
 
 import (
 	"belimang/domain/entity"
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"strings"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type IMerchantRepository interface {
-	Create(merchant entity.Merchant) (entity.Merchant, error)
-	Fetch(filter entity.MerchantFetchFilter) ([]entity.Merchant, error)
+	Create(ctx context.Context, merchant entity.Merchant) (entity.Merchant, error)
+	Fetch(ctx context.Context, filter entity.MerchantFetchFilter) ([]entity.Merchant, error)
 }
 
 type merchantRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	tracer trace.Tracer
 }
 
 func NewMerchantRepository(db *sql.DB) *merchantRepository {
-	return &merchantRepository{db}
+	return &merchantRepository{
+		db:     db,
+		tracer: otel.Tracer("merchant-repository"),
+	}
 }
 
-func (r *merchantRepository) Create(merchant entity.Merchant) (entity.Merchant, error) {
+func (r *merchantRepository) Create(ctx context.Context, merchant entity.Merchant) (entity.Merchant, error) {
+	_, span := r.tracer.Start(ctx, "Create")
+	defer span.End()
 	sql := "INSERT INTO public.merchants(name, category, image_url, lat, lon) VALUES ($1, $2, $3, $4, $5) RETURNING id"
 
 	err := r.db.QueryRow(sql, merchant.Name, merchant.Category.String(), merchant.ImageUrl, merchant.Lat, merchant.Lon).Scan(&merchant.ID)
@@ -33,7 +43,9 @@ func (r *merchantRepository) Create(merchant entity.Merchant) (entity.Merchant, 
 	return merchant, nil
 }
 
-func (r *merchantRepository) Fetch(filter entity.MerchantFetchFilter) ([]entity.Merchant, error) {
+func (r *merchantRepository) Fetch(ctx context.Context, filter entity.MerchantFetchFilter) ([]entity.Merchant, error) {
+	_, span := r.tracer.Start(ctx, "Fetch")
+	defer span.End()
 	var (
 		entities   []entity.Merchant
 		conditions []string = make([]string, 0)
