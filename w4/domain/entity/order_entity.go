@@ -26,8 +26,13 @@ type Order struct {
 	EstimatedDeliveryTime int
 	State                 OrderState
 	CreatedAt             time.Time
+	Items                 []OrderItem
 }
 
 func (o *Order) ChangeStateToOrdered() {
 	o.State = Ordered
+}
+
+func (o *Order) SetItems(items []OrderItem) {
+	o.Items = items
 }

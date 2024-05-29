@@ -65,3 +65,19 @@ func (oc *orderController) PlaceOrder(ctx *fiber.Ctx) error {
 		},
 	})
 }
+
+func (oc *orderController) GetUserOrders(ctx *fiber.Ctx) error {
+	var body dto.GetOrderSearchParams
+
+	user := ctx.Locals("user").(*helper.JsonWebTokenClaims)
+
+	orders, err := oc.orderUsecase.GetOrders(body, user.UserID)
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"data": orders,
+	})
+}
