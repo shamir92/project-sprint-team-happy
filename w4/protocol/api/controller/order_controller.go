@@ -5,6 +5,7 @@ import (
 	"belimang/internal/helper"
 	"belimang/protocol/api/dto"
 	"context"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel/trace"
@@ -85,6 +86,11 @@ func (oc *orderController) GetUserOrders(ctx *fiber.Ctx) error {
 	_, span := tracer.Start(context, "GetUserOrders")
 	defer span.End()
 	var body dto.GetOrderSearchParams
+
+	if err := ctx.QueryParser(&body); err != nil {
+		log.Printf("ERROR | GetUserOrders() | %v\n", err)
+		return err
+	}
 
 	user := ctx.Locals("user").(*helper.JsonWebTokenClaims)
 

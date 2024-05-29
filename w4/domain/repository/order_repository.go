@@ -111,7 +111,37 @@ func (r *orderRepository) FindByUser(ctx context.Context, params dto.GetOrderSea
 		WHERE o.user_id = $1 AND o.state = $2
 	`
 
-	rows, err := r.db.Query(q, userID, entity.Ordered)
+	var values []any = []any{
+		userID,
+		entity.Ordered,
+	}
+	var whereQueries []string
+
+	if err := uuid.Validate(params.MerchantID); err == nil {
+		values = append(values, params.MerchantID)
+		whereQueries = append(whereQueries, fmt.Sprintf("m.id = $%d::uuid", len(values)))
+	}
+
+	if params.Name != "" {
+		values = append(values, "%"+params.Name+"%")
+		whereQueries = append(whereQueries, fmt.Sprintf("m.name ILIKE $%d or mi.name ILIKE $%d", len(values), len(values)))
+	}
+
+	if params.Category != "" {
+		values = append(values, params.Category)
+		whereQueries = append(whereQueries, fmt.Sprintf("m.category = $%d", len(values)))
+	}
+
+	if len(whereQueries) > 0 {
+		q += fmt.Sprintf(` AND %s`, strings.Join(whereQueries, " AND "))
+	}
+
+	values = append(values, params.Limit, params.Offset)
+	q += fmt.Sprintf("\nLIMIT $%d OFFSET $%d", len(values)-1, len(values))
+	fmt.Println(q)
+	fmt.Println(values)
+
+	rows, err := r.db.Query(q, values...)
 
 	if err != nil {
 		log.Printf("ERROR | OrderRepository.Find() | %v\n", err)
