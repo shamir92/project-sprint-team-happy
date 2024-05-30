@@ -22,10 +22,10 @@ type PlaceOrderResponseDto struct {
 }
 
 type GetOrderSearchParams struct {
-	MerchantID string `json:"merchant_id"`
+	MerchantID string `json:"merchantId"`
 	Name       string `json:"name"`
-	Limit      int    `json:"limit"`
-	Offset     int    `json:"offset"`
+	Limit      string `json:"limit"`
+	Offset     string `json:"offset"`
 	Category   string `json:"category"`
 }
 
