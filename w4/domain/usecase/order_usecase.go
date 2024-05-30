@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strconv"
 
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
@@ -230,7 +231,20 @@ func (u *orderUsecase) GetOrders(ctx context.Context, params dto.GetOrderSearchP
 	defer span.End()
 	user, _ := uuid.Parse(userID)
 
-	orders, err := u.orderRepository.FindByUser(ctx, params, user)
+	var query = params
+	if limit, err := strconv.Atoi(params.Limit); err != nil || limit <= 0 {
+		query.Limit = "5" // Default 5
+	} else {
+		query.Limit = fmt.Sprintf("%d", limit)
+	}
+
+	if offset, err := strconv.Atoi(params.Offset); err != nil || offset < 0 {
+		query.Offset = "0" // Default 0
+	} else {
+		query.Offset = fmt.Sprintf("%d", offset)
+	}
+
+	orders, err := u.orderRepository.FindByUser(ctx, query, user)
 
 	if err != nil {
 		var errMsg = fmt.Errorf("ERROR | OrderUsecase.GetOrders() | error to find orders: %v", err)
@@ -238,7 +252,7 @@ func (u *orderUsecase) GetOrders(ctx context.Context, params dto.GetOrderSearchP
 		return []dto.GetOrderResponseDto{}, errMsg
 	}
 
-	var ordersOut []dto.GetOrderResponseDto
+	var ordersOut = make([]dto.GetOrderResponseDto, 0)
 	for _, order := range orders {
 		var orderResp dto.GetOrderResponseDto
 		orderResp.OrderID = order.ID.String()
