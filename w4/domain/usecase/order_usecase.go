@@ -302,36 +302,76 @@ func (u *orderUsecase) GetOrders(ctx context.Context, params dto.GetOrderSearchP
 
 // The first element in merchant locations is assumed as starting point
 func (u *orderUsecase) calculateEstimateOrderDeliveryTime(ctx context.Context, merchantLocations []entity.Location, userLocation entity.Location) (float64, error) {
-	_, span := u.tracer.Start(ctx, "MakeOrderEstimate")
+	_, span := u.tracer.Start(ctx, "calculateEstimateOrderDeliveryTime")
 	defer span.End()
-	const SPEED_PER_HOUR = 40    // 40Km
-	const MAX_DISTANCE_IN_KM = 3 // 3Km
+	const SPEED_PER_HOUR float64 = 40 // 40Km
+	// const MAX_DISTANCE_IN_KM = 3      // 3Km
 
-	var currentLocation = merchantLocations[0]
-	var totalDistanceInKm float64
+	// Combine starting point and merchants into one slice
+	locations := append([]entity.Location{userLocation}, merchantLocations...)
 
-	// Calculate distance start from first merchant til last merchant
-	var i = 1
-	for len(merchantLocations) > 0 && i < len(merchantLocations) {
-		loc := merchantLocations[i]
-		var distance float64 = currentLocation.Distance(loc)
+	// Get the efficient sequence and total distance output in meter
+	_, totalDistance := findShortestPath(userLocation, locations)
+	// Calculate the delivery time in minutes
+	speedMetersPerMinute := (SPEED_PER_HOUR * 1000) / 60
+	deliveryTimeInMinutes := totalDistance / speedMetersPerMinute
 
-		// Check if the distance between the current merchant and the user exceeds the maximum allowed distance
-		if currentLocation.Distance(userLocation) > MAX_DISTANCE_IN_KM {
-			return 0, helper.CustomError{
-				Code:    400,
-				Message: "merchant's destination too far from user's location",
+	return math.Round(deliveryTimeInMinutes), nil
+}
+
+type Coordinates struct {
+	Lat, Lon float64
+}
+
+// Haversine function to calculate the distance between two points
+func haversine(coord1, coord2 entity.Location) float64 {
+	const R = 6371e3 // Earth radius in meters
+	phi1 := coord1.Lat * math.Pi / 180
+	phi2 := coord2.Lat * math.Pi / 180
+	deltaPhi := (coord2.Lat - coord1.Lat) * math.Pi / 180
+	deltaLambda := (coord2.Lon - coord1.Lon) * math.Pi / 180
+
+	a := math.Sin(deltaPhi/2)*math.Sin(deltaPhi/2) +
+		math.Cos(phi1)*math.Cos(phi2)*
+			math.Sin(deltaLambda/2)*math.Sin(deltaLambda/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	return R * c
+}
+
+// Function to find the nearest neighbor path
+func findShortestPath(startPoint entity.Location, locations []entity.Location) ([]entity.Location, float64) {
+	// Initialize unvisited locations
+	unvisited := make(map[int]bool)
+	for i := range locations {
+		if locations[i] != startPoint {
+			unvisited[i] = true
+		}
+	}
+
+	currentPoint := startPoint
+	path := []entity.Location{currentPoint}
+	totalDistance := 0.0
+
+	for len(unvisited) > 0 {
+		nextPoint := -1
+		shortestDistance := math.MaxFloat64
+
+		// Find the nearest unvisited location
+		for idx := range unvisited {
+			distance := haversine(currentPoint, locations[idx])
+			if distance < shortestDistance {
+				shortestDistance = distance
+				nextPoint = idx
 			}
 		}
 
-		totalDistanceInKm += distance
-		currentLocation = loc
-		i += 1
+		// Update the path and total distance
+		totalDistance += shortestDistance
+		currentPoint = locations[nextPoint]
+		path = append(path, currentPoint)
+		delete(unvisited, nextPoint)
 	}
 
-	// Calcuate distance from last merchant's location to user's location
-	totalDistanceInKm += currentLocation.Distance(userLocation)
-
-	var deliveryTimeInMinutes = (totalDistanceInKm / SPEED_PER_HOUR) * 60
-	return math.Round(deliveryTimeInMinutes), nil
+	return path, totalDistance
 }
