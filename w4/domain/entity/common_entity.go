@@ -26,8 +26,9 @@ const (
 )
 
 type Location struct {
-	Lat float64 `json:"lat" validate:"required,latitude"`
-	Lon float64 `json:"long" validate:"required,longitude"`
+	Lat     float64 `json:"lat" validate:"required,latitude"`
+	Lon     float64 `json:"long" validate:"required,longitude"`
+	GeoHash string  `json:"geohash" `
 }
 
 func degreesToRadians(degrees float64) float64 {

@@ -112,7 +112,7 @@ func (u *userUsecase) Login(ctx context.Context, payload UserLoginPayload) (User
 	}
 
 	if !user.IsUserRole() {
-		log.Printf("LOGIN | IsUserRole | %s", user.Role)
+		log.Print("LOGIN | IsUserRole | %s", user.Role)
 		return UserLoginResp{}, helper.CustomError{
 			Message: ErrLoginUserFailed.Error(),
 			Code:    400,

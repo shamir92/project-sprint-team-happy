@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS public.merchants(
     image_url text not null,
     lon float not null,
     lat float not null,
+    geohash VARCHAR(12) not null,
     created_at timestamp with time zone default CURRENT_TIMESTAMP,
 
     CONSTRAINT merchants_pkey PRIMARY KEY (id)

@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
@@ -74,7 +75,7 @@ func (r *userRepository) FindOneByUsername(ctx context.Context, username string)
 	q := `SELECT id, username, role, password, email FROM users WHERE username = $1`
 	var user entity.User
 	err := r.db.QueryRow(q, username).Scan(&user.ID, &user.Username, &user.Role, &user.Password, &user.Email)
-
+	log.Println(user)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return user, ErrUserNotFound

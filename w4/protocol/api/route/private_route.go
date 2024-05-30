@@ -48,4 +48,8 @@ func PrivateRoutes(params PrivateRouteParam) {
 		router.Post("/orders", orderController.PlaceOrder)
 		router.Get("/orders", orderController.GetUserOrders)
 	})
+
+	v1.Route("/merchants/nearby/:latlon", func(router fiber.Router) {
+		router.Get("/", merchantController.BrowseNearby)
+	})
 }

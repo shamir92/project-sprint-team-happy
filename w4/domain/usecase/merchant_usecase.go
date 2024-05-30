@@ -6,6 +6,7 @@ import (
 	"belimang/protocol/api/dto"
 	"context"
 
+	"github.com/mmcloughlin/geohash"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -13,6 +14,7 @@ import (
 type IMerchantUsecase interface {
 	Create(ctx context.Context, payload MerchantCreatePayload) (dto.MerchantCreateDtoResponse, error)
 	Fetch(ctx context.Context, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error)
+	FetchNearby(ctx context.Context, userCoordinate UserCoordinate, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error)
 }
 
 type merchantUsecase struct {
@@ -106,8 +108,71 @@ func (u *merchantUsecase) Fetch(ctx context.Context, query MerchantFetchQuery) (
 			Category: merchant.Category,
 			ImageUrl: merchant.ImageUrl,
 			Location: entity.Location{
-				Lat: merchant.Lat,
-				Lon: merchant.Lon,
+				Lat:     merchant.Lat,
+				Lon:     merchant.Lon,
+				GeoHash: merchant.GeoHash,
+			},
+		})
+	}
+
+	return response, nil
+}
+
+type UserCoordinate struct {
+	Lat float64 `json:"lat" validate:"required,latitude"`
+	Lon float64 `json:"long" validate:"required,longitude"`
+}
+
+func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCoordinate, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error) {
+	_, span := u.tracer.Start(ctx, "FetchNearby")
+	defer span.End()
+	targetGeoHash := geohash.EncodeWithPrecision(userCoordinate.Lat, userCoordinate.Lon, 6)
+	neighbors := geohash.Neighbors(targetGeoHash)
+	neighbors = append(neighbors, targetGeoHash)
+
+	var (
+		response []dto.MerchantFetchDtoResponse = make([]dto.MerchantFetchDtoResponse, 0)
+		filter   entity.MerchantFetchFilter
+	)
+
+	if query.ID != "" {
+		filter.ID = query.ID
+	}
+
+	if query.Name != "" {
+		filter.Name = query.Name
+	}
+
+	if query.Category.String() != "" {
+		if query.Category.Valid() {
+			filter.MerchantCategory = query.Category
+		} else {
+			return response, nil
+		}
+	}
+
+	if query.SortCreatedAt.Valid() {
+		filter.SortCreatedAt = query.SortCreatedAt
+	}
+
+	filter.Limit = query.Limit
+	filter.Offset = query.Offset
+
+	merchants, err := u.merchantRepository.FetchNearby(ctx, neighbors, filter)
+	if err != nil {
+		return response, err
+	}
+
+	for _, merchant := range merchants {
+		response = append(response, dto.MerchantFetchDtoResponse{
+			ID:       merchant.ID,
+			Name:     merchant.Name,
+			Category: merchant.Category,
+			ImageUrl: merchant.ImageUrl,
+			Location: entity.Location{
+				Lat:     merchant.Lat,
+				Lon:     merchant.Lon,
+				GeoHash: merchant.GeoHash,
 			},
 		})
 	}

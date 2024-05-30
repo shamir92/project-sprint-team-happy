@@ -42,6 +42,7 @@ type Merchant struct {
 	ImageUrl  string
 	Lat       float64
 	Lon       float64
+	GeoHash   string
 	CreatedAt time.Time
 }
 
@@ -56,7 +57,8 @@ type MerchantFetchFilter struct {
 
 func (mc Merchant) Location() Location {
 	return Location{
-		Lat: mc.Lat,
-		Lon: mc.Lon,
+		Lat:     mc.Lat,
+		Lon:     mc.Lon,
+		GeoHash: mc.GeoHash,
 	}
 }
