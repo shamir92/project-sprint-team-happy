@@ -54,11 +54,11 @@ jobs:
 
       - name: Build, tag, and push Docker image
         env:
-          ECR_REGISTRY: 560918124458.dkr.ecr.ap-southeast-1.amazonaws.com/ydesetiawan94-repository
+          ECR_REGISTRY: 560918124458.dkr.ecr.ap-southeast-1.amazonaws.com/shamirhusein-repository
         run: |
-          docker build -t ydesetiawan94-repository .
+          docker build -t shamirhusein-repository ./../w4/Dockerfile
           
-          docker tag ydesetiawan94-repository:latest $ECR_REGISTRY:latest
+          docker tag shamirhusein-repository:latest $ECR_REGISTRY:latest
 
           docker push $ECR_REGISTRY:latest
 

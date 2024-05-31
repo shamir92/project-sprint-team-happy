@@ -26,7 +26,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: nginx.dockerfile
+          file: ../w4/Dockerfile
           push: true
           tags: |
             shamirhusein/project-sprint-w4:${{ github.sha }}
