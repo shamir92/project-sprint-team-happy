@@ -3,7 +3,7 @@ FROM golang:1.21.0 AS build-stage
 
 WORKDIR /app
 
-COPY . .
+COPY ./w4 .
 
 RUN go mod tidy
 
