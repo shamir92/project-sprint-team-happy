@@ -65,7 +65,7 @@ func (u *adminUsecase) Register(ctx context.Context, payload AdminRegisterPayloa
 
 	if isExist {
 		return badTokenValue, helper.CustomError{
-			Code:    400,
+			Code:    409,
 			Message: "username is already registered",
 		}
 	}

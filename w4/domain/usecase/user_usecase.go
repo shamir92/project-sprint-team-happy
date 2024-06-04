@@ -64,7 +64,7 @@ func (u *userUsecase) Register(ctx context.Context, payload UserRegisterPayload)
 
 	if isExist {
 		return badTokenValue, helper.CustomError{
-			Code:    400,
+			Code:    409,
 			Message: "username is already registered",
 		}
 	}
@@ -112,7 +112,7 @@ func (u *userUsecase) Login(ctx context.Context, payload UserLoginPayload) (User
 	}
 
 	if !user.IsUserRole() {
-		log.Print("LOGIN | IsUserRole | %s", user.Role)
+		log.Printf("LOGIN | IsUserRole | %s\n", user.Role)
 		return UserLoginResp{}, helper.CustomError{
 			Message: ErrLoginUserFailed.Error(),
 			Code:    400,
