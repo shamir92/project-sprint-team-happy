@@ -43,10 +43,7 @@ func (c *adminController) Register(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(http.StatusCreated).JSON(fiber.Map{
-		"message": "success",
-		"data": fiber.Map{
-			"token": token,
-		},
+		"token": token,
 	})
 }
 
@@ -72,10 +69,7 @@ func (c *adminController) Login(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(http.StatusCreated).JSON(fiber.Map{
-		"message": "success",
-		"data": fiber.Map{
-			"token": resp.Token,
-		},
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"token": resp.Token,
 	})
 }

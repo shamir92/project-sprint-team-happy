@@ -29,14 +29,12 @@ func PublicRoutes(params PublicRouteParams) {
 	var adminUsecase usecase.IAdminUsecase = usecase.NewAdminUsecase(userRepository, params.JWTManager, params.HelperBcrypt)
 	var adminController = controller.NewAdminController(adminUsecase)
 
-	v1 := params.App.Group("v1")
-
-	v1.Route("/users", func(router fiber.Router) {
+	params.App.Route("/users", func(router fiber.Router) {
 		router.Post("/register", userController.Register)
 		router.Post("/login", userController.Login)
 	})
 
-	v1.Route("admin", func(router fiber.Router) {
+	params.App.Route("/admin", func(router fiber.Router) {
 		router.Post("/register", adminController.Register)
 		router.Post("/login", adminController.Login)
 	})
