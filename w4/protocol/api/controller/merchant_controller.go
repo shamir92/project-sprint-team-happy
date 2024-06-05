@@ -33,7 +33,7 @@ func (c *merchantController) Browse(ctx *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	response, err := c.merchantUsecase.Fetch(context, query)
+	response, paginationMeta, err := c.merchantUsecase.Fetch(context, query)
 	if err != nil {
 		return err
 	}
@@ -41,6 +41,7 @@ func (c *merchantController) Browse(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "success",
 		"data":    response,
+		"meta":    paginationMeta,
 	})
 }
 
@@ -65,10 +66,7 @@ func (c *merchantController) Create(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(http.StatusCreated).JSON(fiber.Map{
-		"message": "success",
-		"data":    response,
-	})
+	return ctx.Status(http.StatusCreated).JSON(response)
 }
 
 func (c *merchantController) BrowseNearby(ctx *fiber.Ctx) error {
