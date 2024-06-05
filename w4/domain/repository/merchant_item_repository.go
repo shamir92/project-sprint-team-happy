@@ -113,7 +113,7 @@ func (r *merchantItemRepository) FindAndCount(ctx context.Context, query dto.Fin
 	}
 
 	if query.SortCreated == ASC || query.SortCreated == DESC {
-		q += fmt.Sprintf(" ORDER BY %s ASC", query.SortCreated)
+		q += fmt.Sprintf(" ORDER BY created_at %s", query.SortCreated)
 	}
 
 	q += fmt.Sprintf("\nLIMIT %s OFFSET %s", query.Limit, query.Offset)

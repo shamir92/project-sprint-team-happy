@@ -15,7 +15,7 @@ import (
 
 type IMerchantRepository interface {
 	Create(ctx context.Context, merchant entity.Merchant) (entity.Merchant, error)
-	Fetch(ctx context.Context, filter entity.MerchantFetchFilter) ([]entity.Merchant, error)
+	Fetch(ctx context.Context, filter entity.MerchantFetchFilter) ([]entity.Merchant, int, error)
 	FetchNearby(ctx context.Context, geohash []string, filter entity.MerchantFetchFilter) ([]entity.Merchant, error)
 }
 
@@ -47,16 +47,18 @@ func (r *merchantRepository) Create(ctx context.Context, merchant entity.Merchan
 	return merchant, nil
 }
 
-func (r *merchantRepository) Fetch(ctx context.Context, filter entity.MerchantFetchFilter) ([]entity.Merchant, error) {
+func (r *merchantRepository) Fetch(ctx context.Context, filter entity.MerchantFetchFilter) ([]entity.Merchant, int, error) {
 	_, span := r.tracer.Start(ctx, "Fetch")
 	defer span.End()
 	var (
 		entities   []entity.Merchant
 		conditions []string = make([]string, 0)
 		values     []any    = make([]any, 0)
+		count               = 0
 	)
 
 	sql := "SELECT id, name, category, image_url, lat, lon, geohash FROM public.merchants"
+	countQuery := `SELECT count(id) FROM merchants`
 
 	if filter.Name != "" {
 		values = append(values, "%"+filter.Name+"%")
@@ -75,6 +77,7 @@ func (r *merchantRepository) Fetch(ctx context.Context, filter entity.MerchantFe
 
 	if len(conditions) > 0 {
 		sql += fmt.Sprintf(" WHERE %s", strings.Join(conditions, " AND "))
+		countQuery += fmt.Sprintf(" WHERE %s", strings.Join(conditions, " AND "))
 	}
 
 	if filter.SortCreatedAt.String() == entity.SortTypeAsc.String() {
@@ -86,7 +89,7 @@ func (r *merchantRepository) Fetch(ctx context.Context, filter entity.MerchantFe
 	rows, err := r.db.Query(sql, values...)
 	if err != nil {
 		log.Printf("Failed to Fetch merchants: %v", err.Error())
-		return entities, err
+		return entities, count, err
 	}
 
 	var _entities []entity.Merchant
@@ -96,13 +99,20 @@ func (r *merchantRepository) Fetch(ctx context.Context, filter entity.MerchantFe
 		err = rows.Scan(&entity.ID, &entity.Name, &entity.Category, &entity.ImageUrl, &entity.Lat, &entity.Lon, &entity.GeoHash)
 		if err != nil {
 			log.Printf("Failed to fetch merchants: %v", err.Error())
-			return _entities, err
+			return _entities, count, err
 		}
 
 		entities = append(entities, entity)
 	}
 
-	return entities, nil
+	err = r.db.QueryRow(countQuery, values...).Scan(&count)
+
+	if err != nil {
+		log.Printf("ERROR | MerchantRepository.Fetch() | %v\n", err)
+		return _entities, count, err
+	}
+
+	return entities, count, nil
 }
 
 func (r *merchantRepository) FetchNearby(ctx context.Context, neighbors []string, filter entity.MerchantFetchFilter) ([]entity.Merchant, error) {

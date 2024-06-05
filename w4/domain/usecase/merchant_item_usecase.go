@@ -15,7 +15,7 @@ import (
 
 type IMerchantItemUsecase interface {
 	Create(ctx context.Context, payload CreateMerchanItemPayload, createdBy string) (entity.MerchantItem, error)
-	FindItemsByMerchant(ctx context.Context, query dto.FindMerchantItemPayload) ([]entity.MerchantItem, PaginationMeta, error)
+	FindItemsByMerchant(ctx context.Context, query dto.FindMerchantItemPayload) ([]entity.MerchantItem, entity.PaginationMeta, error)
 }
 
 type merchantItemUsecase struct {
@@ -36,12 +36,6 @@ type CreateMerchanItemPayload struct {
 	Name       string `json:"name" validate:"required,min=2,max=30"`
 	Category   string `json:"productCategory" validate:"required,category=item"`
 	ImageUrl   string `json:"imageUrl" validate:"required,urlformat"`
-}
-
-type PaginationMeta struct {
-	Limit  int `json:"limit"`
-	Offset int `json:"offset"`
-	Total  int `json:"total"`
 }
 
 func (u *merchantItemUsecase) Create(ctx context.Context, payload CreateMerchanItemPayload, createdBy string) (entity.MerchantItem, error) {
@@ -85,12 +79,12 @@ func (u *merchantItemUsecase) Create(ctx context.Context, payload CreateMerchanI
 	return newItem, err
 }
 
-func (u *merchantItemUsecase) FindItemsByMerchant(ctx context.Context, query dto.FindMerchantItemPayload) ([]entity.MerchantItem, PaginationMeta, error) {
+func (u *merchantItemUsecase) FindItemsByMerchant(ctx context.Context, query dto.FindMerchantItemPayload) ([]entity.MerchantItem, entity.PaginationMeta, error) {
 	_, span := u.tracer.Start(ctx, "FindItemsByMerchant")
 	defer span.End()
 	var (
 		// Default meta
-		meta = PaginationMeta{
+		meta = entity.PaginationMeta{
 			Limit:  5,
 			Offset: 0,
 			Total:  0,
@@ -112,6 +106,12 @@ func (u *merchantItemUsecase) FindItemsByMerchant(ctx context.Context, query dto
 		meta.Offset = o
 	} else {
 		q.Offset = strconv.Itoa(meta.Offset)
+	}
+
+	if query.SortCreated == entity.SortTypeAsc.String() || query.SortCreated == entity.SortTypeDesc.String() {
+		q.SortCreated = query.SortCreated
+	} else {
+		q.SortCreated = entity.SortTypeDesc.String() // default
 	}
 
 	rows, count, err := u.itemRepository.FindAndCount(ctx, q)

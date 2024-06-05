@@ -5,6 +5,7 @@ import (
 	"belimang/domain/repository"
 	"belimang/protocol/api/dto"
 	"context"
+	"strconv"
 
 	"github.com/mmcloughlin/geohash"
 	"go.opentelemetry.io/otel"
@@ -13,7 +14,7 @@ import (
 
 type IMerchantUsecase interface {
 	Create(ctx context.Context, payload MerchantCreatePayload) (dto.MerchantCreateDtoResponse, error)
-	Fetch(ctx context.Context, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error)
+	Fetch(ctx context.Context, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, entity.PaginationMeta, error)
 	FetchNearby(ctx context.Context, userCoordinate UserCoordinate, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error)
 }
 
@@ -61,16 +62,21 @@ type MerchantFetchQuery struct {
 	ImageUrl      string                  `query:"imageUrl"`
 	Location      entity.Location         `query:"location"`
 	SortCreatedAt entity.SortType         `query:"createdAt"`
-	Limit         int                     `query:"limit"`
-	Offset        int                     `query:"offset"`
+	Limit         string                  `query:"limit"`
+	Offset        string                  `query:"offset"`
 }
 
-func (u *merchantUsecase) Fetch(ctx context.Context, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error) {
+func (u *merchantUsecase) Fetch(ctx context.Context, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, entity.PaginationMeta, error) {
 	_, span := u.tracer.Start(ctx, "Fetch")
 	defer span.End()
 	var (
 		response []dto.MerchantFetchDtoResponse = make([]dto.MerchantFetchDtoResponse, 0)
 		filter   entity.MerchantFetchFilter
+		meta     = entity.PaginationMeta{
+			Limit:  5, // default limit
+			Offset: 0, // default offset
+			Total:  0,
+		}
 	)
 
 	if query.ID != "" {
@@ -85,7 +91,7 @@ func (u *merchantUsecase) Fetch(ctx context.Context, query MerchantFetchQuery) (
 		if query.Category.Valid() {
 			filter.MerchantCategory = query.Category
 		} else {
-			return response, nil
+			return response, meta, nil
 		}
 	}
 
@@ -93,13 +99,22 @@ func (u *merchantUsecase) Fetch(ctx context.Context, query MerchantFetchQuery) (
 		filter.SortCreatedAt = query.SortCreatedAt
 	}
 
-	filter.Limit = query.Limit
-	filter.Offset = query.Offset
-
-	merchants, err := u.merchantRepository.Fetch(ctx, filter)
-	if err != nil {
-		return response, err
+	if l, err := strconv.Atoi(query.Limit); err == nil {
+		meta.Limit = l
 	}
+
+	if o, err := strconv.Atoi(query.Offset); err == nil {
+		meta.Offset = o
+	}
+
+	filter.Limit = meta.Limit
+	filter.Offset = meta.Offset
+
+	merchants, count, err := u.merchantRepository.Fetch(ctx, filter)
+	if err != nil {
+		return response, meta, err
+	}
+	meta.Total = count
 
 	for _, merchant := range merchants {
 		response = append(response, dto.MerchantFetchDtoResponse{
@@ -115,7 +130,7 @@ func (u *merchantUsecase) Fetch(ctx context.Context, query MerchantFetchQuery) (
 		})
 	}
 
-	return response, nil
+	return response, meta, nil
 }
 
 type UserCoordinate struct {
@@ -133,6 +148,10 @@ func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCo
 	var (
 		response []dto.MerchantFetchDtoResponse = make([]dto.MerchantFetchDtoResponse, 0)
 		filter   entity.MerchantFetchFilter
+		meta     = entity.PaginationMeta{
+			Limit:  5,
+			Offset: 0,
+		}
 	)
 
 	if query.ID != "" {
@@ -155,8 +174,16 @@ func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCo
 		filter.SortCreatedAt = query.SortCreatedAt
 	}
 
-	filter.Limit = query.Limit
-	filter.Offset = query.Offset
+	if l, err := strconv.Atoi(query.Limit); err == nil {
+		meta.Limit = l
+	}
+
+	if o, err := strconv.Atoi(query.Offset); err == nil {
+		meta.Offset = o
+	}
+
+	filter.Limit = meta.Limit
+	filter.Offset = meta.Offset
 
 	merchants, err := u.merchantRepository.FetchNearby(ctx, neighbors, filter)
 	if err != nil {

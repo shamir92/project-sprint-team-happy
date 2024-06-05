@@ -43,11 +43,8 @@ func (c *userController) Register(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(http.StatusCreated).JSON(fiber.Map{
-		"message": "success",
-		"data": dto.UserRegisterDtoResponse{
-			Token: token,
-		},
+	return ctx.Status(http.StatusCreated).JSON(dto.UserRegisterDtoResponse{
+		Token: token,
 	})
 }
 
@@ -73,10 +70,7 @@ func (c *userController) Login(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(http.StatusCreated).JSON(fiber.Map{
-		"message": "success",
-		"data": fiber.Map{
-			"token": resp.Token,
-		},
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"token": resp.Token,
 	})
 }

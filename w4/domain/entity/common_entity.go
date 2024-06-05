@@ -51,3 +51,9 @@ func (l Location) Distance(to Location) float64 {
 	fmt.Println("Distance: ", d)
 	return d
 }
+
+type PaginationMeta struct {
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
+	Total  int `json:"total"`
+}
