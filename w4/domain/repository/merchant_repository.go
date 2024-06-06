@@ -119,20 +119,24 @@ func (r *merchantRepository) FetchNearby(ctx context.Context, neighbors []string
 	_, span := r.tracer.Start(ctx, "Fetch")
 	defer span.End()
 	var (
-		entities   []entity.Merchant
-		conditions []string = make([]string, 0)
-		values     []any    = make([]any, 0)
+		entities      []entity.Merchant
+		conditions    []string = make([]string, 0)
+		values        []any    = make([]any, 0)
+		geoConditions string
 	)
 
-	var sql string
+	sql := "SELECT id, name, category, image_url, lat, lon, geohash FROM public.merchants"
 	for i, hash := range neighbors {
 		if i == 0 {
-			sql = fmt.Sprintf("SELECT id, name, category, image_url, lat, lon, geohash FROM public.merchants WHERE geohash LIKE '%s%%'", hash)
+			geoConditions = fmt.Sprintf("geohash LIKE '%s%%'", hash)
 		} else {
-			sql += fmt.Sprintf(" OR geohash LIKE '%s%%'", hash)
+			geoConditions += fmt.Sprintf(" OR geohash LIKE '%s%%'", hash)
 		}
 	}
-	// conditions = append(conditions, fmt.Sprintf("category = $%d", len(values)))
+
+	if geoConditions != "" {
+		sql += fmt.Sprintf(" WHERE (%s)", geoConditions)
+	}
 
 	if filter.Name != "" {
 		values = append(values, "%"+filter.Name+"%")
@@ -150,7 +154,7 @@ func (r *merchantRepository) FetchNearby(ctx context.Context, neighbors []string
 	}
 
 	if len(conditions) > 0 {
-		sql += fmt.Sprintf(" %s", strings.Join(conditions, " AND "))
+		sql += fmt.Sprintf(" AND (%s)", strings.Join(conditions, " AND "))
 	}
 
 	if filter.SortCreatedAt.String() == entity.SortTypeAsc.String() {
