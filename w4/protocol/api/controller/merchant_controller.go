@@ -74,8 +74,8 @@ func (c *merchantController) BrowseNearby(ctx *fiber.Ctx) error {
 
 	_, span := tracer.Start(context, "Browse")
 	defer span.End()
-	// coordinate := strings.Split(ctx.Params("latlon"), ",")
-	coordinate := []string{ctx.Params("lat"), ctx.Params("lon")}
+	coordinate := strings.Split(ctx.Params("latlon"), ",")
+	// coordinate := []string{ctx.Params("lat"), ctx.Params("lon")}
 	coordinate[0] = strings.TrimSpace(coordinate[0])
 	coordinate[1] = strings.TrimSpace(coordinate[1])
 
@@ -107,4 +107,9 @@ func (c *merchantController) BrowseNearby(ctx *fiber.Ctx) error {
 		"message": "success",
 		"data":    response,
 	})
+}
+
+func (c *merchantController) BrowseNearbyInvalid(ctx *fiber.Ctx) error {
+	return ctx.Status(fiber.StatusBadRequest).SendString("Invalid URL format")
+
 }
