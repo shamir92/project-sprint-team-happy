@@ -48,7 +48,5 @@ func PrivateRoutes(params PrivateRouteParam) {
 		router.Get("/orders", orderController.GetUserOrders)
 	})
 
-	params.App.Route("/merchants/nearby/:latlon", func(router fiber.Router) {
-		router.Get("/", merchantController.BrowseNearby)
-	})
+	params.App.Get("/merchants/nearby/:lat/:lon", merchantController.BrowseNearby)
 }
