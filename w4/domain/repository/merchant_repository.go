@@ -16,7 +16,7 @@ import (
 type IMerchantRepository interface {
 	Create(ctx context.Context, merchant entity.Merchant) (entity.Merchant, error)
 	Fetch(ctx context.Context, filter entity.MerchantFetchFilter) ([]entity.Merchant, int, error)
-	FetchNearby(ctx context.Context, geohash []string, filter entity.MerchantFetchFilter) ([]entity.Merchant, error)
+	FetchNearby(ctx context.Context, geohash []string, filter entity.MerchantFetchFilter) ([]entity.MerchantWithItem, error)
 }
 
 type merchantRepository struct {
@@ -115,14 +115,14 @@ func (r *merchantRepository) Fetch(ctx context.Context, filter entity.MerchantFe
 	return entities, count, nil
 }
 
-func (r *merchantRepository) FetchNearby(ctx context.Context, neighbors []string, filter entity.MerchantFetchFilter) ([]entity.Merchant, error) {
+func (r *merchantRepository) FetchNearby(ctx context.Context, neighbors []string, filter entity.MerchantFetchFilter) ([]entity.MerchantWithItem, error) {
 	_, span := r.tracer.Start(ctx, "Fetch")
 	defer span.End()
 	var (
-		entities      []entity.Merchant
-		conditions    []string = make([]string, 0)
-		values        []any    = make([]any, 0)
-		geoConditions string
+		merchantWithItem []entity.MerchantWithItem
+		conditions       []string = make([]string, 0)
+		values           []any    = make([]any, 0)
+		geoConditions    string
 	)
 
 	sql := "SELECT id, name, category, image_url, lat, lon, geohash FROM public.merchants"
@@ -162,26 +162,43 @@ func (r *merchantRepository) FetchNearby(ctx context.Context, neighbors []string
 	} else {
 		sql += fmt.Sprintf(" ORDER BY created_at DESC LIMIT %d OFFSET %d", filter.Limit, filter.Offset)
 	}
-	log.Println(sql)
-	log.Println(values)
 	rows, err := r.db.Query(sql, values...)
 	if err != nil {
 		log.Printf("Failed to Fetch merchants: %v", err.Error())
-		return entities, err
+		return nil, err
 	}
 
-	var _entities []entity.Merchant
 	for rows.Next() {
-		var entity entity.Merchant
+		var merchant entity.Merchant
+		var items []entity.MerchantItem
 
-		err = rows.Scan(&entity.ID, &entity.Name, &entity.Category, &entity.ImageUrl, &entity.Lat, &entity.Lon, &entity.GeoHash)
+		err = rows.Scan(&merchant.ID, &merchant.Name, &merchant.Category, &merchant.ImageUrl, &merchant.Lat, &merchant.Lon, &merchant.GeoHash)
 		if err != nil {
 			log.Printf("Failed to fetch merchants: %v", err.Error())
-			return _entities, err
+			return nil, err
 		}
 
-		entities = append(entities, entity)
+		sql2 := "SELECT id, name, category, price, image_url, created_at FROM public.merchant_items WHERE merchant_id = $1"
+		rows2, err := r.db.Query(sql2, merchant.ID)
+		if err != nil {
+			log.Printf("Failed to Fetch merchants: %v", err.Error())
+			return nil, err
+		}
+		for rows2.Next() {
+			var item entity.MerchantItem
+			err = rows2.Scan(&item.ID, &item.Name, &item.Category, &item.Price, &item.ImageUrl, &item.CreatedAt)
+			if err != nil {
+				log.Printf("Failed to fetch merchants: %v", err.Error())
+				return nil, err
+			}
+			items = append(items, item)
+		}
+
+		merchantWithItem = append(merchantWithItem, entity.MerchantWithItem{
+			Merchant: merchant,
+			Items:    items,
+		})
 	}
 
-	return entities, nil
+	return merchantWithItem, nil
 }

@@ -111,5 +111,4 @@ func (c *merchantController) BrowseNearby(ctx *fiber.Ctx) error {
 
 func (c *merchantController) BrowseNearbyInvalid(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusBadRequest).SendString("Invalid URL format")
-
 }

@@ -42,15 +42,15 @@ func ValidMerchantItemCategory(category string) bool {
 }
 
 type MerchantItem struct {
-	ID         uuid.UUID
-	Name       string
-	Category   ItemCategory
-	ImageUrl   string
-	Price      int
-	CreatedAt  time.Time
-	CreatedBy  string
-	MerchantID uuid.UUID
-	merchant   Merchant
+	ID         uuid.UUID    `json:"itemId"`
+	Name       string       `json:"name"`
+	Category   ItemCategory `json:"category"`
+	ImageUrl   string       `json:"imageUrl"`
+	Price      int          `json:"price"`
+	CreatedAt  time.Time    `json:"createdAt"`
+	CreatedBy  string       `json:"createdBy"`
+	MerchantID uuid.UUID    `json:"merchantId"`
+	merchant   Merchant     `json:"-"`
 }
 
 func (m *MerchantItem) SetMerchant(merchant Merchant) {
