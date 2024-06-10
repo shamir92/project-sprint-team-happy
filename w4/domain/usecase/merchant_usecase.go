@@ -5,6 +5,7 @@ import (
 	"belimang/domain/repository"
 	"belimang/protocol/api/dto"
 	"context"
+	"log"
 	"strconv"
 
 	"github.com/mmcloughlin/geohash"
@@ -15,7 +16,7 @@ import (
 type IMerchantUsecase interface {
 	Create(ctx context.Context, payload MerchantCreatePayload) (dto.MerchantCreateDtoResponse, error)
 	Fetch(ctx context.Context, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, entity.PaginationMeta, error)
-	FetchNearby(ctx context.Context, userCoordinate UserCoordinate, query MerchantFetchQuery) ([]entity.MerchantWithItem, error)
+	FetchNearby(ctx context.Context, userCoordinate entity.UserCoordinate, query MerchantFetchQuery) ([]entity.MerchantWithItem, error)
 }
 
 type merchantUsecase struct {
@@ -133,12 +134,12 @@ func (u *merchantUsecase) Fetch(ctx context.Context, query MerchantFetchQuery) (
 	return response, meta, nil
 }
 
-type UserCoordinate struct {
-	Lat float64 `json:"lat" validate:"required,latitude"`
-	Lon float64 `json:"long" validate:"required,longitude"`
-}
+// type UserCoordinate struct {
+// 	Lat float64 `json:"lat" validate:"required,latitude"`
+// 	Lon float64 `json:"long" validate:"required,longitude"`
+// }
 
-func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCoordinate, query MerchantFetchQuery) ([]entity.MerchantWithItem, error) {
+func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate entity.UserCoordinate, query MerchantFetchQuery) ([]entity.MerchantWithItem, error) {
 	_, span := u.tracer.Start(ctx, "FetchNearby")
 	defer span.End()
 	targetGeoHash := geohash.EncodeWithPrecision(userCoordinate.Lat, userCoordinate.Lon, 6)
@@ -185,7 +186,7 @@ func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCo
 	filter.Limit = meta.Limit
 	filter.Offset = meta.Offset
 
-	merchants, err := u.merchantRepository.FetchNearby(ctx, neighbors, filter)
+	merchants, err := u.merchantRepository.FetchNearby(ctx, userCoordinate, neighbors, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -203,6 +204,7 @@ func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCo
 	// 		},
 	// 	})
 	// }
+	log.Println(merchants)
 
 	return merchants, nil
 }
