@@ -14,7 +14,7 @@ type OrderEstimateResponseDto struct {
 }
 
 type PlaceOrderRequestDto struct {
-	OrderId string `json:"calculatedEstimateId"`
+	OrderId string `json:"calculatedEstimateId" validate:"required"`
 }
 
 type PlaceOrderResponseDto struct {

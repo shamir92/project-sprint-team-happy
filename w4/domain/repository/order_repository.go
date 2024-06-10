@@ -259,7 +259,7 @@ func (r *orderRepository) InsertEstimateOrder(ctx context.Context, in InsertEsti
 	var newOrder entity.Order
 	err := r.startTrx(func(tx *sql.Tx) error {
 		createdOrder, err := r.insertOrder(ctx, in.Order, tx)
-
+		fmt.Printf("Created Order ID: %s", createdOrder.ID.String())
 		if err != nil {
 			return err
 		}
