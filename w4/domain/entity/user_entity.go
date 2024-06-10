@@ -28,3 +28,8 @@ func (u User) IsAdmin() bool {
 func (u User) IsUserRole() bool {
 	return u.Role == ROLE_USER
 }
+
+type UserCoordinate struct {
+	Lat float64 `json:"lat" validate:"required,latitude"`
+	Lon float64 `json:"long" validate:"required,longitude"`
+}

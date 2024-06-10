@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"belimang/domain/entity"
 	"belimang/domain/usecase"
 	"belimang/internal/helper"
 	"context"
@@ -75,7 +76,6 @@ func (c *merchantController) BrowseNearby(ctx *fiber.Ctx) error {
 	_, span := tracer.Start(context, "Browse")
 	defer span.End()
 	coordinate := strings.Split(ctx.Params("latlon"), ",")
-	// coordinate := []string{ctx.Params("lat"), ctx.Params("lon")}
 	coordinate[0] = strings.TrimSpace(coordinate[0])
 	coordinate[1] = strings.TrimSpace(coordinate[1])
 
@@ -95,7 +95,7 @@ func (c *merchantController) BrowseNearby(ctx *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	response, err := c.merchantUsecase.FetchNearby(context, usecase.UserCoordinate{
+	response, err := c.merchantUsecase.FetchNearby(context, entity.UserCoordinate{
 		Lat: lat,
 		Lon: lon,
 	}, query)

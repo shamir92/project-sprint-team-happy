@@ -6,9 +6,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 
 	"github.com/mmcloughlin/geohash"
+	"github.com/umahmood/haversine"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -16,7 +18,7 @@ import (
 type IMerchantRepository interface {
 	Create(ctx context.Context, merchant entity.Merchant) (entity.Merchant, error)
 	Fetch(ctx context.Context, filter entity.MerchantFetchFilter) ([]entity.Merchant, int, error)
-	FetchNearby(ctx context.Context, geohash []string, filter entity.MerchantFetchFilter) ([]entity.MerchantWithItem, error)
+	FetchNearby(ctx context.Context, userCoordinate entity.UserCoordinate, neighbors []string, filter entity.MerchantFetchFilter) ([]entity.MerchantWithItem, error)
 }
 
 type merchantRepository struct {
@@ -115,11 +117,17 @@ func (r *merchantRepository) Fetch(ctx context.Context, filter entity.MerchantFe
 	return entities, count, nil
 }
 
-func (r *merchantRepository) FetchNearby(ctx context.Context, neighbors []string, filter entity.MerchantFetchFilter) ([]entity.MerchantWithItem, error) {
-	_, span := r.tracer.Start(ctx, "Fetch")
+func (r *merchantRepository) calculateDistance(lat1, lon1, lat2, lon2 float64) float64 {
+	_, km := haversine.Distance(haversine.Coord{Lat: lat1, Lon: lon1}, haversine.Coord{Lat: lat2, Lon: lon2})
+	return km
+}
+
+func (r *merchantRepository) FetchNearby(ctx context.Context, userCoordinate entity.UserCoordinate, neighbors []string, filter entity.MerchantFetchFilter) ([]entity.MerchantWithItem, error) {
+	_, span := r.tracer.Start(ctx, "FetchNearby")
 	defer span.End()
 	var (
 		merchantWithItem []entity.MerchantWithItem
+		merchants        []entity.Merchant
 		conditions       []string = make([]string, 0)
 		values           []any    = make([]any, 0)
 		geoConditions    string
@@ -148,20 +156,23 @@ func (r *merchantRepository) FetchNearby(ctx context.Context, neighbors []string
 		conditions = append(conditions, fmt.Sprintf("category = $%d", len(values)))
 	}
 
-	if filter.Limit <= 0 || filter.Offset < 0 {
-		filter.Limit = 5
-		filter.Offset = 0
-	}
+	// if filter.Limit <= 0 || filter.Offset < 0 {
+	// 	filter.Limit = 100
+	// 	filter.Offset = 0
+	// }
 
 	if len(conditions) > 0 {
 		sql += fmt.Sprintf(" AND (%s)", strings.Join(conditions, " AND "))
 	}
 
 	if filter.SortCreatedAt.String() == entity.SortTypeAsc.String() {
-		sql += fmt.Sprintf(" ORDER BY created_at ASC LIMIT %d OFFSET %d", filter.Limit, filter.Offset)
+		// sql += fmt.Sprintf(" ORDER BY created_at ASC")
+		sql += " ORDER BY created_at ASC"
 	} else {
-		sql += fmt.Sprintf(" ORDER BY created_at DESC LIMIT %d OFFSET %d", filter.Limit, filter.Offset)
+		// sql += fmt.Sprintf(" ORDER BY created_at DESC", "")
+		sql += " ORDER BY created_at DESC"
 	}
+
 	rows, err := r.db.Query(sql, values...)
 	if err != nil {
 		log.Printf("Failed to Fetch merchants: %v", err.Error())
@@ -170,14 +181,31 @@ func (r *merchantRepository) FetchNearby(ctx context.Context, neighbors []string
 
 	for rows.Next() {
 		var merchant entity.Merchant
-		var items []entity.MerchantItem
+		// var items []entity.MerchantItem
 
 		err = rows.Scan(&merchant.ID, &merchant.Name, &merchant.Category, &merchant.ImageUrl, &merchant.Lat, &merchant.Lon, &merchant.GeoHash)
 		if err != nil {
 			log.Printf("Failed to fetch merchants: %v", err.Error())
 			return nil, err
 		}
+		merchant.Distance = r.calculateDistance(userCoordinate.Lat, userCoordinate.Lon, merchant.Lat, merchant.Lon)
+		merchants = append(merchants, merchant)
+	}
 
+	sort.Slice(merchants, func(i, j int) bool {
+		return merchants[i].Distance < merchants[j].Distance
+	})
+
+	if filter.Limit <= 0 || filter.Offset < 0 {
+		filter.Limit = 5
+		filter.Offset = 0
+	}
+	if len(merchants) > filter.Limit {
+		merchants = merchants[:filter.Limit]
+	}
+	log.Println(merchants)
+	for _, merchant := range merchants {
+		var items []entity.MerchantItem
 		sql2 := "SELECT id, name, category, price, image_url, created_at FROM public.merchant_items WHERE merchant_id = $1"
 		rows2, err := r.db.Query(sql2, merchant.ID)
 		if err != nil {
