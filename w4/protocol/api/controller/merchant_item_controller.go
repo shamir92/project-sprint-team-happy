@@ -47,9 +47,7 @@ func (mic *merchantItemController) CreateItem(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"data": fiber.Map{
-			"itemId": item.ID,
-		},
+		"itemId": item.ID,
 	})
 }
 
