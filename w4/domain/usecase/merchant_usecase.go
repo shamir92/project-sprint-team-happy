@@ -15,7 +15,7 @@ import (
 type IMerchantUsecase interface {
 	Create(ctx context.Context, payload MerchantCreatePayload) (dto.MerchantCreateDtoResponse, error)
 	Fetch(ctx context.Context, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, entity.PaginationMeta, error)
-	FetchNearby(ctx context.Context, userCoordinate UserCoordinate, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error)
+	FetchNearby(ctx context.Context, userCoordinate UserCoordinate, query MerchantFetchQuery) ([]entity.MerchantWithItem, error)
 }
 
 type merchantUsecase struct {
@@ -138,7 +138,7 @@ type UserCoordinate struct {
 	Lon float64 `json:"long" validate:"required,longitude"`
 }
 
-func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCoordinate, query MerchantFetchQuery) ([]dto.MerchantFetchDtoResponse, error) {
+func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCoordinate, query MerchantFetchQuery) ([]entity.MerchantWithItem, error) {
 	_, span := u.tracer.Start(ctx, "FetchNearby")
 	defer span.End()
 	targetGeoHash := geohash.EncodeWithPrecision(userCoordinate.Lat, userCoordinate.Lon, 6)
@@ -146,9 +146,9 @@ func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCo
 	neighbors = append(neighbors, targetGeoHash)
 
 	var (
-		response []dto.MerchantFetchDtoResponse = make([]dto.MerchantFetchDtoResponse, 0)
-		filter   entity.MerchantFetchFilter
-		meta     = entity.PaginationMeta{
+		// response []dto.MerchantFetchDtoResponse = make([]dto.MerchantFetchDtoResponse, 0)
+		filter entity.MerchantFetchFilter
+		meta   = entity.PaginationMeta{
 			Limit:  5,
 			Offset: 0,
 		}
@@ -166,7 +166,7 @@ func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCo
 		if query.Category.Valid() {
 			filter.MerchantCategory = query.Category
 		} else {
-			return response, nil
+			return nil, nil
 		}
 	}
 
@@ -187,22 +187,22 @@ func (u *merchantUsecase) FetchNearby(ctx context.Context, userCoordinate UserCo
 
 	merchants, err := u.merchantRepository.FetchNearby(ctx, neighbors, filter)
 	if err != nil {
-		return response, err
+		return nil, err
 	}
 
-	for _, merchant := range merchants {
-		response = append(response, dto.MerchantFetchDtoResponse{
-			ID:       merchant.ID,
-			Name:     merchant.Name,
-			Category: merchant.Category,
-			ImageUrl: merchant.ImageUrl,
-			Location: entity.Location{
-				Lat:     merchant.Lat,
-				Lon:     merchant.Lon,
-				GeoHash: merchant.GeoHash,
-			},
-		})
-	}
+	// for _, merchant := range merchants {
+	// 	response = append(response, dto.MerchantFetchDtoResponse{
+	// 		ID:       merchant.ID,
+	// 		Name:     merchant.Name,
+	// 		Category: merchant.Category,
+	// 		ImageUrl: merchant.ImageUrl,
+	// 		Location: entity.Location{
+	// 			Lat:     merchant.Lat,
+	// 			Lon:     merchant.Lon,
+	// 			GeoHash: merchant.GeoHash,
+	// 		},
+	// 	})
+	// }
 
-	return response, nil
+	return merchants, nil
 }

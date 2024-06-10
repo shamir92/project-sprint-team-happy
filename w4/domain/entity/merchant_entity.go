@@ -36,14 +36,19 @@ func (mc MerchantCategory) Valid() bool {
 }
 
 type Merchant struct {
-	ID        uuid.UUID
-	Name      string
-	Category  MerchantCategory
-	ImageUrl  string
-	Lat       float64
-	Lon       float64
-	GeoHash   string
-	CreatedAt time.Time
+	ID        uuid.UUID        `json:"merchantId"`
+	Name      string           `json:"name"`
+	Category  MerchantCategory `json:"merchantCategory"`
+	ImageUrl  string           `json:"imageUrl"`
+	Lat       float64          `json:"lat"`
+	Lon       float64          `json:"lon"`
+	GeoHash   string           `json:"geohash"`
+	CreatedAt time.Time        `json:"createdAt"`
+}
+
+type MerchantWithItem struct {
+	Merchant Merchant       `json:"merchant"`
+	Items    []MerchantItem `json:"items"`
 }
 
 type MerchantFetchFilter struct {
