@@ -240,7 +240,7 @@ func (u *orderUsecase) PlaceOrder(ctx context.Context, orderId string, userId st
 }
 
 func (u *orderUsecase) GetOrders(ctx context.Context, params dto.GetOrderSearchParams, userID string) ([]dto.GetOrderResponseDto, error) {
-	_, span := u.tracer.Start(ctx, "PlaceOrder")
+	_, span := u.tracer.Start(ctx, "GetOrders")
 	defer span.End()
 	user, _ := uuid.Parse(userID)
 

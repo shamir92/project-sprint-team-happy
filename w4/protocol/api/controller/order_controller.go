@@ -59,7 +59,12 @@ func (oc *orderController) PlaceOrder(ctx *fiber.Ctx) error {
 	var body dto.PlaceOrderRequestDto
 
 	if err := ctx.BodyParser(&body); err != nil {
-		return fiber.ErrBadGateway
+		return fiber.ErrBadRequest
+	}
+
+	if err := helper.ValidateStruct(&body); err != nil {
+		log.Printf("ERROR | PlaceOrder | ValidateStruct | %s\n", err.Error())
+		return err
 	}
 
 	user := ctx.Locals("user").(*helper.JsonWebTokenClaims)
@@ -70,10 +75,8 @@ func (oc *orderController) PlaceOrder(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"data": dto.PlaceOrderResponseDto{
-			OrderId: order.ID.String(),
-		},
+	return ctx.Status(fiber.StatusCreated).JSON(dto.PlaceOrderResponseDto{
+		OrderId: order.ID.String(),
 	})
 }
 

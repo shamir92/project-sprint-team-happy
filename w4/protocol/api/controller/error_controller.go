@@ -22,6 +22,7 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 	errResp := ErrorResponse{
 		Message: fiber.ErrInternalServerError.Message,
 		Error:   err.Error(),
+		Code:    fiber.StatusInternalServerError,
 	}
 
 	switch e := err.(type) {
