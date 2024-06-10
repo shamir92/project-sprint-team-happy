@@ -101,7 +101,5 @@ func (oc *orderController) GetUserOrders(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-		"data": orders,
-	})
+	return ctx.Status(fiber.StatusOK).JSON(orders)
 }
