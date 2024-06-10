@@ -43,12 +43,10 @@ func (oc *orderController) PostOrderEstimate(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"data": dto.OrderEstimateResponseDto{
-			OrderId:                        order.ID,
-			TotalPrice:                     order.TotalPrice,
-			EstimatedDeliveryTimeInMinutes: order.EstimatedDeliveryTime,
-		},
+	return ctx.Status(fiber.StatusOK).JSON(dto.OrderEstimateResponseDto{
+		OrderId:                        order.ID,
+		TotalPrice:                     order.TotalPrice,
+		EstimatedDeliveryTimeInMinutes: order.EstimatedDeliveryTime,
 	})
 }
 
