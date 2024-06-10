@@ -47,14 +47,14 @@ type OrderEstimateItem struct {
 }
 
 type MakeOrderEstimateMerchant struct {
-	IsStartingPoint bool                `json:"isStartingPoint" validate:"required"`
+	IsStartingPoint bool                `json:"isStartingPoint"`
 	MerchantID      string              `json:"merchantId" validate:"required"`
-	Items           []OrderEstimateItem `json:"items"`
+	Items           []OrderEstimateItem `json:"items" validate:"required,dive"`
 }
 
 type MakeOrderEstimatePayload struct {
 	UserLocation entity.Location             `json:"userLocation" validate:"required"`
-	Orders       []MakeOrderEstimateMerchant `json:"orders" validate:"required"`
+	Orders       []MakeOrderEstimateMerchant `json:"orders" validate:"required,dive"`
 }
 
 func (u *orderUsecase) MakeOrderEstimate(ctx context.Context, payload MakeOrderEstimatePayload, userId string) (entity.Order, error) {
@@ -165,7 +165,20 @@ func (u *orderUsecase) MakeOrderEstimate(ctx context.Context, payload MakeOrderE
 		Lon: payload.UserLocation.Lon,
 	}
 
-	estimatedDeliveryTime, err := u.calculateEstimateOrderDeliveryTime(ctx, append([]entity.Location{merchantStartingPoint}, merchantLocations...), userLocation)
+	var allMerchantLocations = []entity.Location{
+		merchantStartingPoint,
+	}
+	allMerchantLocations = append(allMerchantLocations, merchantLocations...)
+	for _, merchantLoc := range allMerchantLocations {
+		if distance := userLocation.Distance(merchantLoc); distance > 3 {
+			return emptyOrder, helper.CustomError{
+				Code:    400,
+				Message: "merchant's location too far",
+			}
+		}
+	}
+
+	estimatedDeliveryTime, err := u.calculateEstimateOrderDeliveryTime(ctx, allMerchantLocations, userLocation)
 
 	if err != nil {
 		return emptyOrder, err
@@ -317,10 +330,6 @@ func (u *orderUsecase) calculateEstimateOrderDeliveryTime(ctx context.Context, m
 	deliveryTimeInMinutes := totalDistance / speedMetersPerMinute
 
 	return math.Round(deliveryTimeInMinutes), nil
-}
-
-type Coordinates struct {
-	Lat, Lon float64
 }
 
 // Haversine function to calculate the distance between two points
