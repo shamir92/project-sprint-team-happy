@@ -1,1 +1,1 @@
-make: *** No rule to make target 'test-debug'.  Stop.
+make: *** No rule to make target 'load-test-debug'.  Stop.
