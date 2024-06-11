@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
@@ -28,6 +29,9 @@ func NewPostgresWriter(configDB configuration.IDatabaseWriter) (*postgresWriter,
 		strings.TrimSpace(configDB.GetDBParam()))
 
 	db, err := sql.Open("postgres", dsn)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxIdleTime(10 * time.Second)
+	db.SetMaxOpenConns(75)
 	if err != nil {
 		// log.Fatal(err) // TODO: handle this properly!
 		return nil, fmt.Errorf("failed to open database: %w", err)
