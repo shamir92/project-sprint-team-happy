@@ -31,7 +31,7 @@ func NewPostgresWriter(configDB configuration.IDatabaseWriter) (*postgresWriter,
 	db, err := sql.Open("postgres", dsn)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxIdleTime(10 * time.Second)
-	db.SetMaxOpenConns(100)
+	db.SetMaxOpenConns(90)
 	if err != nil {
 		// log.Fatal(err) // TODO: handle this properly!
 		return nil, fmt.Errorf("failed to open database: %w", err)
