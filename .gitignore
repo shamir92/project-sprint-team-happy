@@ -2,7 +2,6 @@
 projectsprint.key
 w2/ap-southeast-1-bundle.pem
 w3/bin/air
-w4-tools
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o

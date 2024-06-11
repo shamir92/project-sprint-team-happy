@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "entity/pb";
+
+message ZoneOpts {
+    float area = 1;
+    float gap = 2;
+    int32 numberOfZones = 3;
+    int32 numberOfMerchantsPerZone = 4;
+}
+
+message AssignMerchant {
+    string pregeneratedId = 1;
+    string merchantId = 2;
+}
+
+message LocationPoint {
+    float lat = 1;
+    float long = 2;
+}
+
+message Merchant {
+    string merchantId = 1;
+    string pregeneratedId = 2;
+    LocationPoint location = 3;
+}
+
+message MerchantNearestRecord {
+   LocationPoint startingPoint = 1;
+   map<int32, Merchant> merchants = 3; 
+}
+
+message MerchantNearestRecordZone {
+    repeated MerchantNearestRecord records = 1;
+}
+
+message AllMerchantNearestRecord {
+    repeated MerchantNearestRecordZone zones = 1;
+}
+
+message PregeneratedMerchant {
+    repeated Merchant merchant = 1;
+}
+
+message GeneratedRoutes {
+    map<int32, Merchant> generatedRoutes = 1;
+    LocationPoint startingPoint = 2;
+    float totalDistance = 3;
+    int32 totalDuration = 4;
+    int32 startingIndex = 5;
+}
+
+message RouteZone {
+    repeated GeneratedRoutes routes = 1;
+}
+
+message AllGeneratedRoutes {
+    repeated RouteZone zone = 1;
+}
+
+message InitZonesRequest {
+    int32 area = 1;
+    int32 gap = 2;
+    int32 numberOfZones = 3;
+    int32 numberOfMerchantsPerZone = 4;
+}
+
+message InitPregenerated {
+    int32 generateCount = 1;
+}
+
+service MerchantService {
+    rpc AssignPregeneratedMerchant (AssignMerchant) returns (google.protobuf.Empty);
+    rpc GetAllMerchantNearestLocations (google.protobuf.Empty) returns (AllMerchantNearestRecord);
+    rpc GetMerchantNearestLocations (google.protobuf.Empty) returns (MerchantNearestRecord);
+    rpc GetAllMerchantRoutes (google.protobuf.Empty) returns (AllGeneratedRoutes);
+    rpc GetTwoZoneMerchantRoutes (google.protobuf.Empty) returns (AllGeneratedRoutes);
+    rpc GetMerchantRoutes (google.protobuf.Empty) returns (RouteZone);
+    rpc GetAllPregeneratedMerchants (google.protobuf.Empty) returns (PregeneratedMerchant);
+    rpc GetPregeneratedMerchant (google.protobuf.Empty) returns (Merchant);
+    rpc InitMerchantNearestLocations (InitPregenerated) returns (google.protobuf.Empty);
+    rpc InitPegeneratedTSPMerchants (InitPregenerated) returns (google.protobuf.Empty);
+    rpc InitZonesWithPregeneratedMerchants (InitZonesRequest) returns (google.protobuf.Empty);
+    rpc ResetAll (google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+

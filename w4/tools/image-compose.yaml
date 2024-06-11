@@ -1,0 +1,26 @@
+# docker-compose.yml
+version: '3'
+services:
+  database:
+    image: "shamirhusein/project-sprint-w4:1d8a91730b2471e93d49bbf633c0dc20afb6f1f2" # use latest official postgres version
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2'
+    #       memory: 1000M
+    #       # pids: 1
+    #     reservations:
+    #       cpus: '0.25'
+    #       memory: 20M
+    ports:
+      - "5432:5432"
+    environment:
+      BCRYPT_SALT: 8
+      DB_HOST: 47.128.77.136
+      DB_NAME: postgres
+      DB_PARAMS : sslmode=disable
+      DB_PASSWORD : eechu6ieWoghushahgei5Iko5eBaefigh
+      DB_PORT : 5432
+      DB_USERNAME: postgres
+      JWT_SECRET: postgres
+

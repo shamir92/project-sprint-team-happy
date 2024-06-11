@@ -9,7 +9,7 @@ run-migrate-create:
 
 PHONY: run-migrate-up
 run-migrate-up: 
-	migrate -database "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable" -path "./migrations" up
+	migrate -database "postgres://postgres:eechu6ieWoghushahgei5Iko5eBaefigh@47.128.77.136:5432/postgres?sslmode=disable" -path "./migrations" up
 
 PHONY: run-migrate-down-by-1
 run-migrate-down-by-1: 
@@ -17,7 +17,7 @@ run-migrate-down-by-1:
 
 PHONY: run-migrate-down-all
 run-migrate-down-all: 
-	migrate -database "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable" -path "./migrations" down -all
+	migrate -database "postgres://postgres:eechu6ieWoghushahgei5Iko5eBaefigh@47.128.77.136:5432/postgres?sslmode=disable" -path "./migrations" down -all
 
 PHONY: run-migrate-drop-force
 run-migrate-drop-force: 
