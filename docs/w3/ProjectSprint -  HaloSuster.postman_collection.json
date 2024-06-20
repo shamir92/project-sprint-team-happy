@@ -1,0 +1,815 @@
+{
+	"info": {
+		"_postman_id": "e7409d82-df6d-4396-9167-0bb634de3e58",
+		"name": "ProjectSprint -  HaloSuster",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34630441",
+		"_collection_link": "https://restless-eclipse-818955.postman.co/workspace/Team-Workspace~b022158a-8af3-4983-88a6-844e09a76c21/collection/34630441-e7409d82-df6d-4396-9167-0bb634de3e58?action=share&source=collection_link&creator=34630441"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "/v1/user/nurse",
+					"item": [
+						{
+							"name": "/v1/user/nurse/register - Create new nurse",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function generateRandomThreeDigits() {",
+											"  return Math.floor(Math.random() * 1000).toString().padStart(3, \"0\");",
+											"}",
+											"",
+											"const NIP_PREFIX = 303",
+											"const MAX_YEAR = new Date().getFullYear()",
+											"const MIN_YEAR = 2000",
+											"",
+											"const isMale = 1",
+											"const year = Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR",
+											"const month = Math.floor(Math.random() * 12) + 1;",
+											"const randomDigits = generateRandomThreeDigits()",
+											"",
+											"let nip = NIP_PREFIX + \"\" + isMale + year.toString() + month.toString().padStart(2, \"0\") + randomDigits;",
+											"",
+											"console.log(Number(nip), \"nip\")",
+											"",
+											"pm.collectionVariables.set(\"RANDOM_NURSE_NIP\", Number(nip))",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.data.accessToken) {",
+											"    pm.environment.set(\"NURSE_ACCCESS_TOKEN\", responseData.data.accessToken);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{USER_IT_ACCESS_TOKEN}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"An mo en\",\n    \"nip\": {{RANDOM_NURSE_NIP}},\n    \"identityCardScanImg\": \"http://kaylileigh.com/image.png\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/nurse/register",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"nurse",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/user/nurse/:nurseId/access - Set nurse's access",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{USER_IT_ACCESS_TOKEN}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"password\": \"{{PASSWORD}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/nurse/e977b39f-c75b-4631-8bdd-cb99079e958d/access",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"nurse",
+										"e977b39f-c75b-4631-8bdd-cb99079e958d",
+										"access"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/user/nurse/:userId - update user nurse",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{USER_IT_ACCESS_TOKEN}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nip\": {{RANDOM_NURSE_NIP}},\n    \"name\": \"Idamanta Sembiring\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/nurse/9f2d2b59-9a0b-45da-8601-49107106f00d",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"nurse",
+										"9f2d2b59-9a0b-45da-8601-49107106f00d"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/user/nurse/:userId - delete user nurse",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function generateRandomThreeDigits() {",
+											"  return Math.floor(Math.random() * 1000).toString().padStart(3, \"0\");",
+											"}",
+											"",
+											"const NIP_PREFIX = 303",
+											"const MAX_YEAR = new Date().getFullYear()",
+											"const MIN_YEAR = 2000",
+											"",
+											"const isMale = 1",
+											"const year = Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR",
+											"const month = Math.floor(Math.random() * 12) + 1;",
+											"const randomDigits = generateRandomThreeDigits()",
+											"",
+											"let nip = NIP_PREFIX + \"\" + isMale + year.toString() + month.toString().padStart(2, \"0\") + randomDigits;",
+											"",
+											"console.log(Number(nip), \"nip\")",
+											"",
+											"pm.collectionVariables.set(\"RANDOM_NURSE_NIP\", Number(nip))",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{USER_IT_ACCESS_TOKEN}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{API_URL}}/user/nurse/9f2d2b59-9a0b-45da-8601-49107106f00d",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"nurse",
+										"9f2d2b59-9a0b-45da-8601-49107106f00d"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/user/nurse/login",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.data.accessToken) {",
+											"    pm.collectionVariables.set(\"NURSE_ACCESS_TOKEN\", responseData.data.accessToken);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nip\": {{RANDOM_NURSE_NIP}},\n    \"password\": \"{{PASSWORD}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/nurse/login",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"nurse",
+										"login"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/v1/user/it",
+					"item": [
+						{
+							"name": "/v1/user/it/register",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function generateRandomThreeDigits() {",
+											"  return Math.floor(Math.random() * 1000).toString().padStart(3, \"0\");",
+											"}",
+											"",
+											"const NIP_PREFIX = 615",
+											"const MAX_YEAR = new Date().getFullYear()",
+											"const MIN_YEAR = 2000",
+											"",
+											"const isMale = 1",
+											"const year = Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR",
+											"const month = Math.floor(Math.random() * 12) + 1;",
+											"const randomDigits = generateRandomThreeDigits()",
+											"",
+											"let nip = NIP_PREFIX + \"\" + isMale + year.toString() + month.toString().padStart(2, \"0\") + randomDigits;",
+											"",
+											"console.log(Number(nip), \"nip\")",
+											"",
+											"pm.collectionVariables.set(\"RANDOM_USER_IT_NIP\", Number(nip))",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.data.accessToken) {",
+											"    pm.collectionVariables.set(\"USER_IT_ACCESS_TOKEN\", responseData.data.accessToken);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nip\": {{RANDOM_USER_IT_NIP}},\n    \"password\": \"{{PASSWORD}}\", \n    \"name\": \"{{$randomFullName}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/it/register",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"it",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/user/it/login",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.data.accessToken) {",
+											"    pm.environment.set(\"USER_IT_ACCESS_TOKEN\", responseData.data.accessToken);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nip\": {{RANDOM_USER_IT_NIP}},\n    \"password\": \"{{PASSWORD}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/it/login",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"it",
+										"login"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/v1/user - Get All Users",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"warning": "This is a duplicate header and will be overridden by the Authorization header generated by Postman.",
+								"key": "Authorization",
+								"value": "Bearer {{USER_IT_ACCESS_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/user",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"user"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "offset",
+									"value": "3",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "howe",
+									"disabled": true
+								},
+								{
+									"key": "role",
+									"value": "nurse",
+									"disabled": true
+								},
+								{
+									"key": "nip",
+									"value": "303220140345774",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Medical Record",
+			"item": [
+				{
+					"name": "/v1/medical/record",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{NURSE_ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"identityNumber\": 1234567890123456,\n    \"symptoms\": \"Fever, headache, nausea\",\n    \"medications\": \"Paracetamol, Ibuprofen\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/medical/record",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"medical",
+								"record"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v1/medical/record",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{NURSE_ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/medical/record",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"medical",
+								"record"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v1/medical/patient",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{NURSE_ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": " {\n    \"identityNumber\": 1234567890123456,\n    \"phoneNumber\": \"+62123123123\",\n    \"name\": \"John Doe\",\n    \"birthDate\": \"1990-01-01\",\n    \"gender\": \"male\",\n    \"identityCardScanImg\": \"https://example.com/images/id1.jpg\"\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/medical/patient",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"medical",
+								"patient"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/v1/medical/patient",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{NURSE_ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/medical/patient",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"medical",
+								"patient"
+							],
+							"query": [
+								{
+									"key": "phoneNumber",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "created",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Upload Image",
+			"item": [
+				{
+					"name": "/v1/image",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/Users/shamirhusein/Desktop/Screenshot 2024-05-15 at 17.06.50.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{API_URL}}/image",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"image"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "RANDOM_USER_IT_NIP",
+			"value": ""
+		},
+		{
+			"key": "USER_IT_ACCESS_TOKEN",
+			"value": ""
+		},
+		{
+			"key": "PASSWORD",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "RANDOM_NURSE_NIP",
+			"value": ""
+		},
+		{
+			"key": "NURSE_ACCESS_TOKEN",
+			"value": ""
+		}
+	]
+}
