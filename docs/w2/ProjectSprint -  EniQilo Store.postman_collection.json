@@ -1,0 +1,648 @@
+{
+	"info": {
+		"_postman_id": "99b25a03-aefb-45da-9cb5-e92590270adc",
+		"name": "ProjectSprint -  EniQilo Store",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34630441",
+		"_collection_link": "https://restless-eclipse-818955.postman.co/workspace/Team-Workspace~b022158a-8af3-4983-88a6-844e09a76c21/collection/34630441-99b25a03-aefb-45da-9cb5-e92590270adc?action=share&source=collection_link&creator=34630441"
+	},
+	"item": [
+		{
+			"name": "Staff",
+			"item": [
+				{
+					"name": "/staff/register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the JSON response",
+									"var responseData = pm.response.json();",
+									"",
+									"// Check if the access token is in the response and set it as an environment variable",
+									"if (responseData.data.accessToken) {",
+									"    pm.environment.set(\"ACCESS_TOKEN\", responseData.data.accessToken);",
+									"    pm.collectionVariables.set('LAST_REGISTERED_STAFF_PHONE_NUMBER', responseData.data.phoneNumber)",
+									"} else {",
+									"    console.log(\"Access token not found in the response.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "{{COOKIE_TUNNEL_VSCODE}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"phoneNumber\": \"+6285814047229\", \n\t\"name\": \"{{$randomFullName}}\",\n\t\"password\": \"{{PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/staff/register",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"staff",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/staff/login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the JSON response",
+									"var responseData = pm.response.json();",
+									"",
+									"// Check if the access token is in the response and set it as an environment variable",
+									"if (responseData.data.accessToken) {",
+									"    pm.collectionVariables.set(\"ACCESS_TOKEN\", responseData.data.accessToken);",
+									"} else {",
+									"    console.log(\"Access token not found in the response.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phoneNumber\": \"{{LAST_REGISTERED_STAFF_PHONE_NUMBER}}\",\n    \"password\": \"{{PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/staff/login",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"staff",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Customer",
+			"item": [
+				{
+					"name": "/customer/register",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseData = pm.response.json()",
+									"",
+									"pm.collectionVariables.set(\"LAST_REGISTERED_CUSTOMER_ID\", responseData.data.userId)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phoneNumber\": \"+7234199239111\",\n    \"name\": \"{{$randomFullName}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/v1/customer/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"customer",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/customer",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/v1/customer",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"customer"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "sch",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Product",
+			"item": [
+				{
+					"name": "/product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/product?id={{LAST_INSERTED_PRODUCT_ID}}",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"product"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{LAST_INSERTED_PRODUCT_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/product",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"",
+									"// Define your enum as an array of values",
+									"const enumValues = ['Clothing', 'Accessories', 'Footwear', 'Beverages'];",
+									"",
+									"// Function to select a random index based on array length",
+									"function getRandomIndex(max) {",
+									"  return Math.floor(Math.random() * max);",
+									"}",
+									"",
+									"// Select a random value from the enum",
+									"let randomProductCategory = enumValues[getRandomIndex(enumValues.length)];",
+									"pm.globals.set(\"randomProductCategory\",randomProductCategory)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"randomProductCategory\");",
+									"",
+									"",
+									"pm.collectionVariables.set('LAST_INSERTED_PRODUCT_ID', pm.response.json().data.id)",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCCESS_TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"{{$randomFullName}}\",\n\t\"sku\": \"{{$randomFullName}}\", \n\t\"category\": \"{{randomProductCategory}}\", \n\t\"imageUrl\": \"{{$randomImageUrl}}\", \n\t\"notes\":\"{{$randomLoremSentence}}\",\n\t\"price\":{{$randomInt}}, \n\t\"stock\": {{$randomInt}}, \n\t\"location\": \"{{$randomAlphaNumeric}}\", \n\t\"isAvailable\": true \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/product",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"product"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/product/checkout",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"customerId\": \"{{LAST_REGISTERED_CUSTOMER_ID}}\", // ID Should be string\n\t\"productDetails\": [\n\t\t{\n\t\t\t\"productId\": \"{{LAST_INSERTED_PRODUCT_ID}}\",\n\t\t\t\"quantity\": 1 // not null, min: 1 \n\t\t}\n\t], \n\t\"paid\": 700,\n\t\"change\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/product/checkout",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"product",
+								"checkout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "v1/product/{productId}",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"",
+									"// Define your enum as an array of values",
+									"const enumValues = ['Clothing', 'Accessories', 'Footwear', 'Beverages'];",
+									"",
+									"// Function to select a random index based on array length",
+									"function getRandomIndex(max) {",
+									"  return Math.floor(Math.random() * max);",
+									"}",
+									"",
+									"// Select a random value from the enum",
+									"let randomProductCategory = enumValues[getRandomIndex(enumValues.length)];",
+									"pm.globals.set(\"randomProductCategory\",randomProductCategory)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"randomProductCategory\");",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"{{$randomAlphaNumeric}}\",\n\t\"sku\": \"{{$randomAlphaNumeric}}\", \n\t\"category\": \"{{randomProductCategory}}\", \n\t\"imageUrl\": \"{{$randomImageUrl}}\", \n\t\"notes\":\"{{$randomAlphaNumeric}}\",\n\t\"price\":{{$randomInt}}, \n\t\"stock\": {{$randomInt}}, \n\t\"location\": \"{{$randomAlphaNumeric}}\", \n\t\"isAvailable\": true \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/product/{{LAST_INSERTED_PRODUCT_ID}}",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"product",
+								"{{LAST_INSERTED_PRODUCT_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "v1/product/{productId}",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/product/{{LAST_INSERTED_PRODUCT_ID}}",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"product",
+								"{{LAST_INSERTED_PRODUCT_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/v1/product/customer",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"v1",
+								"product",
+								"customer"
+							],
+							"query": [
+								{
+									"key": "inStock",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "createdAt",
+									"value": "ASC",
+									"disabled": true
+								},
+								{
+									"key": "price",
+									"value": "DESC",
+									"disabled": true
+								},
+								{
+									"key": "id",
+									"value": "186a5255-4063-4137-ae64-6dbb72566a87",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "History Checkout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/product/checkout/history",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"product",
+								"checkout",
+								"history"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "LAST_REGISTERED_STAFF_PHONE_NUMBER",
+			"value": ""
+		},
+		{
+			"key": "ACCESS_TOKEN",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "LAST_REGISTERED_CUSTOMER_ID",
+			"value": ""
+		},
+		{
+			"key": "LAST_INSERTED_PRODUCT_ID",
+			"value": ""
+		},
+		{
+			"key": "PASSWORD",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

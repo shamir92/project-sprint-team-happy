@@ -1,0 +1,738 @@
+{
+	"info": {
+		"_postman_id": "d3b27cc1-2d08-48ba-b1ea-121200f76f41",
+		"name": "ProjectSprint - CatSocial",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34630441",
+		"_collection_link": "https://restless-eclipse-818955.postman.co/workspace/Team-Workspace~b022158a-8af3-4983-88a6-844e09a76c21/collection/34630441-d3b27cc1-2d08-48ba-b1ea-121200f76f41?action=share&source=collection_link&creator=34630441"
+	},
+	"item": [
+		{
+			"name": "cats",
+			"item": [
+				{
+					"name": "Edit Cat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Fluffy\",\n\t\"race\": \"Bengal\",\n\t\"sex\": \"male\",\n\t\"ageInMonth\": 24,\n\t\"description\": \"A playful\",\n\t\"imageUrls\": [\"https://example.com/cat1.jpg\", \"https://example.com/cat2.jpg\"]\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/cat/{{LAST_CREATED_CAT_ID}}",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"cat",
+								"{{LAST_CREATED_CAT_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Cat",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Fluffy\",\n\t\"race\": \"Bengal\",\n\t\"sex\": \"male\",\n\t\"ageInMonth\": 24,\n\t\"description\": \"A playful\",\n\t\"imageUrls\": [\"https://example.com/cat1.jpg\", \"https://example.com/cat2.jpg\"]\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/cat/{{LAST_CREATED_CAT_ID}}",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"cat",
+								"{{LAST_CREATED_CAT_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Cat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json()",
+									"pm.collectionVariables.set(\"LAST_CREATED_CAT_ID\", res.data.id)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "no-content",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Jon dra en\",\n    \"race\": \"Scottish Fold\",\n    \"ageInMonth\": 92766,\n    \"sex\": \"female\",\n    \"description\": \"magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore e\",\n    \"imageUrls\": [\n        \"http://benneen.org/image.png\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/cat",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"cat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "owned",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/cat",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"cat"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "45a2c05c-fb2b-4f85-839d-314b2117c6a2",
+									"disabled": true
+								},
+								{
+									"key": "race",
+									"value": "PersianJakarta",
+									"disabled": true
+								},
+								{
+									"key": "owned",
+									"value": "false",
+									"disabled": true
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "anthony",
+									"disabled": true
+								},
+								{
+									"key": "hasMatched",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "sex",
+									"value": "male",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "100",
+									"disabled": true
+								},
+								{
+									"key": "ageInMonth",
+									"value": "ageInMonth=64195",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json()\r",
+									"pm.collectionVariables.set(\"ACCESS_TOKEN\", res.data.accessToken)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "accept",
+								"value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+							},
+							{
+								"key": "accept-language",
+								"value": "en-US,en;q=0.9"
+							},
+							{
+								"key": "cache-control",
+								"value": "max-age=0"
+							},
+							{
+								"key": "cookie",
+								"value": "tunnel_phishing_protection=2k6fq4r6.asse; .Tunnels.Relay.WebForwarding.Cookies=CfDJ8E0FHi1JCVNKrny-ARCYWxMC7uQaXtlam2N_9HBr5OfvpHhDrhZd20uAYAud70pP3rh06VKvnx_pCv_HNR0VspFDaEjSv9BDh-DQtwGQZCH1uNxO74HwL5JMzUwjrl7llM_8_NbCoe8zpbpxPAdlsXULDSyUCEc_rqiHvKp4e1SKqUhFwcR6_afrJU_U8o3xXiYZ5faUZ4EF5_Wy83wXaNWRw6F5ekkbgmNPH-d-NTjzcditq97mPMyXMYTIkMyDM6IwozN1Is5Ow1MaYfvure9gXJXepjk3lNd2Ne0mkrFOOxyusnOaaH9DkTZ_7jP8Utru7nzuDY5ScG1TEnGPpEWEi8roX45twM1Csg5g8x1AKs7ED7AL3WYTGGCJTNsfukqdTwlja7ZawGsH3hl6rlyWAktbucEtrHtRq5vHcu1MFg2GjFWKMmEWCbGS1usa7lljl2GAPfj13awQFONQX1BWTy9xub1Yfmuo35nGJOXqmgr8ATr4FdApE_FNRbOYHn8VcYY3wsQU3IeVxfyWEeSbvGYGYzl-VHQCy4qAd0ANHme6ag187WVMuyF_UY11Cpd9eFtTWeacjuEMFsnCbP__7TwtGDbLo4N97-dLblKtjb9nTdyfNukpH14jzoQKs_VxJ32NbSUU4yQpucxvkYo68cAPebg0igdKuJIV0J9b6oeX3o6kLB8UEqRuyOqOneZo7GBXNeOUP-JInSvPMZ-NG2uNaxmjs-KkwMiviido34Q4O5IriJkFGH060vs3eShhKqmPU9lr5LvQrq6l__RlKoWMaCPcJTrp-AjCupeEDFyAY5qdogAPjITmjpJtmW6blsIggKLrI3JtzwkKBEo2a5PXzDq4IzrevVaCO3IUoGBxS-i-gIX10h0zlIDtxfmC89ot1rjr8IA4d8NyCe60-EmrdsYeEn9bAGcRC0q4EW22fkh9MHxZM-WOIZc-tLzmmY9735_9cJsJePTmCgVkEqGwchTNb9z98JRGx-H-8kOLu4XlGgeH8jPhQQOtQwyjl9qPm1qyf8ZN0MJ9W6cTNwzQeMPS_6_emu-B_8BXsjBTdjGGof-vSTxTCRWkSsfLJ1-VVd3AL6UvTP9_1pJsKN9uXiOhJH4jgKqNt5Mbu82Ku_DrcPVeL7VlKL-hrypdo-Cmz50yduVlQ7Qxc87U5gRYl3Z-4u7g5WHaSRgtuj6U07zrTDNTkiO0X0NKinfuiegKdul-bN7pXJgLad_3AbY452gwL0J0kj4JWweXASN5rDpGWgMJtUHDDmKEnwmQgcDWlFS6OggLmOB4_XNh0rYnGi_usd6S3fBn8qNcx05PvR3gD5F9ggYEb-u7N9gyXfBQXZFQ-NlskVxdApqqmYwzPiO9v_xzxdi3jm3hx0gMnuQL0fmISpBU1rpf5Y8u-RqENfP1jUxOfUTZchEaZgueZJN4xOMQuQ4d1bTq"
+							},
+							{
+								"key": "priority",
+								"value": "u=0, i"
+							},
+							{
+								"key": "sec-ch-ua",
+								"value": "\"Chromium\";v=\"124\", \"Microsoft Edge\";v=\"124\", \"Not-A.Brand\";v=\"99\""
+							},
+							{
+								"key": "sec-ch-ua-mobile",
+								"value": "?0"
+							},
+							{
+								"key": "sec-ch-ua-platform",
+								"value": "\"macOS\""
+							},
+							{
+								"key": "sec-fetch-dest",
+								"value": "document"
+							},
+							{
+								"key": "sec-fetch-mode",
+								"value": "navigate"
+							},
+							{
+								"key": "sec-fetch-site",
+								"value": "none"
+							},
+							{
+								"key": "sec-fetch-user",
+								"value": "?1"
+							},
+							{
+								"key": "upgrade-insecure-requests",
+								"value": "1"
+							},
+							{
+								"key": "user-agent",
+								"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{REGISTERED_USER_EMAIL}}\", \n    \"password\": \"{{PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/user/login",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json()",
+									"pm.collectionVariables.set(\"REGISTERED_USER_EMAIL\", res.data.email)",
+									"pm.collectionVariables.set(\"ACCESS_TOKEN\", res.data.accessToken)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\":\"{{$randomEmail}}\",\n    \"password\": \"{{PASSWORD}}\",\n    \"name\": \"{{$randomFullName}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/user/register",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"user",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "match",
+			"item": [
+				{
+					"name": "All",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/cat/match",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"cat",
+								"match"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Match",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/cat/match/7b43ffdf-0057-41c3-9a75-326fd0f4fe96",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"cat",
+								"match",
+								"7b43ffdf-0057-41c3-9a75-326fd0f4fe96"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"matchCatId\": \"406ec914-2474-49ed-89f7-623af05df0e3\",\r\n    \"userCatId\": \"267bcc30-66ab-4d7b-aa12-95e5336c9bd1\",\r\n    \"message\": \"aku sayang padamu\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/cat/match",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"cat",
+								"match"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Approve",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"matchId\": \"2b689d5f-0ccb-4c97-be20-f52ec4397034\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/cat/match/approve",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"cat",
+								"match",
+								"approve"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reject",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"matchId\": \"991c252c-9cba-4b66-b830-15b53d933443\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/cat/match/reject",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"cat",
+								"match",
+								"reject"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "REGISTERED_USER_EMAIL",
+			"value": ""
+		},
+		{
+			"key": "ACCESS_TOKEN",
+			"value": ""
+		},
+		{
+			"key": "PASSWORD",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "LAST_CREATED_CAT_ID",
+			"value": ""
+		}
+	]
+}

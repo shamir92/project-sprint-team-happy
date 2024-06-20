@@ -3,8 +3,19 @@
 ## Requirements
 
 ### This Week's Tasks
+
 1. Please open HaloSuster!.mhtml on browser to view this week's requirements.
-2. K6 run on 2 vCPU, 4 GB RAM AWS ECS Fargate for Golang Apps and Postgre DB. 
+2. K6 run on 2 vCPU, 4 GB RAM AWS ECS Fargate for Golang Apps and Postgre DB.
 
 ## K6 Load Test Results
-Can see the excel i share in w3 and find shamirhusein team. 
+
+Can see the excel i share in w3 and find shamirhusein team.
+
+## Postman Collection
+
+1. Download the postman collection for this project [here](./ProjectSprint%20-%20%20EniQilo%20Store.postman_collection.json).
+2. Open Postman.
+3. Click on the **Import** button located at the top left of the Postman application.
+4. Select the `Import File` tab.
+5. Click on **Choose Files** and select the provided Postman collection file (`Project Sprint Batch 2.postman_collection.json`).
+6. Click **Import**.
