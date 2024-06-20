@@ -1,0 +1,605 @@
+{
+	"info": {
+		"_postman_id": "f48a2cd4-8d70-4f16-8363-0330a3b75822",
+		"name": "ProjectSprint - BeliMang",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34630441",
+		"_collection_link": "https://restless-eclipse-818955.postman.co/workspace/Team-Workspace~b022158a-8af3-4983-88a6-844e09a76c21/collection/34630441-f48a2cd4-8d70-4f16-8363-0330a3b75822?action=share&source=collection_link&creator=34630441"
+	},
+	"item": [
+		{
+			"name": "/v1/users",
+			"item": [
+				{
+					"name": "/register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const { username } = JSON.parse(pm.request.body.raw)",
+									"pm.collectionVariables.set('LAST_REGISTERED_USER_USERNAME', username)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{$randomEmail}}\",\n    \"username\": \"{{$randomUserName}}\",\n    \"password\": \"{{PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/users/register",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the JSON response",
+									"var responseData = pm.response.json();",
+									"// Check if the access token is in the response and set it as an environment variable",
+									"if (responseData.token) {",
+									"    pm.collectionVariables.set(\"USER_ACCESS_TOKEN\", responseData.token);",
+									"} else {",
+									"    console.log(\"Access token not found in the response.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNzllMWFiZS0xNDA0LTRjNzctOTExNC0xNTRhOWMxZDRmNGMiLCJyb2xlSWQiOiJERUZBVUxUIiwibmlwIjowLCJpc3MiOiJhcHAiLCJleHAiOjE3MTY3MjQ3MDksIm5iZiI6MTcxNjY4ODcwOX0.7QKrdPSDNOhT6K_wjKgCNcRnnTyRfx97hKAXcCQKOyM",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{LAST_REGISTERED_USER_USERNAME}}\",\n    \"password\": \"{{PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/users/login",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/estimate",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{USER_ACCESS_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userLocation\": {\n        \"lat\": -7.755629082571227, // not null | float \n        \"long\": 112.18730031994802 // not null | float\n    },\n    \"orders\": [\n        {\n          \"merchantId\": \"f4ea0fb4-dc5f-4cf6-a7a0-491e7eca461e\",\n          \"isStartingPoint\" : true,\n          \"items\": [\n            {\n              \"itemId\": \"5b985d5c-3ef5-451f-8c77-e4ad2b6c40d9\", \n              \"quantity\": 5\n            }\n          ]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/users/estimate",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"users",
+								"estimate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/orders",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{USER_ACCESS_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"calculatedEstimateId\": \"d50c9488-f66e-46c8-8c70-96af32c86f05\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/users/orders",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"users",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/orders",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{USER_ACCESS_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/users/orders",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"users",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "merchantId",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "category",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "/v1/admin",
+			"item": [
+				{
+					"name": "/merchants",
+					"item": [
+						{
+							"name": "/{merchantId}/items - Get Product",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{ADMIN_ACCESS_TOKEN}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/admin/merchants/59a51097-6454-4c6e-99c5-bf9937f4958b/items",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"admin",
+										"merchants",
+										"59a51097-6454-4c6e-99c5-bf9937f4958b",
+										"items"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "",
+											"disabled": true
+										},
+										{
+											"key": "category",
+											"value": "Beverage",
+											"disabled": true
+										},
+										{
+											"key": "itemId",
+											"value": "c397a335-e45f-4eea-b525-bb2dfd39b131",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "3",
+											"disabled": true
+										},
+										{
+											"key": "offset",
+											"value": "5",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/ - Create Merchant",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{ADMIN_ACCESS_TOKEN}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"{{$randomDomainName}}\", \n    \"merchantCategory\": \"SmallRestaurant\",\n    \"imageUrl\": \"www.example.com/image.jpg\",\n    \"location\": {\n        \"lat\": {{$randomLatitude}},\n        \"long\": {{$randomLongitude}}\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/admin/merchants",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"admin",
+										"merchants"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/ - Search Merchant",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{ADMIN_ACCESS_TOKEN}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{API_URL}}/admin/merchants?limit=hello",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"admin",
+										"merchants"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "hello"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/{merchantId}/items - Add Product",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"{{$randomProductName}}\",\n    \"productCategory\": \"Snack\",\n    \"price\": {{$randomInt}},\n    \"imageUrl\": \"https://example.com/images/trail-mix.jpg\"\n  }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/admin/merchants/ae04d986-e3c4-4e72-9941-520bf608fc86/items",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"admin",
+										"merchants",
+										"ae04d986-e3c4-4e72-9941-520bf608fc86",
+										"items"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the JSON response",
+									"var responseData = pm.response.json();",
+									"",
+									"// Check if the access token is in the response and set it as an environment variable",
+									"if (responseData.token) {",
+									"    pm.collectionVariables.set(\"ADMIN_ACCESS_TOKEN\", responseData.token);",
+									"} else {",
+									"    console.log(\"Access token not found in the response.\");",
+									"}",
+									"",
+									"const { username } = JSON.parse(pm.request.body.raw)",
+									"pm.collectionVariables.set('LAST_REGISTERED_ADMIN_USERNAME', username)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{$randomEmail}}\",\n    \"username\": \"{{$randomUserName}}\",\n    \"password\": \"{{PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/admin/register",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"admin",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the JSON response",
+									"var responseData = pm.response.json();",
+									"// Check if the access token is in the response and set it as an environment variable",
+									"if (responseData.token) {",
+									"    pm.collectionVariables.set(\"ADMIN_ACCESS_TOKEN\", responseData.token);",
+									"} else {",
+									"    console.log(\"Access token not found in the response.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{LAST_REGISTERED_ADMIN_USERNAME}}\",\n    \"password\": \"{{PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/admin/login",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"admin",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "/v1/merchants",
+			"item": [
+				{
+					"name": "/nearby/{lat,long}",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{USER_ACCESS_TOKEN}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/merchants/nearby/-6.175110,106.865036",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"merchants",
+								"nearby",
+								"-6.175110,106.865036"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ADMIN_ACCESS_TOKEN",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "USER_ACCESS_TOKEN",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "LAST_REGISTERED_USER_USERNAME",
+			"value": ""
+		},
+		{
+			"key": "PASSWORD",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "LAST_REGISTERED_ADMIN_USERNAME",
+			"value": ""
+		}
+	]
+}
