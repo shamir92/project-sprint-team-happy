@@ -1,0 +1,2695 @@
+{
+	"info": {
+		"_postman_id": "dc0a5329-1d19-472c-bc3e-8f230c58d6f2",
+		"name": "Project Sprint Batch 2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34615809",
+		"_collection_link": "https://restless-eclipse-818955.postman.co/workspace/Team-Workspace~b022158a-8af3-4983-88a6-844e09a76c21/collection/34615809-dc0a5329-1d19-472c-bc3e-8f230c58d6f2?action=share&source=collection_link&creator=34615809"
+	},
+	"item": [
+		{
+			"name": "W1",
+			"item": [
+				{
+					"name": "cats",
+					"item": [
+						{
+							"name": "Edit Cat",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"Fluffy\",\n\t\"race\": \"Bengal\",\n\t\"sex\": \"male\",\n\t\"ageInMonth\": 24,\n\t\"description\": \"A playful\",\n\t\"imageUrls\": [\"https://example.com/cat1.jpg\", \"https://example.com/cat2.jpg\"]\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/cat/{{LAST_CREATED_AT_ID}}",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"cat",
+										"{{LAST_CREATED_AT_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Cat",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"Fluffy\",\n\t\"race\": \"Bengal\",\n\t\"sex\": \"male\",\n\t\"ageInMonth\": 24,\n\t\"description\": \"A playful\",\n\t\"imageUrls\": [\"https://example.com/cat1.jpg\", \"https://example.com/cat2.jpg\"]\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/cat/{{LAST_CREATED_AT_ID}}",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"cat",
+										"{{LAST_CREATED_AT_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Cat",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const res = pm.response.json()",
+											"pm.collectionVariables.set(\"LAST_CREATED_AT_ID\", res.data.id)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "no-content",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Jon dra en\",\n    \"race\": \"Scottish Fold\",\n    \"ageInMonth\": 92766,\n    \"sex\": \"female\",\n    \"description\": \"magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore e\",\n    \"imageUrls\": [\n        \"http://benneen.org/image.png\"\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/cat",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"cat"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Cat",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "owned",
+										"value": "",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/cat?id=45a2c05c-fb2b-4f85-839d-314b2117c6a2",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"cat"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "45a2c05c-fb2b-4f85-839d-314b2117c6a2"
+										},
+										{
+											"key": "race",
+											"value": "PersianJakarta",
+											"disabled": true
+										},
+										{
+											"key": "owned",
+											"value": "false",
+											"disabled": true
+										},
+										{
+											"key": "offset",
+											"value": "0",
+											"disabled": true
+										},
+										{
+											"key": "search",
+											"value": "anthony",
+											"disabled": true
+										},
+										{
+											"key": "hasMatched",
+											"value": "true",
+											"disabled": true
+										},
+										{
+											"key": "sex",
+											"value": "male",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "100",
+											"disabled": true
+										},
+										{
+											"key": "ageInMonth",
+											"value": "ageInMonth=64195",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "users",
+					"item": [
+						{
+							"name": "Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const res = pm.response.json()\r",
+											"pm.collectionVariables.set(\"ACCCESS_TOKEN\", res.data.accessToken)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "accept",
+										"value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+									},
+									{
+										"key": "accept-language",
+										"value": "en-US,en;q=0.9"
+									},
+									{
+										"key": "cache-control",
+										"value": "max-age=0"
+									},
+									{
+										"key": "cookie",
+										"value": "tunnel_phishing_protection=2k6fq4r6.asse; .Tunnels.Relay.WebForwarding.Cookies=CfDJ8E0FHi1JCVNKrny-ARCYWxMC7uQaXtlam2N_9HBr5OfvpHhDrhZd20uAYAud70pP3rh06VKvnx_pCv_HNR0VspFDaEjSv9BDh-DQtwGQZCH1uNxO74HwL5JMzUwjrl7llM_8_NbCoe8zpbpxPAdlsXULDSyUCEc_rqiHvKp4e1SKqUhFwcR6_afrJU_U8o3xXiYZ5faUZ4EF5_Wy83wXaNWRw6F5ekkbgmNPH-d-NTjzcditq97mPMyXMYTIkMyDM6IwozN1Is5Ow1MaYfvure9gXJXepjk3lNd2Ne0mkrFOOxyusnOaaH9DkTZ_7jP8Utru7nzuDY5ScG1TEnGPpEWEi8roX45twM1Csg5g8x1AKs7ED7AL3WYTGGCJTNsfukqdTwlja7ZawGsH3hl6rlyWAktbucEtrHtRq5vHcu1MFg2GjFWKMmEWCbGS1usa7lljl2GAPfj13awQFONQX1BWTy9xub1Yfmuo35nGJOXqmgr8ATr4FdApE_FNRbOYHn8VcYY3wsQU3IeVxfyWEeSbvGYGYzl-VHQCy4qAd0ANHme6ag187WVMuyF_UY11Cpd9eFtTWeacjuEMFsnCbP__7TwtGDbLo4N97-dLblKtjb9nTdyfNukpH14jzoQKs_VxJ32NbSUU4yQpucxvkYo68cAPebg0igdKuJIV0J9b6oeX3o6kLB8UEqRuyOqOneZo7GBXNeOUP-JInSvPMZ-NG2uNaxmjs-KkwMiviido34Q4O5IriJkFGH060vs3eShhKqmPU9lr5LvQrq6l__RlKoWMaCPcJTrp-AjCupeEDFyAY5qdogAPjITmjpJtmW6blsIggKLrI3JtzwkKBEo2a5PXzDq4IzrevVaCO3IUoGBxS-i-gIX10h0zlIDtxfmC89ot1rjr8IA4d8NyCe60-EmrdsYeEn9bAGcRC0q4EW22fkh9MHxZM-WOIZc-tLzmmY9735_9cJsJePTmCgVkEqGwchTNb9z98JRGx-H-8kOLu4XlGgeH8jPhQQOtQwyjl9qPm1qyf8ZN0MJ9W6cTNwzQeMPS_6_emu-B_8BXsjBTdjGGof-vSTxTCRWkSsfLJ1-VVd3AL6UvTP9_1pJsKN9uXiOhJH4jgKqNt5Mbu82Ku_DrcPVeL7VlKL-hrypdo-Cmz50yduVlQ7Qxc87U5gRYl3Z-4u7g5WHaSRgtuj6U07zrTDNTkiO0X0NKinfuiegKdul-bN7pXJgLad_3AbY452gwL0J0kj4JWweXASN5rDpGWgMJtUHDDmKEnwmQgcDWlFS6OggLmOB4_XNh0rYnGi_usd6S3fBn8qNcx05PvR3gD5F9ggYEb-u7N9gyXfBQXZFQ-NlskVxdApqqmYwzPiO9v_xzxdi3jm3hx0gMnuQL0fmISpBU1rpf5Y8u-RqENfP1jUxOfUTZchEaZgueZJN4xOMQuQ4d1bTq"
+									},
+									{
+										"key": "priority",
+										"value": "u=0, i"
+									},
+									{
+										"key": "sec-ch-ua",
+										"value": "\"Chromium\";v=\"124\", \"Microsoft Edge\";v=\"124\", \"Not-A.Brand\";v=\"99\""
+									},
+									{
+										"key": "sec-ch-ua-mobile",
+										"value": "?0"
+									},
+									{
+										"key": "sec-ch-ua-platform",
+										"value": "\"macOS\""
+									},
+									{
+										"key": "sec-fetch-dest",
+										"value": "document"
+									},
+									{
+										"key": "sec-fetch-mode",
+										"value": "navigate"
+									},
+									{
+										"key": "sec-fetch-site",
+										"value": "none"
+									},
+									{
+										"key": "sec-fetch-user",
+										"value": "?1"
+									},
+									{
+										"key": "upgrade-insecure-requests",
+										"value": "1"
+									},
+									{
+										"key": "user-agent",
+										"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"Xenvilyn4304@samloen.org\", \n    \"password\": \"WPLrEL4Rqgl7g2\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/login",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Register",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const res = pm.response.json()",
+											"pm.collectionVariables.set(\"REGISTERED_USER_EMAIL\", res.data.email)",
+											"pm.collectionVariables.set(\"ACCCESS_TOKEN\", res.data.accessToken)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\":\"{{$randomEmail}}\",\n    \"password\": \"{{PASSWORD}}\",\n    \"name\": \"{{$randomFullName}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/register",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"register"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "match",
+					"item": [
+						{
+							"name": "All",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{API_URL}}/cat/match",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"cat",
+										"match"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Match",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text",
+										"disabled": true
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{API_URL}}/cat/match/7b43ffdf-0057-41c3-9a75-326fd0f4fe96",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"cat",
+										"match",
+										"7b43ffdf-0057-41c3-9a75-326fd0f4fe96"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"matchCatId\": \"406ec914-2474-49ed-89f7-623af05df0e3\",\r\n    \"userCatId\": \"267bcc30-66ab-4d7b-aa12-95e5336c9bd1\",\r\n    \"message\": \"aku sayang padamu\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/cat/match",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"cat",
+										"match"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Approve",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"matchId\": \"2b689d5f-0ccb-4c97-be20-f52ec4397034\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/cat/match/approve",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"cat",
+										"match",
+										"approve"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Reject",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"matchId\": \"991c252c-9cba-4b66-b830-15b53d933443\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/cat/match/reject",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"cat",
+										"match",
+										"reject"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "accept",
+								"value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+							},
+							{
+								"key": "accept-language",
+								"value": "en-US,en;q=0.9"
+							},
+							{
+								"key": "cache-control",
+								"value": "max-age=0"
+							},
+							{
+								"key": "cookie",
+								"value": "tunnel_phishing_protection=2k6fq4r6.asse; .Tunnels.Relay.WebForwarding.Cookies=CfDJ8E0FHi1JCVNKrny-ARCYWxMC7uQaXtlam2N_9HBr5OfvpHhDrhZd20uAYAud70pP3rh06VKvnx_pCv_HNR0VspFDaEjSv9BDh-DQtwGQZCH1uNxO74HwL5JMzUwjrl7llM_8_NbCoe8zpbpxPAdlsXULDSyUCEc_rqiHvKp4e1SKqUhFwcR6_afrJU_U8o3xXiYZ5faUZ4EF5_Wy83wXaNWRw6F5ekkbgmNPH-d-NTjzcditq97mPMyXMYTIkMyDM6IwozN1Is5Ow1MaYfvure9gXJXepjk3lNd2Ne0mkrFOOxyusnOaaH9DkTZ_7jP8Utru7nzuDY5ScG1TEnGPpEWEi8roX45twM1Csg5g8x1AKs7ED7AL3WYTGGCJTNsfukqdTwlja7ZawGsH3hl6rlyWAktbucEtrHtRq5vHcu1MFg2GjFWKMmEWCbGS1usa7lljl2GAPfj13awQFONQX1BWTy9xub1Yfmuo35nGJOXqmgr8ATr4FdApE_FNRbOYHn8VcYY3wsQU3IeVxfyWEeSbvGYGYzl-VHQCy4qAd0ANHme6ag187WVMuyF_UY11Cpd9eFtTWeacjuEMFsnCbP__7TwtGDbLo4N97-dLblKtjb9nTdyfNukpH14jzoQKs_VxJ32NbSUU4yQpucxvkYo68cAPebg0igdKuJIV0J9b6oeX3o6kLB8UEqRuyOqOneZo7GBXNeOUP-JInSvPMZ-NG2uNaxmjs-KkwMiviido34Q4O5IriJkFGH060vs3eShhKqmPU9lr5LvQrq6l__RlKoWMaCPcJTrp-AjCupeEDFyAY5qdogAPjITmjpJtmW6blsIggKLrI3JtzwkKBEo2a5PXzDq4IzrevVaCO3IUoGBxS-i-gIX10h0zlIDtxfmC89ot1rjr8IA4d8NyCe60-EmrdsYeEn9bAGcRC0q4EW22fkh9MHxZM-WOIZc-tLzmmY9735_9cJsJePTmCgVkEqGwchTNb9z98JRGx-H-8kOLu4XlGgeH8jPhQQOtQwyjl9qPm1qyf8ZN0MJ9W6cTNwzQeMPS_6_emu-B_8BXsjBTdjGGof-vSTxTCRWkSsfLJ1-VVd3AL6UvTP9_1pJsKN9uXiOhJH4jgKqNt5Mbu82Ku_DrcPVeL7VlKL-hrypdo-Cmz50yduVlQ7Qxc87U5gRYl3Z-4u7g5WHaSRgtuj6U07zrTDNTkiO0X0NKinfuiegKdul-bN7pXJgLad_3AbY452gwL0J0kj4JWweXASN5rDpGWgMJtUHDDmKEnwmQgcDWlFS6OggLmOB4_XNh0rYnGi_usd6S3fBn8qNcx05PvR3gD5F9ggYEb-u7N9gyXfBQXZFQ-NlskVxdApqqmYwzPiO9v_xzxdi3jm3hx0gMnuQL0fmISpBU1rpf5Y8u-RqENfP1jUxOfUTZchEaZgueZJN4xOMQuQ4d1bTq"
+							},
+							{
+								"key": "priority",
+								"value": "u=0, i"
+							},
+							{
+								"key": "sec-ch-ua",
+								"value": "\"Chromium\";v=\"124\", \"Microsoft Edge\";v=\"124\", \"Not-A.Brand\";v=\"99\""
+							},
+							{
+								"key": "sec-ch-ua-mobile",
+								"value": "?0"
+							},
+							{
+								"key": "sec-ch-ua-platform",
+								"value": "\"macOS\""
+							},
+							{
+								"key": "sec-fetch-dest",
+								"value": "document"
+							},
+							{
+								"key": "sec-fetch-mode",
+								"value": "navigate"
+							},
+							{
+								"key": "sec-fetch-site",
+								"value": "none"
+							},
+							{
+								"key": "sec-fetch-user",
+								"value": "?1"
+							},
+							{
+								"key": "upgrade-insecure-requests",
+								"value": "1"
+							},
+							{
+								"key": "user-agent",
+								"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0"
+							}
+						],
+						"url": {
+							"raw": "https://2k6fq4r6-8080.asse.devtunnels.ms/ping",
+							"protocol": "https",
+							"host": [
+								"2k6fq4r6-8080",
+								"asse",
+								"devtunnels",
+								"ms"
+							],
+							"path": [
+								"ping"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ping Private",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWlsIjoic2hhbWlyaHVzZWluQGdtYWlsLmNvbSIsImV4cCI6MTcxNDUyODMxNiwiaWQiOiIwNTliYTgzZC1lNGVhLTQ0MWMtYjBmNC0wODE1ZjE5OGNhZGMiLCJuYmYiOjE3MTQ0OTk1MTZ9.k-WQXvtPmsR6E_EPXyYKblWG-eCdf1I5z-XsOtI5WKY",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://38d2-36-83-205-220.ngrok-free.app/v1/ping-private",
+							"protocol": "https",
+							"host": [
+								"38d2-36-83-205-220",
+								"ngrok-free",
+								"app"
+							],
+							"path": [
+								"v1",
+								"ping-private"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{ACCCESS_TOKEN}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "W2",
+			"item": [
+				{
+					"name": "users",
+					"item": [
+						{
+							"name": "Create Staff/Userr",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "{{COOKIE_TUNNEL_VSCODE}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"phoneNumber\": \"+6285814047999\", \n\t\"name\": \"{{$randomFullName}}\",\n\t\"password\": \"{{PASSWORD}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/staff/register",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"staff",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login Staff/User",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.data.accessToken) {",
+											"    pm.environment.set(\"ACCCESS_TOKEN\", responseData.data.accessToken);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"phoneNumber\": \"+6285762130022\",\n    \"password\": \"{{PASSWORD}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/staff/login",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"staff",
+										"login"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "product",
+					"item": [
+						{
+							"name": "Browse Products",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/product?id=186a5255-4063-4137-ae64-6dbb72566a87",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"product"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "186a5255-4063-4137-ae64-6dbb72566a87"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "v1/product",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"",
+											"// Define your enum as an array of values",
+											"const enumValues = ['Clothing', 'Accessories', 'Footwear', 'Beverages'];",
+											"",
+											"// Function to select a random index based on array length",
+											"function getRandomIndex(max) {",
+											"  return Math.floor(Math.random() * max);",
+											"}",
+											"",
+											"// Select a random value from the enum",
+											"let randomProductCategory = enumValues[getRandomIndex(enumValues.length)];",
+											"pm.globals.set(\"randomProductCategory\",randomProductCategory)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.globals.unset(\"randomProductCategory\");",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{ACCCESS_TOKEN}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"{{$randomFullName}}\",\n\t\"sku\": \"{{$randomFullName}}\", \n\t\"category\": \"{{randomProductCategory}}\", \n\t\"imageUrl\": \"{{$randomImageUrl}}\", \n\t\"notes\":\"{{$randomLoremSentences}}\",\n\t\"price\":{{$randomInt}}, \n\t\"stock\": {{$randomInt}}, \n\t\"location\": \"{{$randomAlphaNumeric}}\", \n\t\"isAvailable\": true \n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/product",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"product"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "v1/product/checkout",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"",
+											"// Define your enum as an array of values",
+											"const enumValues = ['Clothing', 'Accessories', 'Footwear', 'Beverages'];",
+											"",
+											"// Function to select a random index based on array length",
+											"function getRandomIndex(max) {",
+											"  return Math.floor(Math.random() * max);",
+											"}",
+											"",
+											"// Select a random value from the enum",
+											"let randomProductCategory = enumValues[getRandomIndex(enumValues.length)];",
+											"pm.globals.set(\"randomProductCategory\",randomProductCategory)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.globals.unset(\"randomProductCategory\");",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{ACCCESS_TOKEN}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"customerId\": \"473a0596-9ea5-47f3-b3af-5dea59bc0005\", // ID Should be string\n\t\"productDetails\": [\n\t\t{\n\t\t\t\"productId\": \"49a2e478-e3b9-41be-a21e-f75f4149747b\",\n\t\t\t\"quantity\": 1 // not null, min: 1 \n\t\t},\n        {\n\t\t\t\"productId\": \"526c9b1c-ebfe-4bed-a27d-d52099057062\",\n\t\t\t\"quantity\": 1 // not null, min: 1 \n\t\t}\n\t], // ID Should be string, minItems: 1\n\t\"paid\": 5000, // not null, min: 1, validate the change based on all product price\n\t\"change\": 0 // not null, min 0\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/product/checkout",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"product",
+										"checkout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "v1/product/{productId}",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"",
+											"// Define your enum as an array of values",
+											"const enumValues = ['Clothing', 'Accessories', 'Footwear', 'Beverages'];",
+											"",
+											"// Function to select a random index based on array length",
+											"function getRandomIndex(max) {",
+											"  return Math.floor(Math.random() * max);",
+											"}",
+											"",
+											"// Select a random value from the enum",
+											"let randomProductCategory = enumValues[getRandomIndex(enumValues.length)];",
+											"pm.globals.set(\"randomProductCategory\",randomProductCategory)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.globals.unset(\"randomProductCategory\");",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{ACCCESS_TOKEN}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"{{$randomAlphaNumeric}}\",\n\t\"sku\": \"{{$randomAlphaNumeric}}\", \n\t\"category\": \"{{randomProductCategory}}\", \n\t\"imageUrl\": \"{{$randomImageUrl}}\", \n\t\"notes\":\"{{$randomAlphaNumeric}}\",\n\t\"price\":{{$randomInt}}, \n\t\"stock\": {{$randomInt}}, \n\t\"location\": \"{{$randomAlphaNumeric}}\", \n\t\"isAvailable\": true \n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/product/186a5255-4063-4137-ae64-6dbb72566a87",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"product",
+										"186a5255-4063-4137-ae64-6dbb72566a87"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "v1/product/{productId}",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{ACCCESS_TOKEN}}"
+									}
+								],
+								"url": {
+									"raw": "{{API_URL}}/products/5efecb31-1a37-4354-9424-c582ca13cda4",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"products",
+										"5efecb31-1a37-4354-9424-c582ca13cda4"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Search Products",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/v1/product/customer?id=186a5255-4063-4137-ae64-6dbb72566a87",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"product",
+										"customer"
+									],
+									"query": [
+										{
+											"key": "inStock",
+											"value": "false",
+											"disabled": true
+										},
+										{
+											"key": "createdAt",
+											"value": "ASC",
+											"disabled": true
+										},
+										{
+											"key": "price",
+											"value": "DESC",
+											"disabled": true
+										},
+										{
+											"key": "id",
+											"value": "186a5255-4063-4137-ae64-6dbb72566a87"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "History Checkout",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/product/checkout/history",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"product",
+										"checkout",
+										"history"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "customers",
+					"item": [
+						{
+							"name": "Create Customer",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhZmYzOWFkMy0yNDFiLTRjMjktOTk4ZC05YWU2NDFkMjEyZmEiLCJpc3MiOiJhcHAiLCJleHAiOjE3MTUyNDk4NzksIm5iZiI6MTcxNTI0NjI3OX0.N_1_rgn3zR25il59u9bnX6KEp0hAnUjjWun6oX6_WFs",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"phoneNumber\": \"+72341992392232\",\n    \"name\": \"{{$randomFullName}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/customer/register",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"customer",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Customers",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhZmYzOWFkMy0yNDFiLTRjMjktOTk4ZC05YWU2NDFkMjEyZmEiLCJpc3MiOiJhcHAiLCJleHAiOjE3MTUyNjI1MTQsIm5iZiI6MTcxNTI1ODkxNH0.1J_GO45BTkOn6i03Dzpf2YTYA9yVWyFTANK6g_mv8yc",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"phoneNumber\": \"+6285762130207\",\n    \"name\": \"{{$randomFullName}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/v1/customer?name=sch",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"v1",
+										"customer"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "sch"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "W3",
+			"item": [
+				{
+					"name": "Users",
+					"item": [
+						{
+							"name": "Nurse",
+							"item": [
+								{
+									"name": "/v1/user/nurse/register",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"function generateRandomThreeDigits() {",
+													"  return Math.floor(Math.random() * 1000).toString().padStart(3, \"0\");",
+													"}",
+													"",
+													"const NIP_PREFIX = 303",
+													"const MAX_YEAR = new Date().getFullYear()",
+													"const MIN_YEAR = 2000",
+													"",
+													"const isMale = 1",
+													"const year = Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR",
+													"const month = Math.floor(Math.random() * 12) + 1;",
+													"const randomDigits = generateRandomThreeDigits()",
+													"",
+													"let nip = NIP_PREFIX + \"\" + isMale + year.toString() + month.toString().padStart(2, \"0\") + randomDigits;",
+													"",
+													"console.log(Number(nip), \"nip\")",
+													"",
+													"pm.collectionVariables.set(\"RANDOM_NURSE_NIP\", Number(nip))",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"// Parse the JSON response",
+													"var responseData = pm.response.json();",
+													"",
+													"// Check if the access token is in the response and set it as an environment variable",
+													"if (responseData.data.accessToken) {",
+													"    pm.environment.set(\"ACCCESS_TOKEN\", responseData.data.accessToken);",
+													"} else {",
+													"    console.log(\"Access token not found in the response.\");",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{ACCCESS_TOKEN}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"name\": \"An mo en\",\n    \"nip\": {{RANDOM_NURSE_NIP}},\n    \"identityCardScanImg\": \"http://kaylileigh.com/image.png\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{API_URL}}/user/nurse/register",
+											"host": [
+												"{{API_URL}}"
+											],
+											"path": [
+												"user",
+												"nurse",
+												"register"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "/v1/user/nurse/:nurseId/access",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{ACCCESS_TOKEN}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"password\": \"{{PASSWORD}}\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{API_URL}}/user/nurse/2f5ba7bb-5940-429f-a215-3c6f06dbbc44/access",
+											"host": [
+												"{{API_URL}}"
+											],
+											"path": [
+												"user",
+												"nurse",
+												"2f5ba7bb-5940-429f-a215-3c6f06dbbc44",
+												"access"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "/v1/user/nurse/:userId",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{ACCCESS_TOKEN}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"nip\": {{RANDOM_NURSE_NIP}},\n    \"name\": \"Idamanta Sembiring\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{API_URL}}/user/nurse/2f5ba7bb-5940-429f-a215-3c6f06dbbc44",
+											"host": [
+												"{{API_URL}}"
+											],
+											"path": [
+												"user",
+												"nurse",
+												"2f5ba7bb-5940-429f-a215-3c6f06dbbc44"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "/v1/user/nurse/:userId",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"function generateRandomThreeDigits() {",
+													"  return Math.floor(Math.random() * 1000).toString().padStart(3, \"0\");",
+													"}",
+													"",
+													"const NIP_PREFIX = 303",
+													"const MAX_YEAR = new Date().getFullYear()",
+													"const MIN_YEAR = 2000",
+													"",
+													"const isMale = 1",
+													"const year = Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR",
+													"const month = Math.floor(Math.random() * 12) + 1;",
+													"const randomDigits = generateRandomThreeDigits()",
+													"",
+													"let nip = NIP_PREFIX + \"\" + isMale + year.toString() + month.toString().padStart(2, \"0\") + randomDigits;",
+													"",
+													"console.log(Number(nip), \"nip\")",
+													"",
+													"pm.collectionVariables.set(\"RANDOM_NURSE_NIP\", Number(nip))",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{ACCCESS_TOKEN}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{API_URL}}/user/nurse/236d7f5f-bc07-422d-b639-651746a5ab64",
+											"host": [
+												"{{API_URL}}"
+											],
+											"path": [
+												"user",
+												"nurse",
+												"236d7f5f-bc07-422d-b639-651746a5ab64"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "/v1/user/it/register",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function generateRandomThreeDigits() {",
+											"  return Math.floor(Math.random() * 1000).toString().padStart(3, \"0\");",
+											"}",
+											"",
+											"const NIP_PREFIX = 615",
+											"const MAX_YEAR = new Date().getFullYear()",
+											"const MIN_YEAR = 2000",
+											"",
+											"const isMale = 1",
+											"const year = Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR",
+											"const month = Math.floor(Math.random() * 12) + 1;",
+											"const randomDigits = generateRandomThreeDigits()",
+											"",
+											"let nip = NIP_PREFIX + \"\" + isMale + year.toString() + month.toString().padStart(2, \"0\") + randomDigits;",
+											"",
+											"console.log(Number(nip), \"nip\")",
+											"",
+											"pm.collectionVariables.set(\"RANDOM_USER_IT_NIP\", Number(nip))",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.data.accessToken) {",
+											"    pm.environment.set(\"ACCCESS_TOKEN\", responseData.data.accessToken);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nip\": {{RANDOM_USER_IT_NIP}},\n    \"password\": \"{{PASSWORD}}\", \n    \"name\": \"{{$randomFullName}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/it/register",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"it",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/user/it/login",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.data.accessToken) {",
+											"    pm.environment.set(\"ACCCESS_TOKEN\", responseData.data.accessToken);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nip\": 6151202209146,\n    \"password\": \"{{PASSWORD}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/it/login",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"it",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/user/nurse/login",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.data.accessToken) {",
+											"    pm.environment.set(\"ACCCESS_TOKEN\", responseData.data.accessToken);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nip\": {{RANDOM_NURSE_NIP}},\n    \"password\": \"{{PASSWORD}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/user/nurse/login",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user",
+										"nurse",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Users",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/user",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"user"
+									],
+									"query": [
+										{
+											"key": "userId",
+											"value": "",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "offset",
+											"value": "3",
+											"disabled": true
+										},
+										{
+											"key": "name",
+											"value": "howe",
+											"disabled": true
+										},
+										{
+											"key": "role",
+											"value": "nurse",
+											"disabled": true
+										},
+										{
+											"key": "nip",
+											"value": "303220140345774",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Upload Image",
+					"item": [
+						{
+							"name": "/v1/image",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function generateRandomThreeDigits() {",
+											"  return Math.floor(Math.random() * 1000).toString().padStart(3, \"0\");",
+											"}",
+											"",
+											"const NIP_PREFIX = 615",
+											"const MAX_YEAR = new Date().getFullYear()",
+											"const MIN_YEAR = 2000",
+											"",
+											"const isMale = 1",
+											"const year = Math.floor(Math.random() * (MAX_YEAR - MIN_YEAR + 1)) + MIN_YEAR",
+											"const month = Math.floor(Math.random() * 12) + 1;",
+											"const randomDigits = generateRandomThreeDigits()",
+											"",
+											"let nip = NIP_PREFIX + \"\" + isMale + year.toString() + month.toString().padStart(2, \"0\") + randomDigits;",
+											"",
+											"console.log(Number(nip), \"nip\")",
+											"",
+											"pm.collectionVariables.set(\"RANDOM_USER_IT_NIP\", Number(nip))",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.data.accessToken) {",
+											"    pm.environment.set(\"ACCCESS_TOKEN\", responseData.data.accessToken);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "file",
+											"type": "file",
+											"src": "/Users/shamirhusein/Desktop/Screenshot 2024-05-15 at 17.06.50.png"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{API_URL}}/image",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"image"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Medical Record",
+					"item": [
+						{
+							"name": "/v1/medical/record",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"identityNumber\": 1234567890123456,\n    \"symptoms\": \"Fever, headache, nausea\",\n    \"medications\": \"Paracetamol, Ibuprofen\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/medical/record",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"medical",
+										"record"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/medical/record",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/medical/record",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"medical",
+										"record"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/medical/patient",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": " {\n    \"identityNumber\": 1234567890123456,\n    \"phoneNumber\": \"+62123123123\",\n    \"name\": \"John Doe\",\n    \"birthDate\": \"1990-01-01\",\n    \"gender\": \"male\",\n    \"identityCardScanImg\": \"https://example.com/images/id1.jpg\"\n  }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/medical/patient",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"medical",
+										"patient"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/v1/medical/patient",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{ACCCESS_TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/medical/patient?phoneNumber=628&created",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"medical",
+										"patient"
+									],
+									"query": [
+										{
+											"key": "phoneNumber",
+											"value": "628"
+										},
+										{
+											"key": "created",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "W4",
+			"item": [
+				{
+					"name": "/v1/users",
+					"item": [
+						{
+							"name": "/register",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{$randomEmail}}\",\n    \"username\": \"{{$randomUserName}}\",\n    \"password\": \"{{PASSWORD}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/users/register",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"users",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.token) {",
+											"    pm.environment.set(\"ACCCESS_TOKEN\", responseData.token);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNzllMWFiZS0xNDA0LTRjNzctOTExNC0xNTRhOWMxZDRmNGMiLCJyb2xlSWQiOiJERUZBVUxUIiwibmlwIjowLCJpc3MiOiJhcHAiLCJleHAiOjE3MTY3MjQ3MDksIm5iZiI6MTcxNjY4ODcwOX0.7QKrdPSDNOhT6K_wjKgCNcRnnTyRfx97hKAXcCQKOyM",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"username\":\"Alexmoton4620\",\"password\":\"9lBt0B8gkT\"}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/users/login",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"users",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/estimate",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5YTNlMDgxMi0yNTZlLTRjMzItOGUzNy01ZDY3ZWNlYzE5YTciLCJyb2xlSWQiOiJERUZBVUxUIiwibmlwIjowLCJpc3MiOiJhcHAiLCJleHAiOjE3MTcwMzgxMzEsIm5iZiI6MTcxNzAwMjEzMX0.3t22b1JxUsrWZpr1SPr_dWI8eFJckRimXqRK52IYlpY",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"userLocation\": {\n        \"lat\": -7.755629082571227, // not null | float \n        \"long\": 112.18730031994802 // not null | float\n    },\n    \"orders\": [\n        {\n          \"merchantId\": \"f4ea0fb4-dc5f-4cf6-a7a0-491e7eca461e\",\n          \"isStartingPoint\" : true,\n          \"items\": [\n            {\n              \"itemId\": \"5b985d5c-3ef5-451f-8c77-e4ad2b6c40d9\", \n              \"quantity\": 5\n            }\n          ]\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/users/estimate",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"users",
+										"estimate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/orders",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5YTNlMDgxMi0yNTZlLTRjMzItOGUzNy01ZDY3ZWNlYzE5YTciLCJyb2xlSWQiOiJERUZBVUxUIiwibmlwIjowLCJpc3MiOiJhcHAiLCJleHAiOjE3MTcwMzgxMzEsIm5iZiI6MTcxNzAwMjEzMX0.3t22b1JxUsrWZpr1SPr_dWI8eFJckRimXqRK52IYlpY",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"calculatedEstimateId\": \"d50c9488-f66e-46c8-8c70-96af32c86f05\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/users/orders",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"users",
+										"orders"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/orders",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5YTNlMDgxMi0yNTZlLTRjMzItOGUzNy01ZDY3ZWNlYzE5YTciLCJyb2xlSWQiOiJERUZBVUxUIiwibmlwIjowLCJpc3MiOiJhcHAiLCJleHAiOjE3MTcwMzgxMzEsIm5iZiI6MTcxNzAwMjEzMX0.3t22b1JxUsrWZpr1SPr_dWI8eFJckRimXqRK52IYlpY",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/users/orders?category=SmallRestaurant&limit=1",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"users",
+										"orders"
+									],
+									"query": [
+										{
+											"key": "merchantId",
+											"value": "d4c8fc5a-d883-4ef2-9348-db08fefc3812",
+											"disabled": true
+										},
+										{
+											"key": "name",
+											"value": "hot",
+											"disabled": true
+										},
+										{
+											"key": "category",
+											"value": "SmallRestaurant"
+										},
+										{
+											"key": "limit",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/v1/admin",
+					"item": [
+						{
+							"name": "/merchants",
+							"item": [
+								{
+									"name": "/{merchantId}/items - Get Product",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{ACCCESS_TOKEN}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{API_URL}}/admin/merchants/d4c8fc5a-d883-4ef2-9348-db08fefc3812/items",
+											"host": [
+												"{{API_URL}}"
+											],
+											"path": [
+												"admin",
+												"merchants",
+												"d4c8fc5a-d883-4ef2-9348-db08fefc3812",
+												"items"
+											],
+											"query": [
+												{
+													"key": "name",
+													"value": "",
+													"disabled": true
+												},
+												{
+													"key": "category",
+													"value": "Beverage",
+													"disabled": true
+												},
+												{
+													"key": "itemId",
+													"value": "c397a335-e45f-4eea-b525-bb2dfd39b131",
+													"disabled": true
+												},
+												{
+													"key": "limit",
+													"value": "3",
+													"disabled": true
+												},
+												{
+													"key": "offset",
+													"value": "5",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "/ - Create Merchant",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{ACCCESS_TOKEN}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"name\": \"{{$randomDomainName}}\", \n    \"merchantCategory\": \"SmallRestaurant\",\n    \"imageUrl\": \"www.example.com/image.jpg\",\n    \"location\": {\n        \"lat\": {{$randomLatitude}},\n        \"long\": {{$randomLongitude}}\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{API_URL}}/admin/merchants",
+											"host": [
+												"{{API_URL}}"
+											],
+											"path": [
+												"admin",
+												"merchants"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "/ - Search Merchant",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{ACCCESS_TOKEN}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{API_URL}}/admin/merchants?limit=hello",
+											"host": [
+												"{{API_URL}}"
+											],
+											"path": [
+												"admin",
+												"merchants"
+											],
+											"query": [
+												{
+													"key": "limit",
+													"value": "hello"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "nearby/{lat,long}",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{ACCCESS_TOKEN}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{API_URL}}/merchants/nearby/-6.175110,106.865036",
+											"host": [
+												"{{API_URL}}"
+											],
+											"path": [
+												"merchants",
+												"nearby",
+												"-6.175110,106.865036"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "/{merchantId}/items - Add Product",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{ACCCESS_TOKEN}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"name\": \"{{$randomProductName}}\",\n    \"productCategory\": \"Snack\",\n    \"price\": {{$randomInt}},\n    \"imageUrl\": \"https://example.com/images/trail-mix.jpg\"\n  }",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{API_URL}}/admin/merchants/ae04d986-e3c4-4e72-9941-520bf608fc86/items",
+											"host": [
+												"{{API_URL}}"
+											],
+											"path": [
+												"admin",
+												"merchants",
+												"ae04d986-e3c4-4e72-9941-520bf608fc86",
+												"items"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "/register",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.token) {",
+											"    pm.environment.set(\"ACCCESS_TOKEN\", responseData.token);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{$randomEmail}}\",\n    \"username\": \"{{$randomUserName}}\",\n    \"password\": \"{{PASSWORD}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/admin/register",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"admin",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Parse the JSON response",
+											"var responseData = pm.response.json();",
+											"// Check if the access token is in the response and set it as an environment variable",
+											"if (responseData.token) {",
+											"    pm.environment.set(\"ACCCESS_TOKEN\", responseData.token);",
+											"} else {",
+											"    console.log(\"Access token not found in the response.\");",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"username\":\"Lorjaan4776\",\"password\":\"ARrs6brxKQ\"}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/admin/login",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"admin",
+										"login"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
