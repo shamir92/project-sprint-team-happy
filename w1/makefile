@@ -25,3 +25,7 @@ run-migrate-drop-force:
 PHONY: build/api
 build/api: 
 	GOOS=linux GOARCH=amd64 go build -o ${BIN_DIR}/api ./main.go 
+
+PHONY: server/start
+server/start: 
+	go run ./main.go

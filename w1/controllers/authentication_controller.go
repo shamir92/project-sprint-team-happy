@@ -43,7 +43,6 @@ func Login(c *gin.Context) {
 	if err != nil {
 		c.JSON(404, gin.H{
 			"message": "user not found",
-			"data":    gin.H{},
 		})
 		return
 	}
@@ -52,7 +51,6 @@ func Login(c *gin.Context) {
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message": "email and password does not same",
-			"data":    gin.H{},
 		})
 		return
 	}
@@ -86,6 +84,7 @@ func Register(c *gin.Context) {
 	}{}
 
 	if err := c.BindJSON(&reqBody); err != nil {
+		handleError(c, err)
 		return
 	}
 

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"gin-mvc/internal"
-	"log"
 	"net/http"
 	"time"
 
@@ -86,7 +85,7 @@ type MatchAnswerIn struct {
 func MatchAll(userID string) ([]MatchInfo, error) {
 	db := internal.GetDB()
 
-	var matches []MatchInfo
+	var matches []MatchInfo = []MatchInfo{}
 	rows, err := db.Queryx(`
 			SELECT
 				m.id,
@@ -127,7 +126,6 @@ func MatchAll(userID string) ([]MatchInfo, error) {
 	`, userID)
 
 	if err != nil {
-		log.Fatalln(err)
 		return matches, err
 	}
 
@@ -166,7 +164,6 @@ func MatchAll(userID string) ([]MatchInfo, error) {
 			&match.CreatedAt,
 		)
 		if err != nil {
-			log.Fatalln(err)
 			return []MatchInfo{}, err
 		}
 

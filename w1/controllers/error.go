@@ -18,7 +18,7 @@ type httpStatusCodeProvider interface {
 func handleError(c *gin.Context, err error) {
 	code := http.StatusInternalServerError
 	message := err.Error()
-
+	
 	// go-validator
 	if validationErrors, ok := err.(validator.ValidationErrors); ok && len(validationErrors) > 0 {
 		code = http.StatusBadRequest

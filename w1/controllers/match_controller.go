@@ -50,7 +50,6 @@ func MatchCreate(c *gin.Context) {
 	if err != nil {
 		c.JSON(statusCode, gin.H{
 			"message": err.Error(),
-			"data":    gin.H{},
 		})
 		return
 	}
